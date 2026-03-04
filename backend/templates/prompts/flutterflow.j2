@@ -1,0 +1,259 @@
+{# ============================================================
+   Ide/AI — FlutterFlow Prompt Kit
+   Generated for: {{ problem | default("Untitled Project") }}
+   Platform: FlutterFlow
+   ============================================================ #}
+
+# FlutterFlow Build Kit — {{ problem }}
+
+---
+
+## 1. System Context
+
+You are helping me build a mobile application in FlutterFlow.
+
+- **App Name:** {{ problem }}
+- **Target Users:** {{ audience }}
+- **Core Purpose:** {{ problem }}
+- **Tone / Brand Feel:** {{ tone | default("Clean and modern") }}
+{% if tech_constraints %}
+- **Technical Constraints:** {{ tech_constraints }}
+{% endif %}
+{% if success_metric %}
+- **Success Metric:** {{ success_metric }}
+{% endif %}
+
+This app is designed for **{{ audience }}** and should prioritize usability, clarity, and a {{ tone | default("clean") }} visual style throughout.
+
+---
+
+## 2. App Description
+
+### Problem Being Solved
+{{ problem }}
+
+### Target User Profile
+{{ audience }}
+
+### MVP Definition
+{{ mvp }}
+
+### Full Feature List
+{% for feature in features %}
+{{ loop.index }}. {{ feature }}
+{% endfor %}
+
+### User Journey (Happy Path)
+1. User opens the app and sees the onboarding / splash screen.
+2. User signs up or logs in (if authentication is required).
+3. User lands on the main dashboard showing key information related to: {{ problem }}.
+{% for block in blocks if block.is_mvp %}
+{{ loop.index + 3 }}. User navigates to **{{ block.name }}** — {{ block.description }}
+{% endfor %}
+{{ (blocks | selectattr("is_mvp") | list | length) + 4 }}. User completes their primary task and receives confirmation or feedback.
+
+---
+
+## 3. Screen List
+
+Build the following screens in FlutterFlow. Screens are listed in build order — MVP screens first.
+
+### MVP Screens (Build First)
+
+| # | Screen Name | Description | Nav Type | Priority |
+|---|------------|-------------|----------|----------|
+| 1 | SplashScreen | App logo, brief loading animation | Entry point | High |
+| 2 | OnboardingFlow | 2-3 slides explaining value prop for {{ audience }} | PageView | High |
+| 3 | LoginScreen | Email/password + social auth options | Auth flow | High |
+| 4 | RegisterScreen | Sign-up form with basic profile fields | Auth flow | High |
+| 5 | HomeScreen | Main dashboard — overview of core data | BottomNav | High |
+{% set mvp_counter = namespace(value=6) %}
+{% for block in blocks if block.is_mvp %}
+| {{ mvp_counter.value }} | {{ block.name | replace(" ", "") }}Screen | {{ block.description }} | {% if block.category | default("feature") == "data" %}BottomNav{% else %}Push{% endif %} | {{ block.priority | default("High") }} |
+{% set mvp_counter.value = mvp_counter.value + 1 %}
+{% endfor %}
+
+### Post-MVP Screens
+
+| # | Screen Name | Description | Nav Type | Priority |
+|---|------------|-------------|----------|----------|
+{% set v2_counter = namespace(value=1) %}
+{% for block in blocks if not block.is_mvp %}
+| {{ v2_counter.value }} | {{ block.name | replace(" ", "") }}Screen | {{ block.description }} | Push | {{ block.priority | default("Medium") }} |
+{% set v2_counter.value = v2_counter.value + 1 %}
+{% endfor %}
+| — | SettingsScreen | User preferences, account management, logout | Push | Medium |
+| — | ProfileScreen | View and edit user profile | Push | Medium |
+
+### Navigation Structure
+```
+BottomNavigationBar:
+  - Home (HomeScreen)
+{% for block in blocks if block.is_mvp %}
+  - {{ block.name }} ({{ block.name | replace(" ", "") }}Screen)
+{% endfor %}
+  - Profile (ProfileScreen)
+```
+
+---
+
+## 4. Firebase Collections
+
+Set up the following Firestore collections. All collections should have standard security rules — authenticated users can read/write their own data only unless noted.
+
+### Collection: `users`
+```
+users/{userId}
+  email: string
+  displayName: string
+  avatarUrl: string
+  createdAt: timestamp
+  updatedAt: timestamp
+  role: string          // "user" | "admin"
+  onboardingComplete: boolean
+  preferences: map
+    notifications: boolean
+    theme: string     // "light" | "dark" | "system"
+```
+
+{% for block in blocks %}
+### Collection: `{{ block.name | lower | replace(" ", "_") }}`
+```
+{{ block.name | lower | replace(" ", "_") }}/{docId}
+  title: string
+  description: string
+  status: string        // "active" | "draft" | "archived"
+  ownerId: string       // Reference to users/{userId}
+  createdAt: timestamp
+  updatedAt: timestamp
+{% if block.category | default("feature") == "data" %}
+  data: map
+    // Custom fields specific to {{ block.name }}
+  tags: array<string>
+{% endif %}
+{% if block.priority | default("medium") == "high" %}
+  priority: number      // 1 = highest
+{% endif %}
+  metadata: map
+    source: string
+```
+
+{% endfor %}
+
+### Firestore Security Rules (Starter)
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.uid == userId;
+    }
+
+{% for block in blocks %}
+    match /{{ block.name | lower | replace(" ", "_") }}/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null
+        && resource.data.ownerId == request.auth.uid;
+    }
+
+{% endfor %}
+  }
+}
+```
+
+---
+
+## 5. State Management
+
+### App State Variables
+Define these in FlutterFlow's App State section:
+
+| Variable Name | Type | Default | Persisted | Purpose |
+|--------------|------|---------|-----------|---------|
+| currentUser | DocumentReference | null | No | Reference to logged-in user doc |
+| isOnboarded | bool | false | Yes | Track onboarding completion |
+| selectedTabIndex | int | 0 | No | Bottom nav current tab |
+{% for block in blocks if block.is_mvp %}
+| {{ block.name | lower | replace(" ", "") }}List | List<JSON> | [] | No | Cached {{ block.name }} items |
+{% endfor %}
+| isLoading | bool | false | No | Global loading indicator |
+| appTheme | String | "system" | Yes | User theme preference |
+
+### Page-Level State
+Each screen with forms or interactive elements should maintain local page state for:
+- Form field values (text controllers)
+- Validation error messages
+- Loading states for async operations
+- Pagination cursors for list views
+
+### Recommended State Patterns
+- Use **Firestore queries** with real-time listeners on list screens for live updates.
+- Use **App State** for data that needs to persist across screen navigation within a session.
+- Use **Page State** for ephemeral UI state (form inputs, toggles, local filters).
+- Cache frequently accessed data in App State to reduce Firestore reads.
+
+---
+
+## 6. First Task — Create the Main Scaffold
+
+### Step 1: Set Up the Home Screen Scaffold
+
+In FlutterFlow, create the **HomeScreen** with the following layout:
+
+**AppBar:**
+- Title: "{{ problem }}" (or a short app name)
+- Leading: User avatar (circular image from `currentUser.avatarUrl`)
+- Trailing: Notification bell icon with badge
+
+**Body — Column Layout:**
+1. **Welcome Banner**
+   - Text: "Welcome back, {userName}" — bind to App State `currentUser.displayName`
+   - Subtitle summarizing today's relevant data
+
+2. **Quick Stats Row**
+   - Row of 3 stat cards showing key metrics related to {{ problem }}
+{% for block in blocks if block.is_mvp %}
+{% if loop.index <= 3 %}
+   - Card {{ loop.index }}: {{ block.name }} count or summary
+{% endif %}
+{% endfor %}
+
+3. **Primary Action Button**
+   - Prominent button for the most common user action
+   - Style: Filled, full-width, {{ tone | default("brand color") }}
+
+4. **Recent Activity List**
+   - ListView showing the 5 most recent items across all collections
+   - Each item: icon, title, timestamp, status chip
+   - "See All" link at the bottom
+
+5. **MVP Feature Section**
+{% for block in blocks if block.is_mvp %}
+   - **{{ block.name }} Card:** Quick access with summary + navigate to {{ block.name | replace(" ", "") }}Screen
+{% endfor %}
+
+**BottomNavigationBar:**
+- Home (filled icon when active)
+{% for block in blocks if block.is_mvp %}
+- {{ block.name }} (outline icon)
+{% endfor %}
+- Profile (outline icon)
+
+### Step 2: Connect Data
+- Set up a Firestore query on HomeScreen load to fetch the current user's data.
+- Bind welcome text to user document fields.
+- Set up list queries with `orderBy: updatedAt desc`, `limit: 5` for the activity list.
+
+### Step 3: Responsive Considerations
+- Use FlutterFlow's responsive visibility to adjust layout on tablet vs phone.
+- Ensure all text scales appropriately — avoid fixed font sizes below 14sp.
+- Test on both iOS and Android preview modes.
+
+**After completing HomeScreen, proceed to build each MVP screen in the order listed in Section 3.**
+
+---
+
+*Generated by Ide/AI — Use this as your FlutterFlow build plan and AI assistant reference.*

@@ -1,0 +1,34 @@
+/**
+ * globals.css — Ide/AI design system tokens (Tailwind CSS v4 format).
+ * Defines colors, fonts, and base styles for the dark glassmorphism theme.
+ */
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0d0d12;
+  --color-surface: #13131a;
+  --color-accent: #00E5FF;
+  --color-accent-dim: rgba(0, 229, 255, 0.15);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-text-primary: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.5);
+  --radius-card: 12px;
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+::selection {
+  background: rgba(0, 229, 255, 0.2);
+}

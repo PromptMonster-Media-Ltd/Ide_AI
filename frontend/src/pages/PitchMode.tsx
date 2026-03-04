@@ -1,0 +1,121 @@
+/**
+ * PitchMode — Clean pitch document with public sharing controls.
+ * @module pages/PitchMode
+ */
+import { useCallback, useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { Sidebar } from '../components/layout/Sidebar'
+import { TopBar } from '../components/layout/TopBar'
+import { Button } from '../components/ui/Button'
+import { Badge } from '../components/ui/Badge'
+import apiClient from '../lib/apiClient'
+
+interface SheetData {
+  problem?: string
+  audience?: string
+  mvp?: string
+  features?: Array<{ name: string; description?: string; priority?: string }>
+  platform?: string
+  tone?: string
+  confidence_score?: number
+}
+
+export function PitchMode() {
+  const { projectId } = useParams<{ projectId: string }>()
+  const [sheet, setSheet] = useState<SheetData | null>(null)
+  const [blocks, setBlocks] = useState<Array<{ name: string; description: string; priority: string }>>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchData = useCallback(async () => {
+    if (!projectId) return
+    try {
+      const [sheetRes, blocksRes] = await Promise.all([
+        apiClient.get(`/design-sheet/${projectId}`),
+        apiClient.get(`/projects/${projectId}/blocks`),
+      ])
+      setSheet(sheetRes.data)
+      setBlocks(blocksRes.data.filter((b: { priority: string }) => b.priority === 'mvp').slice(0, 5))
+    } catch (err) {
+      console.error('Failed to load pitch data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [projectId])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  const handlePrint = () => window.print()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex">
+        <Sidebar projectId={projectId} />
+        <div className="ml-16 flex-1 flex items-center justify-center">
+          <p className="text-text-muted">Loading pitch...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      <Sidebar projectId={projectId} />
+      <div className="ml-16 flex-1 flex flex-col h-screen">
+        <TopBar title="Pitch Mode" subtitle="Shareable project brief">
+          <Button variant="secondary" onClick={handlePrint}>Print / PDF</Button>
+        </TopBar>
+
+        {/* Pitch Document */}
+        <div className="flex-1 overflow-y-auto flex justify-center p-8 print:p-0">
+          <article className="w-full max-w-2xl bg-surface border border-border rounded-xl p-10 print:border-none print:bg-white print:text-black">
+            <h1 className="text-3xl font-bold text-white print:text-black mb-2">
+              Product Brief
+            </h1>
+            <div className="flex items-center gap-2 mb-8">
+              {sheet?.platform && <Badge variant="accent">{sheet.platform}</Badge>}
+              {sheet?.confidence_score != null && (
+                <Badge variant="success">{sheet.confidence_score}% confidence</Badge>
+              )}
+            </div>
+
+            <section className="mb-8">
+              <h2 className="text-sm font-semibold text-accent uppercase tracking-wider mb-2">Value Proposition</h2>
+              <p className="text-white print:text-black leading-relaxed">{sheet?.problem || 'Not yet defined'}</p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-sm font-semibold text-accent uppercase tracking-wider mb-2">Target Audience</h2>
+              <p className="text-white print:text-black leading-relaxed">{sheet?.audience || 'Not yet defined'}</p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-sm font-semibold text-accent uppercase tracking-wider mb-2">MVP Scope</h2>
+              <p className="text-white print:text-black leading-relaxed">{sheet?.mvp || 'Not yet defined'}</p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-sm font-semibold text-accent uppercase tracking-wider mb-2">Key Features</h2>
+              <div className="space-y-3">
+                {blocks.length > 0 ? blocks.map((b, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-accent/20 text-accent text-xs flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                    <div>
+                      <h3 className="text-sm font-semibold text-white print:text-black">{b.name}</h3>
+                      <p className="text-xs text-text-muted print:text-gray-600">{b.description}</p>
+                    </div>
+                  </div>
+                )) : (
+                  <p className="text-text-muted text-sm">Generate blocks to see features here.</p>
+                )}
+              </div>
+            </section>
+
+            <footer className="border-t border-border pt-4 mt-8">
+              <p className="text-xs text-text-muted print:text-gray-400 italic">Generated by Ide/AI</p>
+            </footer>
+          </article>
+        </div>
+      </div>
+    </div>
+  )
+}

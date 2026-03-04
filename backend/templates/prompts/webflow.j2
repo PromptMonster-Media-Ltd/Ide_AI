@@ -1,0 +1,186 @@
+{# ============================================================
+   Ide/AI — Webflow Prompt Kit
+   Generated for: {{ problem | default("Untitled Project") }}
+   Platform: Webflow
+   ============================================================ #}
+
+# Webflow Build Kit — {{ problem }}
+
+---
+
+## 1. System Context
+
+You are helping me build a Webflow website for the following product.
+
+- **App / Product Name:** {{ problem }}
+- **Target Audience:** {{ audience }}
+- **Core Purpose:** Build a {{ tone | default("professional") }} web experience that solves: {{ problem }}
+{% if tech_constraints %}
+- **Technical Constraints:** {{ tech_constraints }}
+{% endif %}
+{% if success_metric %}
+- **Success Metric:** {{ success_metric }}
+{% endif %}
+
+---
+
+## 2. App Description
+
+### Problem Statement
+{{ problem }}
+
+### Who Is This For?
+{{ audience }}
+
+### MVP Scope
+{{ mvp }}
+
+### Core Features
+{% for feature in features %}
+- {{ feature }}
+{% endfor %}
+
+### User Flow Summary
+A visitor arrives on the landing page, understands the value proposition for **{{ audience }}**, and can {% if blocks | selectattr("is_mvp") | list %}interact with the following MVP features:
+{% for block in blocks if block.is_mvp %}
+  - {{ block.name }}: {{ block.description }}
+{% endfor %}
+{% else %}explore the product and take a primary conversion action.{% endif %}
+
+---
+
+## 3. Page Structure
+
+Based on the feature blocks, create the following pages in Webflow:
+
+| Page Name | Purpose | Priority | Notes |
+|-----------|---------|----------|-------|
+| Home / Landing | Hero, value prop, CTA for {{ audience }} | High | Above-the-fold must communicate: {{ problem }} |
+{% for block in blocks %}
+| {{ block.name }} | {{ block.description }} | {{ block.priority | default("Medium") }} | {% if block.is_mvp %}MVP — build first{% else %}Post-launch{% endif %} |
+{% endfor %}
+| 404 | Custom error page | Low | Keep on-brand with {{ tone | default("professional") }} tone |
+
+### Suggested Navigation
+```
+Header Nav:
+{% for block in blocks if block.is_mvp %}
+  - {{ block.name }}
+{% endfor %}
+  - CTA Button (primary action)
+
+Footer Nav:
+  - About
+  - Contact
+{% for block in blocks if not block.is_mvp %}
+  - {{ block.name }}
+{% endfor %}
+```
+
+---
+
+## 4. CMS Collections
+
+Set up the following CMS Collections in Webflow to manage dynamic content:
+
+### Collection: Features
+| Field Name | Field Type | Notes |
+|------------|-----------|-------|
+| Name | Plain Text | Feature title |
+| Description | Rich Text | Detailed explanation |
+| Icon | Image | Visual identifier |
+| Priority | Option (High/Medium/Low) | For sorting |
+| Is MVP | Switch | Filter for launch scope |
+
+{% for block in blocks %}
+{% if block.category | default("feature") == "data" or block.effort | default("medium") == "high" %}
+### Collection: {{ block.name | replace(" ", "") }}Items
+| Field Name | Field Type | Notes |
+|------------|-----------|-------|
+| Title | Plain Text | {{ block.name }} item name |
+| Slug | Auto-generated | URL-friendly identifier |
+| Description | Rich Text | Details |
+| Status | Option | Active / Draft / Archived |
+| Created Date | Date | For sorting |
+| Featured Image | Image | Visual content |
+| Category | Reference | Link to Categories collection if needed |
+
+{% endif %}
+{% endfor %}
+
+### Collection: Testimonials
+| Field Name | Field Type | Notes |
+|------------|-----------|-------|
+| Author Name | Plain Text | Customer name |
+| Role / Company | Plain Text | Credibility line |
+| Quote | Plain Text | The testimonial text |
+| Avatar | Image | Author photo |
+| Rating | Number | 1-5 star rating |
+
+---
+
+## 5. Design Constraints
+
+### Tone & Style
+- **Overall Tone:** {{ tone | default("Professional and trustworthy") }}
+- **Target Audience Expectations:** Design must resonate with {{ audience }}
+- The visual language should communicate that this product solves: {{ problem }}
+
+### Responsive Requirements
+- All pages must be fully responsive across Desktop, Tablet, Mobile Landscape, and Mobile Portrait breakpoints.
+- Mobile-first content hierarchy: ensure the core value prop and primary CTA are visible without scrolling on mobile.
+- Touch targets must be at least 44x44px on mobile breakpoints.
+- Images should use Webflow's responsive image settings for performance.
+
+### Interaction & Animation Guidelines
+- Use subtle scroll-triggered animations for section reveals (Webflow Interactions 2.0).
+- Keep page load animations under 500ms to avoid perceived slowness.
+- Hover states on all interactive elements (buttons, cards, links).
+- Avoid auto-playing video or heavy animations on mobile.
+
+### Typography & Spacing
+- Limit to 2 typefaces maximum (one heading, one body).
+- Maintain a consistent spacing scale (8px base grid recommended).
+- Ensure text contrast meets WCAG AA standards (4.5:1 minimum for body text).
+
+---
+
+## 6. First Task — Start Here
+
+### Build the Landing Page
+
+Create the **Home / Landing Page** in Webflow with the following sections, top to bottom:
+
+1. **Hero Section**
+   - Headline that communicates the core value: solving {{ problem }} for {{ audience }}
+   - Subheadline with supporting detail from the MVP description: {{ mvp }}
+   - Primary CTA button
+   - Hero image or illustration placeholder
+
+2. **Problem / Solution Section**
+   - Describe the pain point {{ audience }} faces
+   - Show how this product addresses it
+
+3. **Feature Highlights**
+{% for block in blocks if block.is_mvp %}
+   - **{{ block.name }}:** {{ block.description }}
+{% endfor %}
+
+4. **Social Proof Section**
+   - Testimonials CMS collection list (connect to Testimonials collection)
+   - Trust badges or partner logos if available
+
+5. **CTA Section**
+   - Repeat the primary call-to-action
+   - Brief urgency or benefit statement
+
+6. **Footer**
+   - Navigation links
+   - Contact information
+   - Copyright
+
+**After completing the landing page, move on to building individual pages for each MVP feature block in priority order.**
+
+---
+
+*Generated by Ide/AI — Paste this into your Webflow AI assistant or use it as a build reference.*

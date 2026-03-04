@@ -1,0 +1,51 @@
+/**
+ * ChatThread — Scrollable message list for AI conversation.
+ * @module components/discovery/ChatThread
+ */
+import { useEffect, useRef } from 'react'
+
+interface Message {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+interface ChatThreadProps {
+  messages: Message[]
+  streamingContent?: string
+}
+
+export function ChatThread({ messages, streamingContent }: ChatThreadProps) {
+  const endRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, streamingContent])
+
+  return (
+    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      {messages.map((msg, i) => (
+        <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div
+            className={`max-w-[80%] rounded-xl px-4 py-3 text-sm leading-relaxed ${
+              msg.role === 'user'
+                ? 'bg-accent/15 text-white border border-accent/20'
+                : 'bg-surface border border-border text-white'
+            }`}
+          >
+            <p className="whitespace-pre-wrap">{msg.content}</p>
+          </div>
+        </div>
+      ))}
+
+      {streamingContent && (
+        <div className="flex justify-start">
+          <div className="max-w-[80%] rounded-xl px-4 py-3 text-sm leading-relaxed bg-surface border border-border text-white">
+            <p className="whitespace-pre-wrap">{streamingContent}<span className="animate-pulse text-accent">|</span></p>
+          </div>
+        </div>
+      )}
+
+      <div ref={endRef} />
+    </div>
+  )
+}

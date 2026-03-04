@@ -1,0 +1,29 @@
+"""
+session.py — Pydantic v2 schemas for Discovery Session and message payloads.
+"""
+import uuid
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict
+
+
+class SessionCreate(BaseModel):
+    """Schema for starting a new discovery session."""
+    project_id: uuid.UUID
+
+
+class SessionRead(BaseModel):
+    """Schema for session response."""
+    id: uuid.UUID
+    project_id: uuid.UUID
+    status: str
+    stage: str
+    messages: list = []
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MessagePayload(BaseModel):
+    """Schema for sending a message in a discovery session."""
+    content: str

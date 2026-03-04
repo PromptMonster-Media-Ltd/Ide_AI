@@ -1,0 +1,27 @@
+{# bubble.j2 — Prompt kit template for Bubble.io platform #}
+# {{ platform | default("Bubble") }} Prompt Kit
+
+## System Context
+You are building a {{ platform | default("Bubble") }} application that solves: {{ problem }}
+Target audience: {{ audience }}
+
+## App Description
+{{ mvp }}
+
+## Feature List
+{% for block in blocks %}
+- **{{ block.name }}** ({{ block.priority | upper }}, Effort: {{ block.effort }}) — {{ block.description }}
+{% endfor %}
+
+## Data Model
+Based on the features above, create the following data types in Bubble:
+{% for block in blocks %}{% if block.is_mvp %}
+- {{ block.name | replace(' ', '') }}Type: Store data for {{ block.description }}
+{% endif %}{% endfor %}
+
+## Constraints
+{{ tech_constraints if tech_constraints else "No specific constraints" }}
+Tone: {{ tone }}
+
+## First Task
+Start by creating the main data types and the landing page with {{ blocks[0].name if blocks else "the core feature" }}.

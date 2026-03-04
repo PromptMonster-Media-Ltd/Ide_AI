@@ -1,0 +1,217 @@
+{# ============================================================
+   Ide/AI — Bolt.new Prompt Kit
+   Generated for: {{ problem | default("Untitled Project") }}
+   Platform: Bolt.new
+   ============================================================ #}
+
+# Bolt.new Build Kit — {{ problem }}
+
+---
+
+## 1. App Description
+
+Build a web application called **{{ problem }}**.
+
+**What it does:** This app helps **{{ audience }}** by providing a solution to: {{ problem }}.
+
+**MVP summary:** {{ mvp }}
+
+**Tone and feel:** {{ tone | default("Clean, modern, and professional") }}. The interface should feel intuitive and approachable for {{ audience }}.
+
+{% if tech_constraints %}
+**Technical notes:** {{ tech_constraints }}
+{% endif %}
+{% if success_metric %}
+**Success looks like:** {{ success_metric }}
+{% endif %}
+
+---
+
+## 2. Feature List
+
+### MVP Features (build these first)
+
+{% for block in blocks if block.is_mvp %}
+{{ loop.index }}. **{{ block.name }}** — {{ block.description }}
+   - Priority: {{ block.priority | default("High") }}
+   - Effort: {{ block.effort | default("Medium") }}
+   - Category: {{ block.category | default("feature") }}
+{% endfor %}
+
+### Additional Features (build after MVP)
+
+{% for block in blocks if not block.is_mvp %}
+- **{{ block.name }}** — {{ block.description }} ({{ block.priority | default("Medium") }} priority)
+{% endfor %}
+
+### Complete Feature Reference
+{% for feature in features %}
+- {{ feature }}
+{% endfor %}
+
+---
+
+## 3. Design Requirements
+
+### Visual Style
+- **Tone:** {{ tone | default("Professional and trustworthy") }}
+- **Target audience aesthetic:** Design for {{ audience }} — the interface should match their expectations and comfort level.
+- Use a clean, modern layout with generous whitespace.
+- Consistent color palette: primary brand color, neutral grays, success/error/warning accent colors.
+- Typography: sans-serif font stack, clear hierarchy between headings and body text.
+- Border radius on cards and buttons for a friendly, approachable feel.
+
+### Layout Structure
+- **Header:** App name on the left, user menu on the right, primary navigation centered or in a sidebar.
+- **Main Content Area:** Card-based layout for data items. Forms use a single-column layout for clarity.
+- **Sidebar (if applicable):** Navigation for feature blocks, collapsible on mobile.
+- **Footer:** Minimal — copyright and essential links only.
+
+### Key Pages
+1. **Landing / Dashboard** — Overview of the user's data, quick access to core features.
+{% for block in blocks if block.is_mvp %}
+{{ loop.index + 1 }}. **{{ block.name }}** — {{ block.description }}
+{% endfor %}
+{{ (blocks | selectattr("is_mvp") | list | length) + 2 }}. **Auth Pages** — Login and registration forms (if user accounts are needed).
+{{ (blocks | selectattr("is_mvp") | list | length) + 3 }}. **Settings** — User preferences and account management.
+
+### Responsive Requirements
+- Must work on desktop (1280px+), tablet (768px), and mobile (375px).
+- Navigation collapses to a hamburger menu on mobile.
+- Cards stack vertically on narrow viewports.
+- Touch-friendly tap targets (minimum 44px).
+
+---
+
+## 4. Technical Requirements
+
+### Data Model
+The app needs to store and manage the following data:
+
+**Users:**
+- email, display name, avatar, role (user/admin), creation date
+
+{% for block in blocks %}
+**{{ block.name }}:**
+- title, description, status (active/draft/archived), owner (user reference)
+{% if block.category | default("feature") == "data" %}
+- Additional structured data fields, tags
+{% endif %}
+- Timestamps (created, updated)
+
+{% endfor %}
+
+### Core Functionality
+- **CRUD Operations:** Create, read, update, and delete for each feature block.
+- **Authentication:** User registration and login with secure password handling.
+- **Authorization:** Users can only access and modify their own data.
+- **Pagination:** Lists should paginate at 20 items per page.
+- **Search / Filter:** Users should be able to search by title and filter by status.
+- **Form Validation:** Client-side validation on all input forms with clear error messages.
+- **Loading States:** Show loading indicators during data fetches.
+- **Error Handling:** Display user-friendly error messages, never raw error codes.
+
+### API Structure
+RESTful endpoints for each resource:
+{% for block in blocks %}
+- `/api/{{ block.name | lower | replace(" ", "-") }}` — CRUD for {{ block.name }}
+{% endfor %}
+- `/api/auth/login` and `/api/auth/register` — Authentication
+
+---
+
+## 5. First Prompt — Ready to Paste into Bolt.new
+
+Copy and paste the following prompt directly into Bolt.new to start building:
+
+---
+
+```
+Build a full-stack web application for {{ audience }}.
+
+## What This App Does
+{{ problem }}
+
+The MVP scope is: {{ mvp }}
+
+## Features to Build
+{% for block in blocks if block.is_mvp %}
+{{ loop.index }}. {{ block.name }}: {{ block.description }}
+{% endfor %}
+
+## Pages Needed
+- Landing page / dashboard with an overview of the user's data
+{% for block in blocks if block.is_mvp %}
+- {{ block.name }} page: {{ block.description }}
+{% endfor %}
+- Login and registration pages
+- Settings page for user preferences
+
+## Data Model
+Each user has an account with email and display name.
+{% for block in blocks if block.is_mvp %}
+{{ block.name }} items have: title, description, status (active/draft/archived), and belong to a user.
+{% endfor %}
+
+## Design
+- {{ tone | default("Clean, modern, professional") }} visual style
+- Responsive layout that works on desktop and mobile
+- Card-based UI for data items
+- Clear navigation between sections
+- Form validation with helpful error messages
+- Loading spinners during data fetches
+
+## Technical Notes
+- Use React + TypeScript for the frontend
+- Use a database for persistent storage
+- Include user authentication
+- RESTful API structure
+- Paginated lists (20 items per page)
+{% if tech_constraints %}
+- {{ tech_constraints }}
+{% endif %}
+
+Start by building the landing page with navigation to all feature sections, then implement the {{ (blocks | selectattr("is_mvp") | first).name | default("first feature") }} feature as a complete vertical slice (database, API, and UI).
+```
+
+---
+
+### Follow-Up Prompts
+
+After Bolt generates the initial app, use these follow-up prompts to refine:
+
+**Prompt 2 — Add remaining MVP features:**
+```
+Now add the remaining MVP features:
+{% for block in blocks if block.is_mvp %}
+{% if not loop.first %}
+- {{ block.name }}: {{ block.description }}. Include a list view, detail view, and create/edit form. Connect to the database with full CRUD operations.
+{% endif %}
+{% endfor %}
+Keep the same design style and code patterns as the existing features.
+```
+
+**Prompt 3 — Polish and responsive:**
+```
+Polish the app:
+1. Make sure all pages are fully responsive on mobile (375px viewport).
+2. Add loading skeletons instead of blank screens while data loads.
+3. Add empty states with helpful messages when lists have no items.
+4. Add confirmation dialogs before delete actions.
+5. Make sure all forms show validation errors inline.
+```
+
+{% if blocks | rejectattr("is_mvp") | list %}
+**Prompt 4 — V2 features:**
+```
+Add these additional features to the app:
+{% for block in blocks if not block.is_mvp %}
+- {{ block.name }}: {{ block.description }}
+{% endfor %}
+Follow the same patterns and design system already established in the codebase.
+```
+{% endif %}
+
+---
+
+*Generated by Ide/AI — Paste the First Prompt directly into Bolt.new to start building.*

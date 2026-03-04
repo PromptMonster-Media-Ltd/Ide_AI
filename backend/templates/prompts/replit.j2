@@ -1,0 +1,412 @@
+{# ============================================================
+   Ide/AI — Replit Prompt Kit
+   Generated for: {{ problem | default("Untitled Project") }}
+   Platform: Replit
+   ============================================================ #}
+
+# Replit Build Kit — {{ problem }}
+
+---
+
+## 1. Project Setup
+
+### Overview
+- **Project:** {{ problem }}
+- **Target Users:** {{ audience }}
+- **MVP:** {{ mvp }}
+- **Tone:** {{ tone | default("Professional") }}
+{% if tech_constraints %}
+- **Constraints:** {{ tech_constraints }}
+{% endif %}
+{% if success_metric %}
+- **Success Metric:** {{ success_metric }}
+{% endif %}
+
+### Recommended Replit Configuration
+
+**Language:** Python (or Node.js — choose based on your comfort level)
+
+**Framework Setup (Python):**
+```
+Framework: Flask or FastAPI
+Template Engine: Jinja2 (for server-rendered pages) or React (for SPA)
+Database: Replit's built-in PostgreSQL or SQLite for prototyping
+ORM: SQLAlchemy
+Auth: Flask-Login or custom JWT
+```
+
+**Framework Setup (Node.js):**
+```
+Framework: Express.js or Next.js
+Database: Replit's built-in PostgreSQL or SQLite via better-sqlite3
+ORM: Prisma or Drizzle
+Auth: Passport.js or custom JWT
+```
+
+### Replit-Specific Settings
+```
+# .replit file
+run = "python main.py"
+# or: run = "npm start"
+
+[env]
+DATABASE_URL = "postgresql://..."
+JWT_SECRET = "change-in-secrets"
+APP_NAME = "{{ problem }}"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "python main.py"]
+# or: run = ["sh", "-c", "npm start"]
+```
+
+### Dependencies to Install
+
+**Python:**
+```
+flask
+flask-sqlalchemy
+flask-login
+flask-cors
+python-dotenv
+gunicorn
+psycopg2-binary
+```
+
+**Node.js:**
+```
+express
+prisma
+@prisma/client
+jsonwebtoken
+bcryptjs
+cors
+dotenv
+```
+
+---
+
+## 2. Feature Specification
+
+### MVP Features — Build These First
+
+{% for block in blocks if block.is_mvp %}
+#### {{ loop.index }}. {{ block.name }}
+- **What it does:** {{ block.description }}
+- **Category:** {{ block.category | default("feature") }}
+- **Priority:** {{ block.priority | default("High") }}
+- **Effort:** {{ block.effort | default("Medium") }}
+- **Key behaviors:**
+  - Users can create, view, edit, and delete {{ block.name | lower }} items
+  - Items belong to the authenticated user (user-scoped)
+  - List view with pagination and status filtering
+  - Form validation with clear error feedback
+{% if block.category | default("feature") == "data" %}
+  - Support for structured data fields and tagging
+{% endif %}
+
+{% endfor %}
+
+### Post-MVP Features
+
+{% for block in blocks if not block.is_mvp %}
+- **{{ block.name }}:** {{ block.description }} ({{ block.priority | default("Medium") }} priority, {{ block.effort | default("Medium") }} effort)
+{% endfor %}
+
+### All Features (Reference List)
+{% for feature in features %}
+{{ loop.index }}. {{ feature }}
+{% endfor %}
+
+---
+
+## 3. Data Model
+
+### Entity Relationship Overview
+```
+Users (1) ---- has many ---- (N) {% for block in blocks %}{{ block.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+```
+
+### Database Schema
+
+**Python (SQLAlchemy) Models:**
+
+```python
+from datetime import datetime
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text, Integer, JSON
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.orm import relationship
+import uuid
+
+
+class User(db.Model):
+    __tablename__ = 'users'
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    display_name = Column(String(100))
+    role = Column(String(20), default='user')
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+{% for block in blocks %}
+    # Relationship to {{ block.name }}
+    {{ block.name | lower | replace(" ", "_") }}_items = relationship(
+        '{{ block.name | replace(" ", "") }}', backref='owner', lazy='dynamic'
+    )
+{% endfor %}
+
+{% for block in blocks %}
+
+class {{ block.name | replace(" ", "") }}(db.Model):
+    """{{ block.description }}"""
+    __tablename__ = '{{ block.name | lower | replace(" ", "_") }}'
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey('users.id'), nullable=False, index=True
+    )
+    title = Column(String(255), nullable=False)
+    description = Column(Text)
+    status = Column(String(20), default='active', index=True)
+{% if block.category | default("feature") == "data" %}
+    data_payload = Column(JSON, default={})
+    tags = Column(ARRAY(String), default=[])
+{% endif %}
+{% if block.priority | default("medium") == "high" %}
+    priority = Column(Integer, default=0)
+{% endif %}
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'title': self.title,
+            'description': self.description,
+            'status': self.status,
+{% if block.category | default("feature") == "data" %}
+            'data_payload': self.data_payload,
+            'tags': self.tags,
+{% endif %}
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat(),
+        }
+{% endfor %}
+```
+
+### SQL Migration (if not using ORM auto-create)
+
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    display_name VARCHAR(100),
+    role VARCHAR(20) DEFAULT 'user',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+{% for block in blocks %}
+CREATE TABLE {{ block.name | lower | replace(" ", "_") }} (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(20) DEFAULT 'active',
+{% if block.category | default("feature") == "data" %}
+    data_payload JSONB DEFAULT '{}',
+    tags TEXT[] DEFAULT '{}',
+{% endif %}
+{% if block.priority | default("medium") == "high" %}
+    priority INTEGER DEFAULT 0,
+{% endif %}
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+{% endfor %}
+```
+
+---
+
+## 4. UI Description
+
+### Global Layout
+```
++----------------------------------------------------+
+|  Header: App Name ("{{ problem }}")    [User Menu]  |
++----------+-----------------------------------------+
+|          |                                         |
+|  Sidebar |       Main Content Area                 |
+|  Nav     |                                         |
+|          |  +-------------------------------------+|
+|  Home    |  |  Page Title + Actions               ||
+{% for block in blocks if block.is_mvp %}
+|  {{ "%-8s" | format(block.name[:8]) }} |  |                                     ||
+{% endfor %}
+|  Settings|  |  Content (cards, tables, forms)      ||
+|          |  |                                     ||
+|          |  +-------------------------------------+|
+|          |                                         |
++----------+-----------------------------------------+
+|  Footer (minimal)                                  |
++----------------------------------------------------+
+```
+
+### Page Descriptions
+
+**Dashboard / Home:**
+- Welcome message with user's display name
+- Summary cards showing counts for each data type
+{% for block in blocks if block.is_mvp %}
+- {{ block.name }}: count of active items, link to full list
+{% endfor %}
+- Recent activity feed (last 5 items across all types)
+
+{% for block in blocks if block.is_mvp %}
+**{{ block.name }} Page:**
+- **List View:** Table or card grid of {{ block.name | lower }} items
+  - Columns: title, status, created date, actions (edit/delete)
+  - Filters: status dropdown, search by title
+  - Pagination: 20 items per page
+- **Create/Edit Form:** Modal or separate page
+  - Fields: title (required), description (textarea), status (dropdown)
+{% if block.category | default("feature") == "data" %}
+  - Additional: data fields (dynamic), tags (multi-input)
+{% endif %}
+  - Buttons: Save, Cancel
+  - Validation: required fields highlighted, inline error messages
+- **Detail View:** Full display of a single {{ block.name | lower }} item
+  - All fields displayed in a clean card layout
+  - Edit and Delete buttons
+  - Back to list link
+
+{% endfor %}
+
+**Settings Page:**
+- Profile section: display name, email (read-only), avatar
+- Preferences: theme toggle (light/dark), notification settings
+- Account: change password, delete account (with confirmation)
+
+### Design Tokens
+- **Primary Color:** Choose based on "{{ tone | default('professional') }}" tone — blue for trust, green for growth, purple for creativity
+- **Background:** Light neutral (#f8f9fa) with white (#ffffff) cards
+- **Text:** Dark gray (#1a1a2e) for body, slightly lighter (#4a4a6a) for secondary
+- **Border Radius:** 8px for cards, 6px for buttons, 4px for inputs
+- **Spacing:** 8px base unit, consistent padding (16px card padding, 24px section gaps)
+- **Font:** System font stack — `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
+
+---
+
+## 5. Deployment Notes
+
+### Replit Deployment
+Replit handles hosting automatically. Keep these things in mind:
+
+**Environment Variables (set in Replit Secrets tab):**
+- `DATABASE_URL` — Connection string for Replit's PostgreSQL
+- `JWT_SECRET` — Random 64-character secret for token signing
+- `APP_NAME` — "{{ problem }}"
+- `FLASK_ENV` or `NODE_ENV` — Set to "production" for deployment
+
+**Performance Considerations:**
+- Use Replit's always-on feature to prevent the app from sleeping.
+- Enable Replit's built-in PostgreSQL for persistent data (SQLite will not survive restarts in some configurations).
+- Serve static files through Flask/Express directly, or set up a build step for React.
+- Keep total Repl size under 1GB for performance.
+
+**Database Initialization:**
+- Create a `setup.py` or `seed.py` script that initializes the database tables on first run.
+- Add a health check endpoint at `/api/health` that verifies the database connection.
+
+**Domain and HTTPS:**
+- Replit provides a free `.replit.app` subdomain with automatic HTTPS.
+- Custom domains can be configured in Replit's deployment settings.
+
+**Monitoring:**
+- Use Replit's built-in console for log output.
+- Add structured logging (JSON format) for easier debugging.
+- Monitor the `/api/health` endpoint for uptime tracking.
+
+---
+
+## 6. First Task — Start Building
+
+### Prompt for Replit AI Agent
+
+Paste the following into Replit's AI chat to begin:
+
+```
+Create a web application for {{ audience }}.
+
+## What This App Does
+{{ problem }}
+
+MVP: {{ mvp }}
+
+## Tech Stack
+- Python with Flask
+- SQLAlchemy ORM with PostgreSQL
+- Server-rendered HTML templates with Jinja2 (or React frontend)
+- User authentication with Flask-Login
+
+## Features to Build (MVP)
+{% for block in blocks if block.is_mvp %}
+{{ loop.index }}. {{ block.name }}: {{ block.description }}
+{% endfor %}
+
+## Data Model
+- Users table: email, password hash, display name, role, timestamps
+{% for block in blocks if block.is_mvp %}
+- {{ block.name }} table: title, description, status, user_id (foreign key), timestamps
+{% endfor %}
+
+## Pages Needed
+- Dashboard showing overview of all data
+{% for block in blocks if block.is_mvp %}
+- {{ block.name }} list, detail, and create/edit pages
+{% endfor %}
+- Login and registration pages
+- Settings page
+
+## Design
+- {{ tone | default("Clean and professional") }} style
+- Responsive layout
+- Card-based UI
+- Consistent navigation sidebar
+{% if tech_constraints %}
+
+## Technical Constraints
+{{ tech_constraints }}
+{% endif %}
+
+Start by setting up the database models and authentication system, then build the dashboard page.
+```
+
+### Build Order After Initial Setup
+
+1. **Database + Auth** — Models, migrations, login/register endpoints
+2. **Dashboard** — Home page with summary cards and navigation
+{% for block in blocks if block.is_mvp %}
+{{ loop.index + 2 }}. **{{ block.name }}** — Full CRUD: list, detail, create, edit, delete
+{% endfor %}
+{{ (blocks | selectattr("is_mvp") | list | length) + 3 }}. **Settings** — User profile and preferences
+{{ (blocks | selectattr("is_mvp") | list | length) + 4 }}. **Polish** — Error handling, loading states, empty states, responsive fixes
+{% if blocks | rejectattr("is_mvp") | list %}
+{{ (blocks | selectattr("is_mvp") | list | length) + 5 }}. **V2 Features:**
+{% for block in blocks if not block.is_mvp %}
+   - {{ block.name }}: {{ block.description }}
+{% endfor %}
+{% endif %}
+
+---
+
+*Generated by Ide/AI — Paste the First Task prompt into Replit AI to start building.*

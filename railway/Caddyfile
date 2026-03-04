@@ -1,0 +1,25 @@
+# Caddyfile — Reverse proxy for Ide/AI on Railway.
+# This is the ONLY public-facing service. Backend and frontend
+# communicate over Railway's private IPv6 network.
+#
+# Environment variables (set in Railway dashboard):
+#   FRONTEND_DOMAIN = ${{Frontend.RAILWAY_PRIVATE_DOMAIN}}
+#   FRONTEND_PORT   = ${{Frontend.PORT}}
+#   BACKEND_DOMAIN  = ${{Backend.RAILWAY_PRIVATE_DOMAIN}}
+#   BACKEND_PORT    = ${{Backend.PORT}}
+
+{
+	auto_https off
+}
+
+:{$PORT} {
+	# API requests → Backend (private network)
+	handle /api/* {
+		reverse_proxy [{$BACKEND_DOMAIN}]:{$BACKEND_PORT}
+	}
+
+	# Everything else → Frontend (private network)
+	handle {
+		reverse_proxy [{$FRONTEND_DOMAIN}]:{$FRONTEND_PORT}
+	}
+}

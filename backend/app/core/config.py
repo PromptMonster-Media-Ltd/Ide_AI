@@ -1,0 +1,24 @@
+"""
+config.py — Application settings loaded from environment variables.
+Uses pydantic-settings for typed configuration with .env file support.
+"""
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Application configuration. Reads from .env file and environment variables."""
+
+    DATABASE_URL: str
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080
+    ANTHROPIC_API_KEY: str = ""
+    CLAUDE_MODEL: str = "claude-sonnet-4-6"
+    ENVIRONMENT: str = "development"
+    CORS_ORIGINS: list[str] = ["http://localhost:5173"]
+    APP_NAME: str = "Ide/AI"
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+
+settings = Settings()
