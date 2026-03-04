@@ -4,7 +4,6 @@ dockerfilePath = "Dockerfile"
 watchPatterns = ["/backend/**"]
 
 [deploy]
-startCommand = "uvicorn app.main:app --host :: --port $PORT"
 preDeployCommand = "alembic upgrade head"
 healthcheckPath = "/api/v1/health"
 healthcheckTimeout = 120
