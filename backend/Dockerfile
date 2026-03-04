@@ -40,4 +40,4 @@ COPY . .
 ENV PORT=8000
 
 # Bind to [::] for Railway's IPv6-only private network
-CMD uvicorn app.main:app --host :: --port $PORT
+CMD ["sh", "-c", "exec uvicorn app.main:app --host :: --port ${PORT:-8000}"]
