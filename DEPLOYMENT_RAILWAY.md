@@ -80,7 +80,6 @@ Step-by-step guide to deploy Ide/AI (React frontend + FastAPI backend + PostgreS
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
 | `SECRET_KEY` | *(click "Generate" for a random 64-char string)* |
 | `ANTHROPIC_API_KEY` | `sk-ant-api03-...` *(your key)* |
-| `CORS_ORIGINS` | `["https://your-app.up.railway.app"]` |
 | `ENVIRONMENT` | `production` |
 
 > **Important:** Use the Railway variable reference syntax `${{Postgres.DATABASE_URL}}` — this automatically resolves to the private internal URL.
@@ -183,7 +182,7 @@ This service gives you a **single public domain** for the entire app. No CORS is
 | `DATABASE_URL` | Yes | — | PostgreSQL connection string (use `${{Postgres.DATABASE_URL}}`) |
 | `SECRET_KEY` | Yes | — | JWT signing secret (min 32 chars) |
 | `ANTHROPIC_API_KEY` | Yes | — | Claude API key for AI features |
-| `CORS_ORIGINS` | No | `["http://localhost:5173"]` | Allowed origins (JSON array) |
+| `CORS_ORIGINS` | No | `["http://localhost:5173"]` | Not needed with Caddy proxy (same-origin). Only set if backend is exposed directly. |
 | `ENVIRONMENT` | No | `development` | `production` or `development` |
 | `CLAUDE_MODEL` | No | `claude-sonnet-4-6` | Anthropic model to use |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | No | `10080` | JWT token lifetime (7 days) |

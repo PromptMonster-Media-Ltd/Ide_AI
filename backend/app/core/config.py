@@ -20,5 +20,18 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
+    @property
+    def async_database_url(self) -> str:
+        """Return DATABASE_URL with the asyncpg driver scheme.
+
+        Railway provides ``postgresql://...`` but SQLAlchemy's async engine
+        requires ``postgresql+asyncpg://...``. This property handles the
+        conversion automatically so the raw env var works in both environments.
+        """
+        url = self.DATABASE_URL
+        if url.startswith("postgresql://"):
+            return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return url
+
 
 settings = Settings()
