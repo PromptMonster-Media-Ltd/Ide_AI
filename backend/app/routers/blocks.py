@@ -29,7 +29,7 @@ async def _verify_project(project_id: uuid.UUID, user: User, db: AsyncSession) -
     return project
 
 
-@router.get("/", response_model=list[BlockRead])
+@router.get("", response_model=list[BlockRead])
 async def list_blocks(
     project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -43,7 +43,7 @@ async def list_blocks(
     return result.scalars().all()
 
 
-@router.post("/", response_model=BlockRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=BlockRead, status_code=status.HTTP_201_CREATED)
 async def create_block(
     project_id: uuid.UUID,
     payload: BlockCreate,

@@ -20,7 +20,7 @@ from app.services.prompt_kit_service import generate_prompt_kit
 router = APIRouter(prefix="/projects/{project_id}/prompts", tags=["prompts"])
 
 
-@router.get("/", response_model=list[PromptKitRead])
+@router.get("", response_model=list[PromptKitRead])
 async def list_prompt_kits(
     project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

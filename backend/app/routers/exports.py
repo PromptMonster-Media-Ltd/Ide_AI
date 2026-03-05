@@ -53,7 +53,7 @@ CONTENT_TYPES = {
 }
 
 
-@router.get("/")
+@router.get("")
 async def export_project(
     project_id: uuid.UUID,
     format: str = "md",

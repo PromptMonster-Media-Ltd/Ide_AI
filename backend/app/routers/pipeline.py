@@ -26,7 +26,7 @@ from app.services.pipeline_service import (
 router = APIRouter(prefix="/projects/{project_id}/pipeline", tags=["pipeline"])
 
 
-@router.get("/", response_model=dict)
+@router.get("", response_model=dict)
 async def get_pipeline(
     project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
