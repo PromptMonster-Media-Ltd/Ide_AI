@@ -43,7 +43,7 @@ export function Login() {
       >
         {/* Brand */}
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="Ide/AI" className="h-14 mx-auto mb-3" />
+          <img src="/logo.png" alt="Ide/AI" className="w-[200px] mx-auto mb-3" />
           <p className="text-text-muted text-sm">Sign in to your workspace</p>
         </div>
 
