@@ -126,7 +126,7 @@ export function Discovery() {
     <div className="h-screen bg-background flex overflow-hidden">
       <Sidebar projectId={projectId} />
 
-      <div className="ml-16 flex-1 flex flex-col min-h-0">
+      <div className="ml-[232px] flex-1 flex flex-col min-h-0">
         <TopBar title="Discovery" subtitle={`Stage: ${stage}`} />
 
         <div className="flex-1 flex min-h-0">

@@ -46,7 +46,7 @@ export function Home() {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <main className="ml-16 flex flex-col items-center justify-center min-h-screen px-6">
+      <main className="ml-[232px] flex flex-col items-center justify-center min-h-screen px-6">
         <IdeaNebulaCanvas />
 
         {/* Hero */}

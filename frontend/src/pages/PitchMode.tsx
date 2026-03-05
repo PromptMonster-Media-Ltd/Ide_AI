@@ -50,7 +50,7 @@ export function PitchMode() {
     return (
       <div className="min-h-screen bg-background flex">
         <Sidebar projectId={projectId} />
-        <div className="ml-16 flex-1 flex items-center justify-center">
+        <div className="ml-[232px] flex-1 flex items-center justify-center">
           <p className="text-text-muted">Loading pitch...</p>
         </div>
       </div>
@@ -60,7 +60,7 @@ export function PitchMode() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar projectId={projectId} />
-      <div className="ml-16 flex-1 flex flex-col h-screen">
+      <div className="ml-[232px] flex-1 flex flex-col h-screen">
         <TopBar title="Pitch Mode" subtitle="Shareable project brief">
           <Button variant="secondary" onClick={handlePrint}>Print / PDF</Button>
         </TopBar>

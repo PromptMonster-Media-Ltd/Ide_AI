@@ -16,7 +16,7 @@ export function Settings() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar />
-      <div className="ml-16 flex-1 flex flex-col h-screen">
+      <div className="ml-[232px] flex-1 flex flex-col h-screen">
         <TopBar title="Settings" subtitle="Configure your workspace" />
 
         <div className="flex-1 p-6 overflow-y-auto max-w-2xl">

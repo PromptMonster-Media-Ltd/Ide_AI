@@ -21,9 +21,9 @@ export function Sidebar({ projectId }: { projectId?: string }) {
   const location = useLocation()
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-16 hover:w-48 transition-all duration-300 bg-surface border-r border-border z-50 flex flex-col overflow-hidden group">
-      <div className="p-3 flex items-center gap-2 border-b border-border h-14">
-        <img src="/logo.png" alt="Ide/AI" className="h-8 shrink-0 object-contain" />
+    <aside className="fixed left-0 top-0 h-screen w-[232px] transition-all duration-300 bg-surface border-r border-border z-50 flex flex-col overflow-hidden group">
+      <div className="px-4 py-3 flex items-center border-b border-border">
+        <img src="/logo.png" alt="Ide/AI" className="w-[200px] object-contain" />
       </div>
 
       <nav className="flex-1 py-4 flex flex-col gap-1">
@@ -38,7 +38,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
             }`}
           >
             <span className="shrink-0 text-base">{item.icon}</span>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{item.label}</span>
+            <span className="whitespace-nowrap">{item.label}</span>
           </Link>
         ))}
 
@@ -56,7 +56,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
                 }`}
               >
                 <span className="shrink-0 text-base">{item.icon}</span>
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{item.label}</span>
+                <span className="whitespace-nowrap">{item.label}</span>
               </Link>
             ))}
           </>
