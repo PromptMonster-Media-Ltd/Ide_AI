@@ -6,9 +6,11 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.models.project import Project
 from app.models.user import User
 from app.routers.auth import get_current_user
 from app.schemas.session import MessagePayload, SessionCreate, SessionRead
@@ -25,6 +27,13 @@ async def start_session(
     db: AsyncSession = Depends(get_db),
 ):
     """Start a new discovery session for a project."""
+    # Verify project ownership
+    proj_result = await db.execute(
+        select(Project).where(Project.id == payload.project_id, Project.user_id == current_user.id)
+    )
+    if not proj_result.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
     try:
         session = await discovery_service.create_session(db, payload.project_id)
     except ValueError as e:
@@ -43,6 +52,13 @@ async def send_message(
     session = await discovery_service.get_session(db, session_id)
     if not session:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    # Verify project ownership
+    proj_result = await db.execute(
+        select(Project).where(Project.id == session.project_id, Project.user_id == current_user.id)
+    )
+    if not proj_result.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
     if session.status != "active":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session is not active")
@@ -64,8 +80,6 @@ async def send_message(
         }
 
     # Build system prompt
-    from app.models.project import Project
-    from sqlalchemy import select
     proj_result = await db.execute(select(Project).where(Project.id == session.project_id))
     project = proj_result.scalar_one_or_none()
     platform = project.platform if project else "custom"
@@ -128,6 +142,14 @@ async def get_session(
     session = await discovery_service.get_session(db, session_id)
     if not session:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    # Verify project ownership
+    proj_result = await db.execute(
+        select(Project).where(Project.id == session.project_id, Project.user_id == current_user.id)
+    )
+    if not proj_result.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
     return session
 
 
@@ -141,6 +163,13 @@ async def get_sheet(
     session = await discovery_service.get_session(db, session_id)
     if not session:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    # Verify project ownership
+    proj_result = await db.execute(
+        select(Project).where(Project.id == session.project_id, Project.user_id == current_user.id)
+    )
+    if not proj_result.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
     sheet = await discovery_service.get_sheet_for_project(db, session.project_id)
     if not sheet:

@@ -27,6 +27,13 @@ async def list_prompt_kits(
     db: AsyncSession = Depends(get_db),
 ):
     """Get all prompt kits for a project."""
+    # Verify project ownership
+    proj_result = await db.execute(
+        select(Project).where(Project.id == project_id, Project.user_id == current_user.id)
+    )
+    if not proj_result.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
     result = await db.execute(
         select(PromptKit)
         .where(PromptKit.project_id == project_id)
@@ -95,6 +102,13 @@ async def rewrite_prompt(
     db: AsyncSession = Depends(get_db),
 ):
     """Regenerate a prompt kit with a new version."""
+    # Verify project ownership
+    proj_result = await db.execute(
+        select(Project).where(Project.id == project_id, Project.user_id == current_user.id)
+    )
+    if not proj_result.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
     result = await db.execute(
         select(PromptKit).where(PromptKit.id == prompt_id, PromptKit.project_id == project_id)
     )
@@ -107,6 +121,8 @@ async def rewrite_prompt(
         select(DesignSheet).where(DesignSheet.project_id == project_id)
     )
     sheet = sheet_result.scalar_one_or_none()
+    if not sheet:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Design sheet not found")
     blocks_result = await db.execute(
         select(Block).where(Block.project_id == project_id).order_by(Block.order)
     )

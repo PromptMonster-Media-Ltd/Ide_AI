@@ -80,7 +80,7 @@ export function Pipeline() {
 
   const LAYER_LABELS: Record<string, string> = {
     frontend: 'Frontend', backend: 'Backend', database: 'Database',
-    automations: 'Automations', ai_agents: 'AI / Agents', analytics: 'Analytics', deployment: 'Deployment',
+    auth: 'Auth', hosting: 'Hosting', ai: 'AI',
   }
 
   return (

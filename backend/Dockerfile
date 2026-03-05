@@ -39,5 +39,5 @@ COPY . .
 # Railway injects $PORT at runtime
 ENV PORT=8000
 
-# Bind to [::] for Railway's IPv6-only private network
+# Bind to 0.0.0.0 (all IPv4 interfaces) — Railway maps $PORT automatically
 CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

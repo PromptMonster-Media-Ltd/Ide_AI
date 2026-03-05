@@ -94,6 +94,13 @@ async def update_pipeline_layer(
     db: AsyncSession = Depends(get_db),
 ):
     """Update a specific pipeline layer's tool selection."""
+    # Verify project ownership
+    proj_result = await db.execute(
+        select(Project).where(Project.id == project_id, Project.user_id == current_user.id)
+    )
+    if not proj_result.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
     result = await db.execute(
         select(PipelineNode).where(
             PipelineNode.project_id == project_id, PipelineNode.layer == layer
@@ -119,6 +126,13 @@ async def generate_ui_skeleton(
     db: AsyncSession = Depends(get_db),
 ):
     """Generate a UI skeleton screen list from the design sheet."""
+    # Verify project ownership
+    proj_result = await db.execute(
+        select(Project).where(Project.id == project_id, Project.user_id == current_user.id)
+    )
+    if not proj_result.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
     sheet_result = await db.execute(
         select(DesignSheet).where(DesignSheet.project_id == project_id)
     )
