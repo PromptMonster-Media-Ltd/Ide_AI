@@ -15,11 +15,11 @@
 :{$PORT} {
 	# API requests → Backend (private network)
 	handle /api/* {
-		reverse_proxy [{$BACKEND_DOMAIN}]:{$BACKEND_PORT}
+		reverse_proxy {$BACKEND_DOMAIN}:{$BACKEND_PORT}
 	}
 
 	# Everything else → Frontend (private network)
 	handle {
-		reverse_proxy [{$FRONTEND_DOMAIN}]:{$FRONTEND_PORT}
+		reverse_proxy {$FRONTEND_DOMAIN}:{$FRONTEND_PORT}
 	}
 }
