@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import apiClient from '../lib/apiClient'
+import { extractError } from '../lib/extractError'
 
 export function Login() {
   const navigate = useNavigate()
@@ -26,10 +27,7 @@ export function Login() {
       localStorage.setItem('token', data.access_token)
       navigate('/')
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        'Login failed. Please check your credentials.'
-      setError(msg)
+      setError(extractError(err, 'Login failed. Please check your credentials.'))
     } finally {
       setLoading(false)
     }

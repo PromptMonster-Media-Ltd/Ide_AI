@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import apiClient from '../lib/apiClient'
+import { extractError } from '../lib/extractError'
 
 export function Register() {
   const navigate = useNavigate()
@@ -41,10 +42,7 @@ export function Register() {
       localStorage.setItem('token', data.access_token)
       navigate('/')
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        'Registration failed. Please try again.'
-      setError(msg)
+      setError(extractError(err, 'Registration failed. Please try again.'))
     } finally {
       setLoading(false)
     }
