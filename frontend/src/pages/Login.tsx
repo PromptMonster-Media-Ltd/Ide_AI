@@ -43,10 +43,8 @@ export function Login() {
       >
         {/* Brand */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">
-            Ide<span className="text-accent">/</span>AI
-          </h1>
-          <p className="text-text-muted text-sm mt-2">Sign in to your workspace</p>
+          <img src="/logo.png" alt="Ide/AI" className="h-14 mx-auto mb-3" />
+          <p className="text-text-muted text-sm">Sign in to your workspace</p>
         </div>
 
         <Card glow>

@@ -41,6 +41,64 @@ async def start_session(
     return session
 
 
+@router.post("/{session_id}/init")
+async def init_greeting(
+    session_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate the AI's opening greeting for a discovery session. No user message needed."""
+    session = await discovery_service.get_session(db, session_id)
+    if not session:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    # Verify project ownership
+    proj_result = await db.execute(
+        select(Project).where(Project.id == session.project_id, Project.user_id == current_user.id)
+    )
+    project = proj_result.scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+    if session.status != "active":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session is not active")
+
+    # Don't re-init if session already has messages
+    if session.messages and len(session.messages) > 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session already initialized")
+
+    # Build greeting prompt with project context
+    system_prompt = await ai_service.build_greeting_prompt(
+        project_description=project.description,
+        platform=project.platform or "custom",
+    )
+
+    # The AI speaks first — no user message in the history
+    claude_messages = [{"role": "user", "content": f"I want to build: {project.description or project.name}"}]
+
+    async def event_stream():
+        full_response = []
+
+        async for token in ai_service.stream_response(claude_messages, system_prompt):
+            full_response.append(token)
+            yield f"data: {json.dumps({'type': 'token', 'content': token})}\n\n"
+
+        ai_text = "".join(full_response)
+
+        # Strip chips from stored message
+        clean_text = ai_service.strip_chips_line(ai_text)
+
+        # Save only the assistant message (no user message visible)
+        await discovery_service.add_message(db, session, "assistant", clean_text)
+        await db.commit()
+
+        # Send completion event with chips
+        chips = await ai_service.generate_quick_chips(ai_text)
+        yield f"data: {json.dumps({'type': 'done', 'stage': session.stage, 'chips': chips})}\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
 @router.post("/{session_id}/message")
 async def send_message(
     session_id: uuid.UUID,
@@ -102,8 +160,9 @@ async def send_message(
         # Assemble full response
         ai_text = "".join(full_response)
 
-        # Save assistant message
-        await discovery_service.add_message(db, session, "assistant", ai_text)
+        # Strip chips annotation before storing
+        clean_text = ai_service.strip_chips_line(ai_text)
+        await discovery_service.add_message(db, session, "assistant", clean_text)
 
         # Extract and update design sheet
         sheet, changed = await discovery_service.update_sheet_from_conversation(db, session)

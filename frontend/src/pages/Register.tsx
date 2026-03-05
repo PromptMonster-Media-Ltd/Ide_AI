@@ -58,10 +58,8 @@ export function Register() {
       >
         {/* Brand */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">
-            Ide<span className="text-accent">/</span>AI
-          </h1>
-          <p className="text-text-muted text-sm mt-2">Create your workspace</p>
+          <img src="/logo.png" alt="Ide/AI" className="h-14 mx-auto mb-3" />
+          <p className="text-text-muted text-sm">Create your workspace</p>
         </div>
 
         <Card glow>

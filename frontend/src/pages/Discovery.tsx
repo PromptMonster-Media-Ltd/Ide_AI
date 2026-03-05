@@ -31,15 +31,25 @@ interface SheetData {
   confidence_score: number
 }
 
+const INITIAL_CHIPS = [
+  "It's a web app",
+  "It's a mobile app",
+  "It's an SDK or API",
+  "It's a browser extension",
+  "It's an internal tool",
+  "I'm not sure yet — help me explore",
+]
+
 export function Discovery() {
   const { projectId } = useParams<{ projectId: string }>()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [streamingContent, setStreamingContent] = useState('')
   const [stage, setStage] = useState('greeting')
-  const [chips, setChips] = useState<string[]>([])
+  const [chips, setChips] = useState<string[]>(INITIAL_CHIPS)
   const [sheet, setSheet] = useState<SheetData>({ confidence_score: 0 })
   const [input, setInput] = useState('')
+  const [initDone, setInitDone] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const { send, isStreaming } = useSSE({
@@ -52,7 +62,7 @@ export function Discovery() {
         return ''
       })
       setStage(data.stage)
-      setChips(data.chips)
+      if (data.chips?.length) setChips(data.chips)
     },
     onSheetUpdate: (sheetData) => {
       setSheet((prev) => ({ ...prev, ...sheetData } as SheetData))
@@ -60,23 +70,43 @@ export function Discovery() {
     onError: (err) => console.error('SSE error:', err),
   })
 
-  // Start session on mount
+  // Start session and trigger AI greeting on mount
   useEffect(() => {
     if (!projectId) return
+    let cancelled = false
+
     const startSession = async () => {
       try {
         const { data } = await apiClient.post('/discovery/start', { project_id: projectId })
+        if (cancelled) return
         setSessionId(data.id)
         if (data.messages?.length) {
           setMessages(data.messages)
+          setInitDone(true)
         }
         if (data.stage) setStage(data.stage)
+        return data.id
       } catch (err) {
         console.error('Failed to start session:', err)
+        return null
       }
     }
-    startSession()
-  }, [projectId])
+
+    startSession().then(async (sid) => {
+      if (cancelled || !sid) return
+      // Auto-trigger AI greeting if session is fresh (no messages)
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+      try {
+        await send(`${baseUrl}/discovery/${sid}/init`, {})
+        if (!cancelled) setInitDone(true)
+      } catch {
+        // init may fail if session already has messages — that's fine
+        if (!cancelled) setInitDone(true)
+      }
+    })
+
+    return () => { cancelled = true }
+  }, [projectId, send])
 
   const sendMessage = useCallback(async (content: string) => {
     if (!sessionId || !content.trim() || isStreaming) return
@@ -98,25 +128,25 @@ export function Discovery() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen bg-background flex overflow-hidden">
       <Sidebar projectId={projectId} />
 
-      <div className="ml-16 flex-1 flex flex-col h-screen">
+      <div className="ml-16 flex-1 flex flex-col min-h-0">
         <TopBar title="Discovery" subtitle={`Stage: ${stage}`} />
 
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex min-h-0">
           {/* Left: Stepper */}
-          <div className="w-48 border-r border-border bg-surface/30 shrink-0">
+          <div className="w-48 border-r border-border bg-surface/30 shrink-0 overflow-y-auto">
             <StagesStepper currentStage={stage} />
           </div>
 
           {/* Center: Chat */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-0">
             <ChatThread messages={messages} streamingContent={streamingContent} />
             <QuickChips chips={chips} onSelect={sendMessage} disabled={isStreaming} />
 
             {/* Input */}
-            <div className="border-t border-border p-4">
+            <div className="border-t border-border p-4 shrink-0">
               <div className="flex gap-3 items-end">
                 <textarea
                   ref={inputRef}
@@ -135,11 +165,13 @@ export function Discovery() {
           </div>
 
           {/* Right: Design Sheet */}
-          <div className="w-72 border-l border-border bg-surface/30 shrink-0">
-            <div className="px-4 py-3 border-b border-border">
+          <div className="w-72 border-l border-border bg-surface/30 shrink-0 flex flex-col min-h-0">
+            <div className="px-4 py-3 border-b border-border shrink-0">
               <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">Design Sheet</h3>
             </div>
-            <DesignSheetPanel sheet={sheet} />
+            <div className="flex-1 overflow-y-auto">
+              <DesignSheetPanel sheet={sheet} />
+            </div>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 /**
  * ChatThread — Scrollable message list for AI conversation.
+ * Strips [CHIPS: ...] annotations from displayed text.
  * @module components/discovery/ChatThread
  */
 import { useEffect, useRef } from 'react'
@@ -12,6 +13,11 @@ interface Message {
 interface ChatThreadProps {
   messages: Message[]
   streamingContent?: string
+}
+
+/** Remove the [CHIPS: ...] line that the AI appends for the frontend chip system. */
+function stripChipsLine(text: string): string {
+  return text.replace(/\n?\[CHIPS:.*?\]/g, '').trim()
 }
 
 export function ChatThread({ messages, streamingContent }: ChatThreadProps) {
@@ -32,7 +38,7 @@ export function ChatThread({ messages, streamingContent }: ChatThreadProps) {
                 : 'bg-surface border border-border text-white'
             }`}
           >
-            <p className="whitespace-pre-wrap">{msg.content}</p>
+            <p className="whitespace-pre-wrap">{stripChipsLine(msg.content)}</p>
           </div>
         </div>
       ))}
@@ -40,7 +46,7 @@ export function ChatThread({ messages, streamingContent }: ChatThreadProps) {
       {streamingContent && (
         <div className="flex justify-start">
           <div className="max-w-[80%] rounded-xl px-4 py-3 text-sm leading-relaxed bg-surface border border-border text-white">
-            <p className="whitespace-pre-wrap">{streamingContent}<span className="animate-pulse text-accent">|</span></p>
+            <p className="whitespace-pre-wrap">{stripChipsLine(streamingContent)}<span className="animate-pulse text-accent">|</span></p>
           </div>
         </div>
       )}
