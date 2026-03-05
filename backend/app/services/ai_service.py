@@ -9,7 +9,7 @@ import anthropic
 
 from app.core.config import settings
 
-client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_KEY)
 
 BASE_PERSONA = """You are Ide/AI, an expert product design assistant. Your role is to guide users through a structured discovery process to transform rough product ideas into comprehensive, actionable design kits.
 

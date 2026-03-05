@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080
-    ANTHROPIC_API_KEY: str = ""
+    ANTHROPIC_KEY: str = ""
     CLAUDE_MODEL: str = "claude-sonnet-4-6"
     ENVIRONMENT: str = "development"
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
