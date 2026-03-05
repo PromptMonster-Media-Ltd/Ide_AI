@@ -1,7 +1,10 @@
 /**
- * App.tsx — Root router. Defines all application routes.
+ * App.tsx — Root router. Public auth routes + protected application routes.
  */
 import { Routes, Route } from 'react-router-dom'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { Login } from './pages/Login'
+import { Register } from './pages/Register'
 import { Home } from './pages/Home'
 import { Discovery } from './pages/Discovery'
 import { Blocks } from './pages/Blocks'
@@ -13,13 +16,18 @@ import { PitchMode } from './pages/PitchMode'
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/discovery/:projectId" element={<Discovery />} />
-      <Route path="/blocks/:projectId" element={<Blocks />} />
-      <Route path="/pipeline/:projectId" element={<Pipeline />} />
-      <Route path="/exports/:projectId" element={<Exports />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/pitch/:projectId" element={<PitchMode />} />
+      {/* Public auth routes */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
+      {/* Protected application routes */}
+      <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+      <Route path="/discovery/:projectId" element={<ProtectedRoute><Discovery /></ProtectedRoute>} />
+      <Route path="/blocks/:projectId" element={<ProtectedRoute><Blocks /></ProtectedRoute>} />
+      <Route path="/pipeline/:projectId" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
+      <Route path="/exports/:projectId" element={<ProtectedRoute><Exports /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/pitch/:projectId" element={<ProtectedRoute><PitchMode /></ProtectedRoute>} />
     </Routes>
   )
 }
