@@ -86,7 +86,8 @@ export function Discovery() {
     setChips([])
     setStreamingContent('')
 
-    await send(`/api/v1/discovery/${sessionId}/message`, { content })
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+    await send(`${baseUrl}/discovery/${sessionId}/message`, { content })
   }, [sessionId, isStreaming, send])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

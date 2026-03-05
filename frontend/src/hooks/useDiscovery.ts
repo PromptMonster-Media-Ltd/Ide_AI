@@ -49,7 +49,8 @@ export function useDiscovery(projectId: string | undefined) {
     store.addMessage({ role: 'user', content })
     store.setChips([])
     store.setStreamingContent('')
-    await send(`/api/v1/discovery/${store.sessionId}/message`, { content })
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+    await send(`${baseUrl}/discovery/${store.sessionId}/message`, { content })
   }, [store.sessionId, isStreaming, send])
 
   return {
