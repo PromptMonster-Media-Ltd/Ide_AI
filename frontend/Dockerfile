@@ -14,9 +14,8 @@ RUN npm ci
 COPY . .
 
 # VITE_API_BASE_URL is baked in at build time.
-# When using Caddy reverse proxy (recommended), set to /api/v1
-# When using direct cross-origin, set to https://your-backend.up.railway.app/api/v1
-ARG VITE_API_BASE_URL=/api/v1
+# Set to your backend's public URL, e.g. https://your-backend.up.railway.app/api/v1
+ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 RUN npm run build
