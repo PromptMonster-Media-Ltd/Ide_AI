@@ -6,3 +6,5 @@
 FROM caddy:2-alpine
 
 COPY Caddyfile /etc/caddy/Caddyfile
+
+ENV PORT=8080
