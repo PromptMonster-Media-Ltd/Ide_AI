@@ -49,7 +49,6 @@ export function Discovery() {
   const [chips, setChips] = useState<string[]>(INITIAL_CHIPS)
   const [sheet, setSheet] = useState<SheetData>({ confidence_score: 0 })
   const [input, setInput] = useState('')
-  const [initDone, setInitDone] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const { send, isStreaming } = useSSE({
@@ -82,7 +81,6 @@ export function Discovery() {
         setSessionId(data.id)
         if (data.messages?.length) {
           setMessages(data.messages)
-          setInitDone(true)
         }
         if (data.stage) setStage(data.stage)
         return data.id
@@ -98,10 +96,8 @@ export function Discovery() {
       const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
       try {
         await send(`${baseUrl}/discovery/${sid}/init`, {})
-        if (!cancelled) setInitDone(true)
       } catch {
         // init may fail if session already has messages — that's fine
-        if (!cancelled) setInitDone(true)
       }
     })
 
