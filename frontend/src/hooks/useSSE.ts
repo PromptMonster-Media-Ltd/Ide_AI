@@ -22,6 +22,8 @@ interface UseSSEOptions {
 export function useSSE(options: UseSSEOptions) {
   const [isStreaming, setIsStreaming] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
+  const optionsRef = useRef(options)
+  optionsRef.current = options
 
   const send = useCallback(async (url: string, body: Record<string, unknown>) => {
     abortRef.current?.abort()
@@ -61,23 +63,23 @@ export function useSSE(options: UseSSEOptions) {
           try {
             const data: SSEMessage = JSON.parse(line.slice(6))
             if (data.type === 'token' && data.content) {
-              options.onToken?.(data.content)
+              optionsRef.current.onToken?.(data.content)
             } else if (data.type === 'done') {
-              options.onDone?.({ stage: data.stage || '', chips: data.chips || [] })
+              optionsRef.current.onDone?.({ stage: data.stage || '', chips: data.chips || [] })
             } else if (data.type === 'sheet_update' && data.sheet) {
-              options.onSheetUpdate?.(data.sheet)
+              optionsRef.current.onSheetUpdate?.(data.sheet)
             }
           } catch { /* skip malformed lines */ }
         }
       }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        options.onError?.(err as Error)
+        optionsRef.current.onError?.(err as Error)
       }
     } finally {
       setIsStreaming(false)
     }
-  }, [options])
+  }, [])
 
   const abort = useCallback(() => {
     abortRef.current?.abort()

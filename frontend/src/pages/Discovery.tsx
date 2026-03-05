@@ -74,35 +74,34 @@ export function Discovery() {
     if (!projectId) return
     let cancelled = false
 
-    const startSession = async () => {
+    const init = async () => {
       try {
         const { data } = await apiClient.post('/discovery/start', { project_id: projectId })
         if (cancelled) return
         setSessionId(data.id)
+
         if (data.messages?.length) {
           setMessages(data.messages)
+          if (data.stage) setStage(data.stage)
+          return // session already has messages — skip auto-greeting
         }
+
         if (data.stage) setStage(data.stage)
-        return data.id
+
+        // Auto-trigger AI greeting for fresh sessions
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+        if (!cancelled) {
+          await send(`${baseUrl}/discovery/${data.id}/init`, {})
+        }
       } catch (err) {
         console.error('Failed to start session:', err)
-        return null
       }
     }
 
-    startSession().then(async (sid) => {
-      if (cancelled || !sid) return
-      // Auto-trigger AI greeting if session is fresh (no messages)
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
-      try {
-        await send(`${baseUrl}/discovery/${sid}/init`, {})
-      } catch {
-        // init may fail if session already has messages — that's fine
-      }
-    })
-
+    init()
     return () => { cancelled = true }
-  }, [projectId, send])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId])
 
   const sendMessage = useCallback(async (content: string) => {
     if (!sessionId || !content.trim() || isStreaming) return
