@@ -82,15 +82,24 @@ async def export_project(
         "zip": export_service.generate_zip,
     }
 
-    content = await generators[format](sheet, blocks, pipeline)
+    try:
+        content = await generators[format](sheet, blocks, pipeline)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Export generation failed ({format}): {str(e)}",
+        )
 
     if isinstance(content, str):
         content = content.encode("utf-8")
 
+    slug = project.name.lower().replace(" ", "-")[:30] if project.name else "project"
+    ext_filename = f"{slug}-{filename}"
+
     return Response(
         content=content,
         media_type=content_type,
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": f'attachment; filename="{ext_filename}"'},
     )
 
 

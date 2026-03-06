@@ -945,7 +945,7 @@ export function MarketAnalysis() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar projectId={projectId} />
-      <div className="ml-[232px] flex-1 flex flex-col h-screen">
+      <div className="ml-0 md:ml-[232px] flex-1 flex flex-col h-screen">
         <TopBar title="Market Analysis" subtitle="AI-powered market research and projections">
           {isComplete && (
             <Button variant="ghost" onClick={exportReport}>
@@ -1017,9 +1017,8 @@ export function MarketAnalysis() {
                           ? 'bg-accent/15 text-accent font-medium'
                           : hasData
                           ? 'text-text-muted hover:text-white hover:bg-white/5'
-                          : 'text-text-muted/50 cursor-not-allowed'
+                          : 'text-text-muted/50 hover:text-text-muted hover:bg-white/5'
                       }`}
-                      disabled={!hasData}
                     >
                       <span>{tab.icon}</span>
                       <span>{tab.label}</span>
@@ -1034,7 +1033,7 @@ export function MarketAnalysis() {
             </div>
 
             {/* Tab Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
               {activeTab === 'target_market' && analysis?.target_market && (
                 <TargetMarketSection data={analysis.target_market as TargetMarket} />
               )}
@@ -1049,6 +1048,30 @@ export function MarketAnalysis() {
               )}
               {activeTab === 'marketing_strategies' && analysis?.marketing_strategies && (
                 <StrategySection data={analysis.marketing_strategies as MarketingStrategies} />
+              )}
+
+              {/* Empty state for tabs without data */}
+              {analysis && !analysis[activeTab] && !generating && (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="text-4xl mb-4 opacity-40">
+                    {TABS.find(t => t.key === activeTab)?.icon || '?'}
+                  </div>
+                  <h3 className="text-lg font-medium text-white mb-2">
+                    {TABS.find(t => t.key === activeTab)?.label || 'Section'} Not Available
+                  </h3>
+                  <p className="text-sm text-text-muted mb-6 max-w-md">
+                    {analysis.status === 'error'
+                      ? 'This section failed to generate. Try regenerating the full analysis.'
+                      : analysis.status === 'complete'
+                      ? 'This section was not generated. Regenerate to include it.'
+                      : 'This section will be generated when the analysis runs.'}
+                  </p>
+                  {(analysis.status === 'error' || analysis.status === 'complete') && (
+                    <Button variant="secondary" onClick={() => generate(true)} disabled={generating}>
+                      Regenerate Analysis
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
           </div>
