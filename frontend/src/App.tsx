@@ -13,6 +13,7 @@ import { Exports } from './pages/Exports'
 import { Settings } from './pages/Settings'
 import { PitchMode } from './pages/PitchMode'
 import { MarketAnalysis } from './pages/MarketAnalysis'
+import { Library } from './pages/Library'
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
       <Route path="/blocks/:projectId" element={<ProtectedRoute><Blocks /></ProtectedRoute>} />
       <Route path="/pipeline/:projectId" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
       <Route path="/exports/:projectId" element={<ProtectedRoute><Exports /></ProtectedRoute>} />
+      <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/market/:projectId" element={<ProtectedRoute><MarketAnalysis /></ProtectedRoute>} />
       <Route path="/pitch/:projectId" element={<ProtectedRoute><PitchMode /></ProtectedRoute>} />

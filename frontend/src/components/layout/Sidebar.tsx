@@ -10,6 +10,7 @@ import { Link, useLocation } from 'react-router-dom'
 
 const NAV_ITEMS = [
   { path: '/', label: 'Home', icon: '✦' },
+  { path: '/library', label: 'Library', icon: '\u{1F4DA}' },
   { path: '/settings', label: 'Settings', icon: '⚙' },
 ]
 

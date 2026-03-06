@@ -8,9 +8,10 @@ from app.models.pipeline_node import PipelineNode
 from app.models.prompt_kit import PromptKit
 from app.models.version import Version
 from app.models.market_analysis import MarketAnalysis
+from app.models.project_snapshot import ProjectSnapshot
 
 __all__ = [
     "User", "Project", "DiscoverySession", "DesignSheet",
     "Block", "PipelineNode", "PromptKit", "Version",
-    "MarketAnalysis",
+    "MarketAnalysis", "ProjectSnapshot",
 ]
