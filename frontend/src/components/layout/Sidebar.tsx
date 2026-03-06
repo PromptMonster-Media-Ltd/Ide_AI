@@ -2,9 +2,10 @@
  * Sidebar — Responsive navigation.
  * Desktop: Fixed left sidebar (232px) with logo + labels.
  * Mobile: Fixed bottom nav bar with icons only + hamburger for overflow.
+ * Shows "Back to Project" when user navigates to Home with an active project.
  * @module components/layout/Sidebar
  */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 const NAV_ITEMS = [
@@ -21,15 +22,39 @@ const PROJECT_ITEMS = [
   { path: '/pitch', label: 'Pitch', icon: '📄' },
 ]
 
+const ACTIVE_PROJECT_KEY = 'ideai_active_project'
+const ACTIVE_PROJECT_PATH_KEY = 'ideai_active_path'
+
 export function Sidebar({ projectId }: { projectId?: string }) {
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [savedProjectId, setSavedProjectId] = useState<string | null>(null)
+  const [savedPath, setSavedPath] = useState<string | null>(null)
+
+  // Persist active project when user is inside a project
+  useEffect(() => {
+    if (projectId) {
+      localStorage.setItem(ACTIVE_PROJECT_KEY, projectId)
+      localStorage.setItem(ACTIVE_PROJECT_PATH_KEY, location.pathname)
+      setSavedProjectId(projectId)
+      setSavedPath(location.pathname)
+    }
+  }, [projectId, location.pathname])
+
+  // Load saved project on mount
+  useEffect(() => {
+    setSavedProjectId(localStorage.getItem(ACTIVE_PROJECT_KEY))
+    setSavedPath(localStorage.getItem(ACTIVE_PROJECT_PATH_KEY))
+  }, [])
+
+  // Show "Back to Project" when on Home/Settings but there's a saved project
+  const isOnHomePage = location.pathname === '/' || location.pathname === '/settings'
+  const showBackToProject = isOnHomePage && savedProjectId && !projectId
 
   const allItems = projectId
     ? [...NAV_ITEMS, ...PROJECT_ITEMS]
     : NAV_ITEMS
 
-  // On mobile bottom bar, show first 4 items + "more" button
   const mobileBarItems = allItems.slice(0, 4)
   const mobileOverflowItems = allItems.slice(4)
 
@@ -67,6 +92,20 @@ export function Sidebar({ projectId }: { projectId?: string }) {
             </Link>
           ))}
 
+          {/* Back to Project button — shown when user leaves a project */}
+          {showBackToProject && (
+            <>
+              <div className="mx-4 my-2 border-t border-border" />
+              <Link
+                to={savedPath || `/discovery/${savedProjectId}`}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-accent bg-accent/5 border border-accent/20 mx-2 rounded-lg hover:bg-accent/10 transition-colors"
+              >
+                <span className="shrink-0 text-base">↩</span>
+                <span className="whitespace-nowrap">Back to Project</span>
+              </Link>
+            </>
+          )}
+
           {projectId && (
             <>
               <div className="mx-4 my-2 border-t border-border" />
@@ -91,6 +130,16 @@ export function Sidebar({ projectId }: { projectId?: string }) {
 
       {/* ── Mobile bottom nav ── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-surface border-t border-border z-50 flex items-center justify-around px-2">
+        {showBackToProject && (
+          <Link
+            to={savedPath || `/discovery/${savedProjectId}`}
+            className="flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg text-xs text-accent"
+          >
+            <span className="text-lg">↩</span>
+            <span className="text-[10px] leading-tight">Project</span>
+          </Link>
+        )}
+
         {mobileBarItems.map((item) => (
           <Link
             key={item.path}
