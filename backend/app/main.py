@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import auth, blocks, design_sheet, discovery, exports, pipeline, projects, prompts
+from app.routers import auth, blocks, design_sheet, discovery, exports, market, pipeline, projects, prompts
 
 
 def create_app() -> FastAPI:
@@ -35,6 +35,7 @@ def create_app() -> FastAPI:
     app.include_router(blocks.router, prefix=prefix)
     app.include_router(pipeline.router, prefix=prefix)
     app.include_router(prompts.router, prefix=prefix)
+    app.include_router(market.router, prefix=prefix)
     app.include_router(exports.router, prefix=prefix)
     app.include_router(exports.versions_router, prefix=prefix)
 

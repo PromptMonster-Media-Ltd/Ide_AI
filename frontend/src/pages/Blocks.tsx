@@ -92,16 +92,16 @@ export function Blocks() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar projectId={projectId} />
-      <div className="ml-[232px] flex-1 flex flex-col h-screen">
+      <div className="ml-0 md:ml-[232px] flex-1 flex flex-col h-screen">
         <TopBar title="Design Blocks" subtitle={`${filteredBlocks.length} blocks shown`}>
           <Button variant="secondary" onClick={generateBlocks} disabled={generating}>
             {generating ? 'Generating...' : 'AI Generate'}
           </Button>
         </TopBar>
 
-        <div className="p-6 flex-1 overflow-y-auto">
+        <div className="p-4 md:p-6 flex-1 overflow-y-auto">
           {/* Scope Slider */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex flex-wrap items-center gap-2 md:gap-4 mb-4 md:mb-6">
             <span className="text-xs text-text-muted font-medium">Scope:</span>
             {(['lean', 'balanced', 'full'] as Scope[]).map(s => (
               <button

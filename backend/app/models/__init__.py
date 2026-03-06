@@ -7,8 +7,10 @@ from app.models.block import Block
 from app.models.pipeline_node import PipelineNode
 from app.models.prompt_kit import PromptKit
 from app.models.version import Version
+from app.models.market_analysis import MarketAnalysis
 
 __all__ = [
     "User", "Project", "DiscoverySession", "DesignSheet",
     "Block", "PipelineNode", "PromptKit", "Version",
+    "MarketAnalysis",
 ]

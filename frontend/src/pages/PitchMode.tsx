@@ -50,7 +50,7 @@ export function PitchMode() {
     return (
       <div className="min-h-screen bg-background flex">
         <Sidebar projectId={projectId} />
-        <div className="ml-[232px] flex-1 flex items-center justify-center">
+        <div className="ml-0 md:ml-[232px] flex-1 flex items-center justify-center">
           <p className="text-text-muted">Loading pitch...</p>
         </div>
       </div>
@@ -60,18 +60,18 @@ export function PitchMode() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar projectId={projectId} />
-      <div className="ml-[232px] flex-1 flex flex-col h-screen">
+      <div className="ml-0 md:ml-[232px] flex-1 flex flex-col h-screen">
         <TopBar title="Pitch Mode" subtitle="Shareable project brief">
           <Button variant="secondary" onClick={handlePrint}>Print / PDF</Button>
         </TopBar>
 
         {/* Pitch Document */}
-        <div className="flex-1 overflow-y-auto flex justify-center p-8 print:p-0">
-          <article className="w-full max-w-2xl bg-surface border border-border rounded-xl p-10 print:border-none print:bg-white print:text-black">
-            <h1 className="text-3xl font-bold text-white print:text-black mb-2">
+        <div className="flex-1 overflow-y-auto flex justify-center p-4 md:p-8 print:p-0">
+          <article className="w-full max-w-2xl bg-surface border border-border rounded-xl p-5 md:p-10 print:border-none print:bg-white print:text-black">
+            <h1 className="text-2xl md:text-3xl font-bold text-white print:text-black mb-2">
               Product Brief
             </h1>
-            <div className="flex items-center gap-2 mb-8">
+            <div className="flex flex-wrap items-center gap-2 mb-6 md:mb-8">
               {sheet?.platform && <Badge variant="accent">{sheet.platform}</Badge>}
               {sheet?.confidence_score != null && (
                 <Badge variant="success">{sheet.confidence_score}% confidence</Badge>

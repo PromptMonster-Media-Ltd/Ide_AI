@@ -28,7 +28,7 @@ export function DesignSheetPanel({ sheet }: { sheet: SheetData }) {
   ]
 
   return (
-    <div className="h-full overflow-y-auto p-4 space-y-4">
+    <div className="h-full overflow-y-auto p-3 md:p-4 space-y-4">
       {/* Confidence */}
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -48,7 +48,7 @@ export function DesignSheetPanel({ sheet }: { sheet: SheetData }) {
         <div key={label}>
           <span className="text-xs text-text-muted font-medium block mb-1">{label}</span>
           {value ? (
-            <p className="text-sm text-white">{value}</p>
+            <p className="text-sm text-white break-words">{value}</p>
           ) : (
             <p className="text-xs text-text-muted italic">Awaiting discovery...</p>
           )}

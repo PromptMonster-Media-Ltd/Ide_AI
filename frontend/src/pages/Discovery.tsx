@@ -11,6 +11,7 @@ import { StagesStepper } from '../components/discovery/StagesStepper'
 import { QuickChips } from '../components/discovery/QuickChips'
 import { DesignSheetPanel } from '../components/framework/DesignSheetPanel'
 import { Button } from '../components/ui/Button'
+import { Badge } from '../components/ui/Badge'
 import { useSSE } from '../hooks/useSSE'
 import apiClient from '../lib/apiClient'
 
@@ -50,6 +51,7 @@ export function Discovery() {
   const [sheet, setSheet] = useState<SheetData>({ confidence_score: 0 })
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [showSheet, setShowSheet] = useState(false)
 
   const { send, isStreaming } = useSSE({
     onToken: (token) => setStreamingContent((prev) => prev + token),
@@ -126,30 +128,47 @@ export function Discovery() {
     <div className="h-screen bg-background flex overflow-hidden">
       <Sidebar projectId={projectId} />
 
-      <div className="ml-[232px] flex-1 flex flex-col min-h-0">
-        <TopBar title="Discovery" subtitle={`Stage: ${stage}`} />
+      <div className="ml-0 md:ml-[232px] flex-1 flex flex-col min-h-0">
+        <TopBar title="Discovery" subtitle={`Stage: ${stage}`}>
+          {/* Mobile toggle for design sheet */}
+          <button
+            onClick={() => setShowSheet(!showSheet)}
+            className="md:hidden px-3 py-1.5 rounded-lg text-xs font-medium bg-accent/10 text-accent border border-accent/20"
+          >
+            {showSheet ? 'Chat' : 'Sheet'}
+            {sheet.confidence_score > 0 && (
+              <Badge variant="accent" className="ml-1.5">{sheet.confidence_score}%</Badge>
+            )}
+          </button>
+        </TopBar>
 
         <div className="flex-1 flex min-h-0">
-          {/* Left: Stepper */}
-          <div className="w-48 border-r border-border bg-surface/30 shrink-0 overflow-y-auto">
+          {/* Left: Stepper — hidden on mobile */}
+          <div className="hidden md:block w-48 border-r border-border bg-surface/30 shrink-0 overflow-y-auto">
             <StagesStepper currentStage={stage} />
           </div>
 
-          {/* Center: Chat */}
-          <div className="flex-1 flex flex-col min-h-0">
+          {/* Center: Chat — hidden on mobile when sheet is shown */}
+          <div className={`flex-1 flex flex-col min-h-0 ${showSheet ? 'hidden md:flex' : 'flex'}`}>
+            {/* Mobile stage indicator (replaces stepper) */}
+            <div className="md:hidden flex items-center gap-2 px-4 py-2 border-b border-border bg-surface/30 overflow-x-auto">
+              <span className="text-[10px] text-text-muted font-medium shrink-0">Stage:</span>
+              <span className="text-[10px] text-accent font-semibold shrink-0">{stage}</span>
+            </div>
+
             <ChatThread messages={messages} streamingContent={streamingContent} />
             <QuickChips chips={chips} onSelect={sendMessage} disabled={isStreaming} />
 
             {/* Input */}
-            <div className="border-t border-border p-4 shrink-0">
-              <div className="flex gap-3 items-end">
+            <div className="border-t border-border p-3 md:p-4 shrink-0">
+              <div className="flex gap-2 md:gap-3 items-end">
                 <textarea
                   ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Type your response..."
-                  className="flex-1 bg-surface border border-border rounded-xl px-4 py-3 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent resize-none h-12 max-h-32"
+                  className="flex-1 bg-surface border border-border rounded-xl px-3 md:px-4 py-2.5 md:py-3 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent resize-none h-11 md:h-12 max-h-32"
                   rows={1}
                 />
                 <Button onClick={() => sendMessage(input)} disabled={!input.trim() || isStreaming}>
@@ -159,8 +178,8 @@ export function Discovery() {
             </div>
           </div>
 
-          {/* Right: Design Sheet */}
-          <div className="w-72 border-l border-border bg-surface/30 shrink-0 flex flex-col min-h-0">
+          {/* Right: Design Sheet — full width on mobile when toggled, side panel on desktop */}
+          <div className={`${showSheet ? 'flex' : 'hidden'} md:flex w-full md:w-72 border-l-0 md:border-l border-border bg-surface/30 shrink-0 flex-col min-h-0`}>
             <div className="px-4 py-3 border-b border-border shrink-0">
               <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">Design Sheet</h3>
             </div>

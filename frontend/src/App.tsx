@@ -12,6 +12,7 @@ import { Pipeline } from './pages/Pipeline'
 import { Exports } from './pages/Exports'
 import { Settings } from './pages/Settings'
 import { PitchMode } from './pages/PitchMode'
+import { MarketAnalysis } from './pages/MarketAnalysis'
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
       <Route path="/pipeline/:projectId" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
       <Route path="/exports/:projectId" element={<ProtectedRoute><Exports /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/market/:projectId" element={<ProtectedRoute><MarketAnalysis /></ProtectedRoute>} />
       <Route path="/pitch/:projectId" element={<ProtectedRoute><PitchMode /></ProtectedRoute>} />
     </Routes>
   )

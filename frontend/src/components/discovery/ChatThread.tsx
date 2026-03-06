@@ -28,25 +28,25 @@ export function ChatThread({ messages, streamingContent }: ChatThreadProps) {
   }, [messages, streamingContent])
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+    <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-4 space-y-3 md:space-y-4">
       {messages.map((msg, i) => (
         <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
           <div
-            className={`max-w-[80%] rounded-xl px-4 py-3 text-sm leading-relaxed ${
+            className={`max-w-[90%] md:max-w-[80%] rounded-xl px-3 md:px-4 py-2.5 md:py-3 text-sm leading-relaxed ${
               msg.role === 'user'
                 ? 'bg-accent/15 text-white border border-accent/20'
                 : 'bg-surface border border-border text-white'
             }`}
           >
-            <p className="whitespace-pre-wrap">{stripChipsLine(msg.content)}</p>
+            <p className="whitespace-pre-wrap break-words">{stripChipsLine(msg.content)}</p>
           </div>
         </div>
       ))}
 
       {streamingContent && (
         <div className="flex justify-start">
-          <div className="max-w-[80%] rounded-xl px-4 py-3 text-sm leading-relaxed bg-surface border border-border text-white">
-            <p className="whitespace-pre-wrap">{stripChipsLine(streamingContent)}<span className="animate-pulse text-accent">|</span></p>
+          <div className="max-w-[90%] md:max-w-[80%] rounded-xl px-3 md:px-4 py-2.5 md:py-3 text-sm leading-relaxed bg-surface border border-border text-white">
+            <p className="whitespace-pre-wrap break-words">{stripChipsLine(streamingContent)}<span className="animate-pulse text-accent">|</span></p>
           </div>
         </div>
       )}

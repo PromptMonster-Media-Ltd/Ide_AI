@@ -16,10 +16,10 @@ export function Settings() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar />
-      <div className="ml-[232px] flex-1 flex flex-col h-screen">
+      <div className="ml-0 md:ml-[232px] flex-1 flex flex-col h-screen">
         <TopBar title="Settings" subtitle="Configure your workspace" />
 
-        <div className="flex-1 p-6 overflow-y-auto max-w-2xl">
+        <div className="flex-1 p-4 md:p-6 overflow-y-auto max-w-2xl">
           <Card className="mb-6">
             <h3 className="text-sm font-semibold text-white mb-4">Account</h3>
             <Button variant="ghost" onClick={handleLogout}>

@@ -53,13 +53,13 @@ export function Exports() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar projectId={projectId} />
-      <div className="ml-[232px] flex-1 flex flex-col h-screen">
+      <div className="ml-0 md:ml-[232px] flex-1 flex flex-col h-screen">
         <TopBar title="Export Design Kit" subtitle="Download your project artifacts">
           <Button variant="ghost" onClick={handleSnapshot}>Save Snapshot</Button>
         </TopBar>
 
-        <div className="flex-1 p-6 flex flex-col items-center justify-center">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8 w-full max-w-3xl">
+        <div className="flex-1 p-4 md:p-6 flex flex-col items-center justify-center">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8 w-full max-w-3xl">
             {FORMATS.map(fmt => (
               <button
                 key={fmt.id}

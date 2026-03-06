@@ -86,27 +86,27 @@ export function Pipeline() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar projectId={projectId} />
-      <div className="ml-[232px] flex-1 flex flex-col h-screen">
+      <div className="ml-0 md:ml-[232px] flex-1 flex flex-col h-screen">
         <TopBar title="Pipeline Builder" subtitle="Select your tech stack">
           <Button variant="secondary" onClick={recommendPipeline} disabled={recommending}>
             {recommending ? 'Analyzing...' : 'AI Recommend'}
           </Button>
         </TopBar>
 
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           {/* Pipeline Cards */}
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div className="flex-1 p-4 md:p-6 overflow-y-auto">
             {loading ? (
               <div className="text-text-muted text-sm">Loading pipeline...</div>
             ) : nodes.length === 0 ? (
-              <div className="text-center py-20">
+              <div className="text-center py-12 md:py-20">
                 <p className="text-text-muted mb-4">No pipeline configured. Let AI recommend one.</p>
                 <Button onClick={recommendPipeline} disabled={recommending}>Get AI Recommendation</Button>
               </div>
             ) : (
-              <div className="flex gap-4 overflow-x-auto pb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
                 {nodes.map(node => (
-                  <Card key={node.layer} className="min-w-[200px] shrink-0 flex flex-col gap-3" glow>
+                  <Card key={node.layer} className="flex flex-col gap-3" glow>
                     <h3 className="text-xs text-text-muted font-semibold uppercase tracking-wider">
                       {LAYER_LABELS[node.layer] || node.layer}
                     </h3>
@@ -128,7 +128,7 @@ export function Pipeline() {
             )}
 
             {warnings.length > 0 && (
-              <div className="mt-6 space-y-2">
+              <div className="mt-4 md:mt-6 space-y-2">
                 {warnings.map((w, i) => (
                   <div key={i} className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
                     {w}
@@ -138,12 +138,12 @@ export function Pipeline() {
             )}
           </div>
 
-          {/* Cost Panel */}
-          <div className="w-72 border-l border-border bg-surface/30 shrink-0 p-4 overflow-y-auto">
+          {/* Cost Panel — stacks below on mobile, side panel on desktop */}
+          <div className="w-full md:w-72 border-t md:border-t-0 md:border-l border-border bg-surface/30 shrink-0 p-4 overflow-y-auto">
             <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-4">Cost Estimate</h3>
             {cost ? (
               <>
-                <div className="text-2xl font-bold text-white mb-1">
+                <div className="text-xl md:text-2xl font-bold text-white mb-1">
                   ${cost.monthly_min} &mdash; ${cost.monthly_max}
                 </div>
                 <p className="text-xs text-text-muted mb-4">per month</p>

@@ -33,3 +33,4 @@ class Project(Base):
     pipeline_nodes = relationship("PipelineNode", back_populates="project", cascade="all, delete-orphan")
     prompt_kits = relationship("PromptKit", back_populates="project", cascade="all, delete-orphan")
     versions = relationship("Version", back_populates="project", cascade="all, delete-orphan")
+    market_analysis = relationship("MarketAnalysis", back_populates="project", uselist=False, cascade="all, delete-orphan")
