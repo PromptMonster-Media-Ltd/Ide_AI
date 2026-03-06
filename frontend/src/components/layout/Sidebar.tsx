@@ -47,9 +47,9 @@ export function Sidebar({ projectId }: { projectId?: string }) {
     <>
       {/* ── Desktop sidebar ── */}
       <aside className="hidden md:flex fixed left-0 top-0 h-screen w-[232px] bg-surface border-r border-border z-50 flex-col overflow-hidden">
-        <div className="px-4 py-3 flex items-center border-b border-border">
-          <img src="/logo.png" alt="Ide/AI" className="w-[200px] object-contain" />
-        </div>
+        <Link to="/" className="px-4 py-3 flex items-center border-b border-border">
+          <img src="/logo.png" alt="Ide/AI — Home" className="w-[200px] object-contain" />
+        </Link>
 
         <nav className="flex-1 py-4 flex flex-col gap-1">
           {NAV_ITEMS.map((item) => (
