@@ -1,20 +1,61 @@
 /**
- * Home — Idea input landing page with nebula canvas background.
+ * Home -- Idea input landing page with nebula canvas background
+ * and design scheme preset cards.
  * @module pages/Home
  */
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
 import { IdeaNebulaCanvas } from '../components/nebula/IdeaNebulaCanvas'
+import { PresetCard } from '../components/home/PresetCard'
+import { DESIGN_PRESETS } from '../components/home/designPresets'
+import type { DesignPresetDefaults } from '../components/home/designPresets'
 import apiClient from '../lib/apiClient'
 
-const PLATFORMS = ['Bubble', 'Webflow', 'FlutterFlow', 'Bolt', 'Lovable', 'Claude Code', 'Cursor', 'Replit', 'n8n', 'Custom']
+/* ── Option lists for the Customize section ─────────────────────── */
+const PLATFORMS = [
+  'Mobile', 'Web', 'Desktop', 'Browser Extension',
+  'Bubble', 'Webflow', 'FlutterFlow', 'Bolt', 'Lovable',
+  'Claude Code', 'Cursor', 'Replit', 'n8n', 'Custom',
+]
 const AUDIENCES = ['Consumers', 'Businesses', 'Internal Team', 'Developers']
 const COMPLEXITIES = ['Simple (1-5 screens)', 'Medium (5-15)', 'Complex (15+)']
 const TONES = ['Formal', 'Casual', 'Technical', 'Startup-style']
 
+/* ── Helpers to map preset defaults <-> display values ───────────── */
+const COMPLEXITY_MAP: Record<string, string> = {
+  simple: 'Simple (1-5 screens)',
+  medium: 'Medium (5-15)',
+  complex: 'Complex (15+)',
+}
+
+const AUDIENCE_MAP: Record<string, string> = {
+  consumers: 'Consumers',
+  businesses: 'Businesses',
+  'internal-team': 'Internal Team',
+  developers: 'Developers',
+}
+
+const TONE_MAP: Record<string, string> = {
+  formal: 'Formal',
+  casual: 'Casual',
+  technical: 'Technical',
+  startup: 'Startup-style',
+}
+
+/** Convert lowercase preset defaults into the display strings used by ChipRows. */
+function presetDefaultsToDisplay(defaults: DesignPresetDefaults) {
+  return {
+    platform: defaults.platform,
+    complexity: COMPLEXITY_MAP[defaults.complexity] ?? defaults.complexity,
+    audience: AUDIENCE_MAP[defaults.audience] ?? defaults.audience,
+    tone: TONE_MAP[defaults.tone] ?? defaults.tone,
+  }
+}
+
+/* ── Page ─────────────────────────────────────────────────────────── */
 export function Home() {
   const navigate = useNavigate()
   const [idea, setIdea] = useState('')
@@ -23,7 +64,28 @@ export function Home() {
   const [complexity, setComplexity] = useState('Medium (5-15)')
   const [tone, setTone] = useState('Casual')
   const [loading, setLoading] = useState(false)
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
+  const [showCustomize, setShowCustomize] = useState(false)
 
+  /* Apply a preset -- fills all four fields at once */
+  const handlePresetSelect = (presetId: string) => {
+    if (selectedPreset === presetId) {
+      // Deselect
+      setSelectedPreset(null)
+      return
+    }
+    const preset = DESIGN_PRESETS.find((p) => p.id === presetId)
+    if (!preset) return
+    const display = presetDefaultsToDisplay(preset.defaults)
+    setPlatform(display.platform)
+    setComplexity(display.complexity)
+    setAudience(display.audience)
+    setTone(display.tone)
+    setSelectedPreset(presetId)
+    setShowCustomize(false)
+  }
+
+  /* Submit -- unchanged; normalizes values before POST */
   const handleSubmit = async () => {
     if (!idea.trim()) return
     setLoading(true)
@@ -59,10 +121,12 @@ export function Home() {
           <h1 className="text-2xl md:text-4xl font-bold text-white mb-3">
             What do you want to <span className="text-accent">build</span>?
           </h1>
-          <p className="text-text-muted text-sm md:text-lg">Describe your idea and let AI forge it into a complete design kit.</p>
+          <p className="text-text-muted text-sm md:text-lg">
+            Describe your idea and let AI forge it into a complete design kit.
+          </p>
         </motion.div>
 
-        {/* Input */}
+        {/* Idea textarea */}
         <motion.div
           className="w-full max-w-2xl mb-6 md:mb-8"
           initial={{ opacity: 0, y: 20 }}
@@ -77,17 +141,95 @@ export function Home() {
           />
         </motion.div>
 
-        {/* Selector Chips */}
+        {/* Design Scheme Presets */}
         <motion.div
-          className="w-full max-w-2xl space-y-3 md:space-y-4 mb-6 md:mb-8"
+          className="w-full max-w-2xl mb-4 md:mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <ChipRow label="Platform" options={PLATFORMS} value={platform} onChange={setPlatform} />
-          <ChipRow label="Audience" options={AUDIENCES} value={audience} onChange={setAudience} />
-          <ChipRow label="Complexity" options={COMPLEXITIES} value={complexity} onChange={setComplexity} />
-          <ChipRow label="Tone" options={TONES} value={tone} onChange={setTone} />
+          <label className="text-xs text-text-muted font-medium mb-3 block">
+            Design Scheme
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {DESIGN_PRESETS.map((preset) => (
+              <PresetCard
+                key={preset.id}
+                icon={preset.icon}
+                name={preset.name}
+                description={preset.description}
+                selected={selectedPreset === preset.id}
+                onClick={() => handlePresetSelect(preset.id)}
+              />
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Customize toggle */}
+        <motion.div
+          className="w-full max-w-2xl mb-6 md:mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.35 }}
+        >
+          <button
+            type="button"
+            onClick={() => setShowCustomize((prev) => !prev)}
+            className="flex items-center gap-2 text-xs text-text-muted hover:text-white transition-colors font-medium"
+          >
+            <svg
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${showCustomize ? 'rotate-90' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+            {showCustomize ? 'Hide options' : 'Customize options'}
+            {selectedPreset && !showCustomize && (
+              <span className="text-accent/70 ml-1">
+                -- {platform} / {complexity.split(' ')[0]} / {audience} / {tone}
+              </span>
+            )}
+          </button>
+
+          <AnimatePresence>
+            {(showCustomize || !selectedPreset) && (
+              <motion.div
+                className="space-y-3 md:space-y-4 mt-4"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25, ease: 'easeInOut' }}
+              >
+                <ChipRow
+                  label="Platform"
+                  options={PLATFORMS}
+                  value={platform}
+                  onChange={(v) => { setPlatform(v); setSelectedPreset(null) }}
+                />
+                <ChipRow
+                  label="Audience"
+                  options={AUDIENCES}
+                  value={audience}
+                  onChange={(v) => { setAudience(v); setSelectedPreset(null) }}
+                />
+                <ChipRow
+                  label="Complexity"
+                  options={COMPLEXITIES}
+                  value={complexity}
+                  onChange={(v) => { setComplexity(v); setSelectedPreset(null) }}
+                />
+                <ChipRow
+                  label="Tone"
+                  options={TONES}
+                  value={tone}
+                  onChange={(v) => { setTone(v); setSelectedPreset(null) }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* Submit */}
@@ -97,7 +239,7 @@ export function Home() {
           transition={{ duration: 0.6, delay: 0.4 }}
         >
           <Button size="lg" onClick={handleSubmit} disabled={!idea.trim() || loading}>
-            {loading ? 'Creating...' : 'Start Discovery →'}
+            {loading ? 'Creating...' : 'Start Discovery \u2192'}
           </Button>
         </motion.div>
       </main>
@@ -105,6 +247,7 @@ export function Home() {
   )
 }
 
+/* ── ChipRow (unchanged from original) ────────────────────────────── */
 function ChipRow({ label, options, value, onChange }: {
   label: string
   options: string[]

@@ -5,6 +5,7 @@ import { Routes, Route } from 'react-router-dom'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
+import { OAuthCallback } from './pages/OAuthCallback'
 import { Home } from './pages/Home'
 import { Discovery } from './pages/Discovery'
 import { Blocks } from './pages/Blocks'
@@ -14,6 +15,8 @@ import { Settings } from './pages/Settings'
 import { PitchMode } from './pages/PitchMode'
 import { MarketAnalysis } from './pages/MarketAnalysis'
 import { Library } from './pages/Library'
+import { SharedProject } from './pages/SharedProject'
+import { SprintPlanner } from './pages/SprintPlanner'
 
 export default function App() {
   return (
@@ -21,6 +24,10 @@ export default function App() {
       {/* Public auth routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
+
+      {/* Public shared project view (no auth required) */}
+      <Route path="/shared/:token" element={<SharedProject />} />
 
       {/* Protected application routes */}
       <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
@@ -32,6 +39,7 @@ export default function App() {
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/market/:projectId" element={<ProtectedRoute><MarketAnalysis /></ProtectedRoute>} />
       <Route path="/pitch/:projectId" element={<ProtectedRoute><PitchMode /></ProtectedRoute>} />
+      <Route path="/sprints/:projectId" element={<ProtectedRoute><SprintPlanner /></ProtectedRoute>} />
     </Routes>
   )
 }

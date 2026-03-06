@@ -9,6 +9,7 @@ import { TopBar } from '../components/layout/TopBar'
 import { ChatThread } from '../components/discovery/ChatThread'
 import { StagesStepper } from '../components/discovery/StagesStepper'
 import { QuickChips } from '../components/discovery/QuickChips'
+import { TranscriptExportMenu } from '../components/discovery/TranscriptExportMenu'
 import { DesignSheetPanel } from '../components/framework/DesignSheetPanel'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
@@ -41,6 +42,8 @@ const INITIAL_CHIPS = [
   "I'm not sure yet — help me explore",
 ]
 
+const AUTO_SAVE_INTERVAL_MS = 30_000
+
 export function Discovery() {
   const { projectId } = useParams<{ projectId: string }>()
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -52,6 +55,10 @@ export function Discovery() {
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [showSheet, setShowSheet] = useState(false)
+
+  // Auto-save refs
+  const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const prevStageRef = useRef(stage)
 
   const { send, isStreaming } = useSSE({
     onToken: (token) => setStreamingContent((prev) => prev + token),
@@ -70,6 +77,44 @@ export function Discovery() {
     },
     onError: (err) => console.error('SSE error:', err),
   })
+
+  // Auto-save progress: save every 30s while session is active
+  useEffect(() => {
+    if (!sessionId || messages.length === 0) return
+
+    const saveProgress = async () => {
+      try {
+        await apiClient.patch(`/discovery/${sessionId}/progress`, {
+          messages,
+          stage,
+        })
+      } catch (err) {
+        console.error('Auto-save failed:', err)
+      }
+    }
+
+    autoSaveTimerRef.current = setInterval(saveProgress, AUTO_SAVE_INTERVAL_MS)
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearInterval(autoSaveTimerRef.current)
+        autoSaveTimerRef.current = null
+      }
+    }
+  }, [sessionId, messages, stage])
+
+  // Auto-save on stage change
+  useEffect(() => {
+    if (!sessionId || messages.length === 0) return
+    if (prevStageRef.current === stage) return
+
+    prevStageRef.current = stage
+
+    apiClient.patch(`/discovery/${sessionId}/progress`, {
+      messages,
+      stage,
+    }).catch((err) => console.error('Stage-change save failed:', err))
+  }, [sessionId, stage, messages])
 
   // Start session and trigger AI greeting on mount
   useEffect(() => {
@@ -124,12 +169,18 @@ export function Discovery() {
     }
   }
 
+  const showExport = stage === 'confirm' || messages.length >= 4
+
   return (
     <div className="h-screen bg-background flex overflow-hidden">
       <Sidebar projectId={projectId} />
 
       <div className="ml-0 md:ml-[232px] flex-1 flex flex-col min-h-0">
         <TopBar title="Discovery" subtitle={`Stage: ${stage}`}>
+          {/* Transcript export */}
+          {showExport && sessionId && (
+            <TranscriptExportMenu sessionId={sessionId} messages={messages} />
+          )}
           {/* Mobile toggle for design sheet */}
           <button
             onClick={() => setShowSheet(!showSheet)}

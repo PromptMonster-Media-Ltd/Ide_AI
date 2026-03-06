@@ -4,8 +4,8 @@ discovery.py — Discovery session router. Handles SSE streaming AI conversation
 import json
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import Response, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,9 +13,9 @@ from app.core.database import get_db
 from app.models.project import Project
 from app.models.user import User
 from app.routers.auth import get_current_user
-from app.schemas.session import MessagePayload, SessionCreate, SessionRead
+from app.schemas.session import MessagePayload, ProgressPayload, SessionCreate, SessionRead
 from app.schemas.design_sheet import DesignSheetRead
-from app.services import discovery_service, ai_service
+from app.services import discovery_service, ai_service, transcript_service
 
 router = APIRouter(prefix="/discovery", tags=["discovery"])
 
@@ -189,6 +189,86 @@ async def send_message(
             yield f"data: {json.dumps({'type': 'sheet_update', 'sheet': sheet_data})}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+@router.patch("/{session_id}/progress", redirect_slashes=False)
+async def save_progress(
+    session_id: uuid.UUID,
+    payload: ProgressPayload,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Save current discovery progress without side effects.
+
+    Used for auto-save (every 30s or on stage change). Only updates
+    the session's messages and stage — no AI calls, no sheet extraction.
+    """
+    session = await discovery_service.get_session(db, session_id)
+    if not session:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    # Verify project ownership
+    proj_result = await db.execute(
+        select(Project).where(Project.id == session.project_id, Project.user_id == current_user.id)
+    )
+    if not proj_result.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+    # Update messages and stage in place
+    session.messages = payload.messages
+    session.stage = payload.stage
+    await db.commit()
+
+    return {"status": "saved", "session_id": str(session_id)}
+
+
+@router.get("/{session_id}/transcript", redirect_slashes=False)
+async def export_transcript(
+    session_id: uuid.UUID,
+    format: str = Query("txt", regex="^(txt|pdf|md)$"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Export the discovery conversation transcript as TXT, PDF, or Markdown."""
+    session = await discovery_service.get_session(db, session_id)
+    if not session:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    # Verify project ownership
+    proj_result = await db.execute(
+        select(Project).where(Project.id == session.project_id, Project.user_id == current_user.id)
+    )
+    project = proj_result.scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+    messages = session.messages or []
+    project_name = project.name
+
+    if format == "pdf":
+        content = transcript_service.format_as_pdf(messages, project_name)
+        slug = project_name.lower().replace(" ", "-")[:30]
+        return Response(
+            content=content,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{slug}-transcript.pdf"'},
+        )
+    elif format == "md":
+        content = transcript_service.format_as_markdown(messages, project_name)
+        slug = project_name.lower().replace(" ", "-")[:30]
+        return Response(
+            content=content.encode("utf-8"),
+            media_type="text/markdown; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{slug}-transcript.md"'},
+        )
+    else:
+        content = transcript_service.format_as_text(messages, project_name)
+        slug = project_name.lower().replace(" ", "-")[:30]
+        return Response(
+            content=content.encode("utf-8"),
+            media_type="text/plain; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{slug}-transcript.txt"'},
+        )
 
 
 @router.get("/{session_id}", response_model=SessionRead)

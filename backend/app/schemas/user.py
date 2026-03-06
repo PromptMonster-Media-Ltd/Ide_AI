@@ -1,5 +1,5 @@
 """
-user.py — Pydantic v2 schemas for User registration, login, and response.
+user.py — Pydantic v2 schemas for User registration, login, profile, and response.
 """
 import uuid
 from datetime import datetime
@@ -20,9 +20,41 @@ class UserRead(BaseModel):
     id: uuid.UUID
     email: str
     name: Optional[str] = None
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    oauth_provider: Optional[str] = None
+    preferences: Optional[dict] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserProfile(BaseModel):
+    """Full user profile returned by /auth/me."""
+    id: uuid.UUID
+    email: str
+    name: Optional[str] = None
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    oauth_provider: Optional[str] = None
+    preferences: Optional[dict] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserProfileUpdate(BaseModel):
+    """Schema for PATCH /auth/me — all fields optional."""
+    name: Optional[str] = Field(None, max_length=100)
+    display_name: Optional[str] = Field(None, max_length=100)
+    avatar_url: Optional[str] = Field(None, max_length=500)
+    preferences: Optional[dict] = None
+
+
+class PasswordChange(BaseModel):
+    """Schema for changing password (email/password users only)."""
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=8, max_length=128)
 
 
 class Token(BaseModel):
@@ -34,3 +66,8 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     """Decoded token payload."""
     user_id: Optional[uuid.UUID] = None
+
+
+class OAuthCodePayload(BaseModel):
+    """Body sent by the frontend after OAuth redirect."""
+    code: str

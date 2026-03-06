@@ -10,6 +10,7 @@ import { TopBar } from '../components/layout/TopBar'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import apiClient from '../lib/apiClient'
+import { downloadBlob } from '../lib/exportUtils'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -925,20 +926,38 @@ export function MarketAnalysis() {
   const isComplete = analysis?.status === 'complete'
   const hasAnalysis = analysis && (isComplete || analysis.target_market)
 
-  // Export report as JSON (simple approach; PDF could be added later)
-  const exportReport = async () => {
+  // Export report in selected format
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const exportRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setExportOpen(false)
+      }
+    }
+    if (exportOpen) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [exportOpen])
+
+  const exportReport = async (format: string) => {
     if (!projectId) return
+    setExporting(true)
+    setExportOpen(false)
     try {
-      const { data } = await apiClient.get(`/market/${projectId}/report`)
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `market-analysis-${projectId}.json`
-      a.click()
-      URL.revokeObjectURL(url)
+      const response = await apiClient.get(`/market/${projectId}/export`, {
+        params: { format },
+        responseType: 'blob',
+      })
+      const ext = format === 'docx' ? 'docx' : format === 'txt' ? 'txt' : 'pdf'
+      const slug = `market-analysis-${new Date().toISOString().split('T')[0]}`
+      downloadBlob(response.data, `${slug}.${ext}`)
     } catch (err) {
       console.error('Export failed:', err)
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -948,9 +967,30 @@ export function MarketAnalysis() {
       <div className="ml-0 md:ml-[232px] flex-1 flex flex-col h-screen">
         <TopBar title="Market Analysis" subtitle="AI-powered market research and projections">
           {isComplete && (
-            <Button variant="ghost" onClick={exportReport}>
-              Export Report
-            </Button>
+            <div className="relative" ref={exportRef}>
+              <Button variant="ghost" onClick={() => setExportOpen(!exportOpen)} disabled={exporting}>
+                {exporting ? 'Exporting...' : 'Export'}
+                <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </Button>
+              {exportOpen && (
+                <div className="absolute right-0 top-full mt-1 w-44 bg-surface border border-border rounded-lg shadow-xl z-50 py-1">
+                  {[
+                    { id: 'pdf', label: 'PDF Document', icon: '\u{1F4D5}' },
+                    { id: 'docx', label: 'Word Document', icon: '\u{1F4D8}' },
+                    { id: 'txt', label: 'Plain Text', icon: '\u{1F4C4}' },
+                  ].map(fmt => (
+                    <button
+                      key={fmt.id}
+                      onClick={() => exportReport(fmt.id)}
+                      className="w-full text-left px-3 py-2 text-xs text-text-muted hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors"
+                    >
+                      <span>{fmt.icon}</span>
+                      <span>{fmt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
           {isComplete && (
             <Button variant="secondary" onClick={() => generate(true)} disabled={generating}>

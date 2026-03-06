@@ -168,9 +168,29 @@ def strip_chips_line(text: str) -> str:
     return re.sub(r'\n?\[CHIPS:.*?\]', '', text).strip()
 
 
-async def build_system_prompt(platform: str, stage: str, sheet_context: dict | None = None) -> str:
-    """Build a dynamic system prompt from project context and discovery stage."""
+async def build_system_prompt(
+    platform: str,
+    stage: str,
+    sheet_context: dict | None = None,
+    user_name: str | None = None,
+    memories: str | None = None,
+) -> str:
+    """Build a dynamic system prompt from project context and discovery stage.
+
+    Args:
+        platform: Target platform string (e.g. 'bubble', 'custom').
+        stage: Current discovery stage name.
+        sheet_context: Partial design sheet dict for context injection.
+        user_name: If provided, address the user by name in the greeting.
+        memories: Formatted memory context block from memory_service.format_memory_context().
+    """
     parts = [BASE_PERSONA]
+
+    if user_name:
+        parts.append(f"\nThe user's name is {user_name}. Address them by name where natural — especially in greetings.")
+
+    if memories:
+        parts.append(f"\n{memories}")
 
     if platform and platform != "custom":
         parts.append(f"\nThe user is targeting the {platform} platform. Keep recommendations relevant to this platform's capabilities and constraints.")

@@ -19,6 +19,7 @@ const PROJECT_ITEMS = [
   { path: '/blocks', label: 'Blocks', icon: '◫' },
   { path: '/pipeline', label: 'Pipeline', icon: '⟡' },
   { path: '/market', label: 'Market', icon: '📊' },
+  { path: '/sprints', label: 'Sprints', icon: '🏃' },
   { path: '/exports', label: 'Exports', icon: '↗' },
   { path: '/pitch', label: 'Pitch', icon: '📄' },
 ]

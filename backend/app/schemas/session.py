@@ -27,3 +27,9 @@ class SessionRead(BaseModel):
 class MessagePayload(BaseModel):
     """Schema for sending a message in a discovery session."""
     content: str
+
+
+class ProgressPayload(BaseModel):
+    """Schema for saving discovery session progress (auto-save)."""
+    messages: list = []
+    stage: str
