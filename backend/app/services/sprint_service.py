@@ -405,4 +405,16 @@ async def generate_sprint_plan(
     await db.flush()
     await db.commit()
 
-    yield f"data: {json.dumps({'type': 'plan_complete', 'progress': 1.0})}\n\n"
+    # Include the assembled plan data so the frontend can render immediately
+    plan_payload = {
+        "id": str(plan.id),
+        "project_id": str(plan.project_id),
+        "milestones": plan.milestones,
+        "sprints": plan.sprints,
+        "timeline": plan.timeline,
+        "status": plan.status,
+        "created_at": plan.created_at.isoformat() if plan.created_at else None,
+        "updated_at": plan.updated_at.isoformat() if plan.updated_at else None,
+    }
+
+    yield f"data: {json.dumps({'type': 'plan_complete', 'progress': 1.0, 'plan': plan_payload})}\n\n"

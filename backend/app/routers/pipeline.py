@@ -82,6 +82,9 @@ async def ai_recommend_pipeline(
         "reasoning": reasoning,
         "cost_estimate": cost_est,
         "warnings": check_compatibility(nodes),
+        "available_layers": {
+            layer: info["tools"] for layer, info in LAYER_OPTIONS.items()
+        },
     }
 
 

@@ -21,6 +21,7 @@ router = APIRouter(prefix="/sprints", tags=["sprints"])
 @router.post("/{project_id}/generate")
 async def generate_sprint_plan(
     project_id: uuid.UUID,
+    force: bool = False,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -32,7 +33,9 @@ async def generate_sprint_plan(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
     async def event_stream():
-        async for event in sprint_service.generate_sprint_plan(db, project_id, current_user.id):
+        async for event in sprint_service.generate_sprint_plan(
+            db, project_id, current_user.id, force_regenerate=force
+        ):
             yield event
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")

@@ -3,7 +3,7 @@
  * Extracts the authorization code from URL params and exchanges it for a JWT.
  * @module pages/OAuthCallback
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom'
 import apiClient from '../lib/apiClient'
 
@@ -12,8 +12,21 @@ export function OAuthCallback() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
+  const exchangedRef = useRef(false)
 
   useEffect(() => {
+    // Guard against React StrictMode double-fire — OAuth codes are single-use
+    if (exchangedRef.current) return
+    exchangedRef.current = true
+
+    // Handle OAuth error responses (e.g. user denied consent)
+    const oauthError = searchParams.get('error')
+    if (oauthError) {
+      const desc = searchParams.get('error_description') || oauthError
+      setError(`OAuth error: ${desc}`)
+      return
+    }
+
     const code = searchParams.get('code')
     if (!code || !provider) {
       setError('Missing authorization code or provider.')

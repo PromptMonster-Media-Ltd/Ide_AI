@@ -60,6 +60,7 @@ export function Pipeline() {
       setReasoning(data.reasoning || [])
       setCost(data.cost_estimate || null)
       setWarnings(data.warnings || [])
+      setAvailableLayers(data.available_layers || {})
     } catch (err) {
       console.error('Failed to recommend pipeline:', err)
     } finally {
@@ -68,13 +69,18 @@ export function Pipeline() {
   }
 
   const updateLayer = async (layer: string, tool: string) => {
+    // Optimistic update so the controlled <select> doesn't snap back
+    setNodes(prev => prev.map(n => n.layer === layer ? { ...n, selected_tool: tool } : n))
     try {
       const { data } = await apiClient.patch(`/projects/${projectId}/pipeline/${layer}`, {
         selected_tool: tool,
       })
+      // Reconcile with server response
       setNodes(prev => prev.map(n => n.layer === layer ? { ...n, selected_tool: data.selected_tool } : n))
     } catch (err) {
       console.error('Failed to update layer:', err)
+      // Revert on failure by re-fetching
+      fetchPipeline()
     }
   }
 

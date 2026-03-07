@@ -96,9 +96,11 @@ export function SprintPlanner() {
 
     const token = localStorage.getItem('token')
     const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+    const hasPlanAlready = plan && plan.status === 'complete'
 
     try {
-      const response = await fetch(`${baseUrl}/sprints/${projectId}/generate`, {
+      const url = `${baseUrl}/sprints/${projectId}/generate${hasPlanAlready ? '?force=true' : ''}`
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,6 +108,7 @@ export function SprintPlanner() {
         },
       })
 
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       if (!response.body) throw new Error('No response body')
 
       const reader = response.body.getReader()
@@ -114,11 +117,15 @@ export function SprintPlanner() {
 
       while (true) {
         const { done, value } = await reader.read()
-        if (done) break
+        if (done) {
+          // Flush remaining buffer — the plan_complete event often lands here
+          buffer += decoder.decode()
+        } else {
+          buffer += decoder.decode(value, { stream: true })
+        }
 
-        buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
+        buffer = done ? '' : (lines.pop() || '')
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
@@ -128,16 +135,20 @@ export function SprintPlanner() {
               setStatusMessage('Generating sprint plan...')
             } else if (data.type === 'plan_progress') {
               setProgress(data.progress || 0)
-              setStatusMessage(data.message || 'Generating...')
+              setStatusMessage(data.message || data.label || 'Generating...')
             } else if (data.type === 'plan_complete') {
               setProgress(1)
-              setPlan(data.plan)
+              if (data.plan) {
+                setPlan(data.plan)
+              }
               setStatusMessage('Complete!')
             } else if (data.type === 'error') {
               setStatusMessage(`Error: ${data.message}`)
             }
           } catch { /* skip */ }
         }
+
+        if (done) break
       }
     } catch (err) {
       console.error('Sprint generation error:', err)
@@ -145,7 +156,7 @@ export function SprintPlanner() {
     } finally {
       setGenerating(false)
     }
-  }, [projectId, generating])
+  }, [projectId, generating, plan])
 
   const exportCSV = async () => {
     if (!projectId) return
