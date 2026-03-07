@@ -17,12 +17,13 @@ def upgrade():
     op.create_table(
         "sprint_plans",
         sa.Column("id", UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("project_id", UUID(as_uuid=True), sa.ForeignKey("projects.id", ondelete="CASCADE"), nullable=False),
+        sa.Column("project_id", UUID(as_uuid=True), sa.ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, unique=True),
         sa.Column("user_id", UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False),
         sa.Column("milestones", JSONB, nullable=True),
         sa.Column("sprints", JSONB, nullable=True),
         sa.Column("timeline", JSONB, nullable=True),
         sa.Column("status", sa.String(20), server_default=sa.text("'pending'")),
+        sa.Column("error_message", sa.String(500), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )

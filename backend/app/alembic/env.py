@@ -15,7 +15,8 @@ from app.core.database import Base
 from app.models import (  # noqa: F401
     User, Project, DiscoverySession, DesignSheet,
     Block, PipelineNode, PromptKit, Version,
-    MarketAnalysis,
+    MarketAnalysis, ProjectSnapshot,
+    UserMemory, ProjectShare, SprintPlan,
 )
 
 config = context.config

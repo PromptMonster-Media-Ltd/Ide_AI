@@ -35,3 +35,4 @@ class Project(Base):
     versions = relationship("Version", back_populates="project", cascade="all, delete-orphan")
     market_analysis = relationship("MarketAnalysis", back_populates="project", uselist=False, cascade="all, delete-orphan")
     snapshots = relationship("ProjectSnapshot", back_populates="project", cascade="all, delete-orphan")
+    sprint_plan = relationship("SprintPlan", back_populates="project", uselist=False, cascade="all, delete-orphan")
