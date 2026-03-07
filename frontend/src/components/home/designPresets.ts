@@ -69,4 +69,11 @@ export const DESIGN_PRESETS: DesignPreset[] = [
     description: 'Developer tool, SDK, API, or open-source framework',
     defaults: { platform: 'Custom', complexity: 'complex', audience: 'developers', tone: 'technical' },
   },
+  {
+    id: 'vst-plugin',
+    name: 'VST/VSTi Plug-in',
+    icon: '\uD83C\uDFDB\uFE0F',
+    description: 'Audio effect or instrument plug-in for DAWs (VST3/AU/AAX)',
+    defaults: { platform: 'Desktop', complexity: 'complex', audience: 'consumers', tone: 'technical' },
+  },
 ]

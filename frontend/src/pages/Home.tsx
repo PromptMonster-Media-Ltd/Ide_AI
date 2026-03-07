@@ -3,9 +3,9 @@
  * and design scheme preset cards.
  * @module pages/Home
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
 import { IdeaNebulaCanvas } from '../components/nebula/IdeaNebulaCanvas'
@@ -65,7 +65,6 @@ export function Home() {
   const [tone, setTone] = useState('Casual')
   const [loading, setLoading] = useState(false)
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
-  const [showCustomize, setShowCustomize] = useState(false)
   const [displayName, setDisplayName] = useState<string | null>(null)
 
   /* Fetch user profile for greeting */
@@ -92,7 +91,6 @@ export function Home() {
     setAudience(display.audience)
     setTone(display.tone)
     setSelectedPreset(presetId)
-    setShowCustomize(false)
   }
 
   /* Submit -- unchanged; normalizes values before POST */
@@ -151,19 +149,27 @@ export function Home() {
           </p>
         </motion.div>
 
-        {/* Idea textarea */}
+        {/* Idea textarea with inline pill dropdowns */}
         <motion.div
           className="w-full max-w-2xl mb-6 md:mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <textarea
-            value={idea}
-            onChange={(e) => setIdea(e.target.value)}
-            placeholder="Describe your product in one sentence..."
-            className="w-full bg-surface border border-border rounded-xl px-4 md:px-6 py-3 md:py-4 text-white text-base md:text-lg placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 transition-colors resize-none h-24 md:h-28"
-          />
+          <div className="bg-surface border border-border rounded-xl focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30 transition-colors overflow-visible">
+            <textarea
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+              placeholder="Describe your product in one sentence..."
+              className="w-full bg-transparent px-4 md:px-6 pt-3 md:pt-4 pb-2 text-white text-base md:text-lg placeholder:text-text-muted focus:outline-none resize-none h-20 md:h-24"
+            />
+            <div className="flex flex-wrap gap-1.5 px-3 md:px-5 pb-3">
+              <PillDropdown label="Platform" value={platform} options={PLATFORMS} onChange={(v) => { setPlatform(v); setSelectedPreset(null) }} />
+              <PillDropdown label="Audience" value={audience} options={AUDIENCES} onChange={(v) => { setAudience(v); setSelectedPreset(null) }} />
+              <PillDropdown label="Complexity" value={complexity} options={COMPLEXITIES} onChange={(v) => { setComplexity(v); setSelectedPreset(null) }} />
+              <PillDropdown label="Tone" value={tone} options={TONES} onChange={(v) => { setTone(v); setSelectedPreset(null) }} />
+            </div>
+          </div>
         </motion.div>
 
         {/* Design Scheme Presets */}
@@ -190,72 +196,8 @@ export function Home() {
           </div>
         </motion.div>
 
-        {/* Customize toggle */}
-        <motion.div
-          className="w-full max-w-2xl mb-6 md:mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.35 }}
-        >
-          <button
-            type="button"
-            onClick={() => setShowCustomize((prev) => !prev)}
-            className="flex items-center gap-2 text-xs text-text-muted hover:text-white transition-colors font-medium"
-          >
-            <svg
-              className={`w-3.5 h-3.5 transition-transform duration-200 ${showCustomize ? 'rotate-90' : ''}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-            {showCustomize ? 'Hide options' : 'Customize options'}
-            {selectedPreset && !showCustomize && (
-              <span className="text-accent/70 ml-1">
-                -- {platform} / {complexity.split(' ')[0]} / {audience} / {tone}
-              </span>
-            )}
-          </button>
-
-          <AnimatePresence>
-            {(showCustomize || !selectedPreset) && (
-              <motion.div
-                className="space-y-3 md:space-y-4 mt-4"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.25, ease: 'easeInOut' }}
-              >
-                <ChipRow
-                  label="Platform"
-                  options={PLATFORMS}
-                  value={platform}
-                  onChange={(v) => { setPlatform(v); setSelectedPreset(null) }}
-                />
-                <ChipRow
-                  label="Audience"
-                  options={AUDIENCES}
-                  value={audience}
-                  onChange={(v) => { setAudience(v); setSelectedPreset(null) }}
-                />
-                <ChipRow
-                  label="Complexity"
-                  options={COMPLEXITIES}
-                  value={complexity}
-                  onChange={(v) => { setComplexity(v); setSelectedPreset(null) }}
-                />
-                <ChipRow
-                  label="Tone"
-                  options={TONES}
-                  value={tone}
-                  onChange={(v) => { setTone(v); setSelectedPreset(null) }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+        {/* Spacer between presets and submit */}
+        <div className="mb-2" />
 
         {/* Submit */}
         <motion.div
@@ -272,31 +214,63 @@ export function Home() {
   )
 }
 
-/* ── ChipRow (unchanged from original) ────────────────────────────── */
-function ChipRow({ label, options, value, onChange }: {
+/* ── PillDropdown — inline pill with floating option list ───────────── */
+function PillDropdown({ label, value, options, onChange }: {
   label: string
-  options: string[]
   value: string
+  options: string[]
   onChange: (v: string) => void
 }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  // Shorten display value for compact pills
+  const display = value.length > 14 ? value.split(' ')[0] : value
+
   return (
-    <div>
-      <label className="text-xs text-text-muted font-medium mb-2 block">{label}</label>
-      <div className="flex flex-wrap gap-2">
-        {options.map((opt) => (
-          <button
-            key={opt}
-            onClick={() => onChange(opt)}
-            className={`px-2.5 md:px-3 py-1 md:py-1.5 rounded-lg text-[11px] md:text-xs font-medium transition-all ${
-              value === opt
-                ? 'bg-accent text-background'
-                : 'bg-white/5 text-text-muted hover:text-white hover:bg-white/10 border border-border'
-            }`}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all border ${
+          open
+            ? 'border-accent bg-accent/15 text-accent'
+            : 'border-border bg-white/5 text-text-muted hover:text-white hover:bg-white/10'
+        }`}
+      >
+        <span className="opacity-50 mr-0.5">{label}:</span>
+        {display}
+        <svg className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute bottom-full left-0 mb-1.5 z-50 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[160px] max-h-52 overflow-y-auto">
+          {options.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => { onChange(opt); setOpen(false) }}
+              className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
+                value === opt
+                  ? 'bg-accent/15 text-accent font-medium'
+                  : 'text-text-muted hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

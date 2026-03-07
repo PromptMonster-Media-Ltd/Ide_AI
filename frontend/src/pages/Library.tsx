@@ -210,8 +210,8 @@ export function Library() {
     })
 
   const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortKey !== col) return <span className="text-text-muted/30 ml-1">&#8597;</span>
-    return <span className="text-accent ml-1">{sortDir === 'asc' ? '&#9650;' : '&#9660;'}</span>
+    if (sortKey !== col) return <span className="text-text-muted/30 ml-1">{'\u2195'}</span>
+    return <span className="text-accent ml-1">{sortDir === 'asc' ? '\u25B2' : '\u25BC'}</span>
   }
 
   return (
