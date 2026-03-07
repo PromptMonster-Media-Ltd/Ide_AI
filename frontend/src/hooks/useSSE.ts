@@ -50,13 +50,19 @@ export function useSSE(options: UseSSEOptions) {
       const decoder = new TextDecoder()
       let buffer = ''
 
+      let receivedDone = false
+
       while (true) {
         const { done, value } = await reader.read()
-        if (done) break
+        if (done) {
+          // Flush remaining buffer — the 'done' event often lands here
+          buffer += decoder.decode()
+        } else {
+          buffer += decoder.decode(value, { stream: true })
+        }
 
-        buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
+        buffer = done ? '' : (lines.pop() || '')
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
@@ -65,12 +71,21 @@ export function useSSE(options: UseSSEOptions) {
             if (data.type === 'token' && data.content) {
               optionsRef.current.onToken?.(data.content)
             } else if (data.type === 'done') {
+              receivedDone = true
               optionsRef.current.onDone?.({ stage: data.stage || '', chips: data.chips || [] })
             } else if (data.type === 'sheet_update' && data.sheet) {
               optionsRef.current.onSheetUpdate?.(data.sheet)
             }
           } catch { /* skip malformed lines */ }
         }
+
+        if (done) break
+      }
+
+      // Safety net: if stream ended without a 'done' event, fire onDone
+      // with empty stage/chips so the UI doesn't get stuck
+      if (!receivedDone) {
+        optionsRef.current.onDone?.({ stage: '', chips: [] })
       }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {

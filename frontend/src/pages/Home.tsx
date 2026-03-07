@@ -3,7 +3,7 @@
  * and design scheme preset cards.
  * @module pages/Home
  */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '../components/ui/Button'
@@ -66,6 +66,16 @@ export function Home() {
   const [loading, setLoading] = useState(false)
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [showCustomize, setShowCustomize] = useState(false)
+  const [displayName, setDisplayName] = useState<string | null>(null)
+
+  /* Fetch user profile for greeting */
+  useEffect(() => {
+    apiClient.get('/auth/me')
+      .then(({ data }) => {
+        setDisplayName(data.display_name || data.name || data.email?.split('@')[0] || null)
+      })
+      .catch(() => { /* Silently ignore — greeting just won't show */ })
+  }, [])
 
   /* Apply a preset -- fills all four fields at once */
   const handlePresetSelect = (presetId: string) => {
@@ -110,6 +120,21 @@ export function Home() {
       <Sidebar />
       <main className="ml-0 md:ml-[232px] flex flex-col items-center justify-center min-h-screen px-4 md:px-6 pb-20 md:pb-0">
         <IdeaNebulaCanvas />
+
+        {/* Greeting */}
+        {displayName && (
+          <motion.div
+            className="text-center"
+            style={{ paddingTop: 50 }}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-lg md:text-2xl font-semibold text-white/80">
+              Hi <span className="text-accent">{displayName}</span>
+            </h2>
+          </motion.div>
+        )}
 
         {/* Hero */}
         <motion.div

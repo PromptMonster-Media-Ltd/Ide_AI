@@ -266,11 +266,21 @@ async def extract_sheet_fields(messages: list) -> dict:
 
 
 async def generate_quick_chips(ai_response: str) -> list[str]:
-    """Parse quick reply chips from AI response. Returns list of chip strings."""
-    chips = []
-    for line in ai_response.split("\n"):
-        if line.strip().startswith("[CHIPS:") and line.strip().endswith("]"):
-            inner = line.strip()[7:-1]  # Remove [CHIPS: and ]
-            chips = [c.strip() for c in inner.split("|") if c.strip()]
+    """Parse quick reply chips from AI response. Returns list of chip strings.
+
+    Searches from the END of the response (chips are always last), handles
+    case-insensitive matching, and strips trailing punctuation/whitespace.
+    """
+    import re
+
+    chips: list[str] = []
+    # Search from the end — chips are always the last line
+    for line in reversed(ai_response.split("\n")):
+        stripped = line.strip()
+        # Case-insensitive match; also handle trailing punctuation after ]
+        match = re.match(r"\[(?:CHIPS|chips|Chips):\s*(.*?)\]\s*[.!]?\s*$", stripped)
+        if match:
+            inner = match.group(1)
+            chips = [c.strip().strip('"').strip("'") for c in inner.split("|") if c.strip()]
             break
     return chips or ["Tell me more", "Let's move on", "I'm not sure yet"]

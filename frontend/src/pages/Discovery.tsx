@@ -69,8 +69,10 @@ export function Discovery() {
         }
         return ''
       })
-      setStage(data.stage)
-      if (data.chips?.length) setChips(data.chips)
+      if (data.stage) setStage(data.stage)
+      // Always set chips — use backend chips, or fallback defaults
+      const fallback = ["Tell me more", "Let's move on", "I'm not sure yet"]
+      setChips(data.chips?.length ? data.chips : fallback)
     },
     onSheetUpdate: (sheetData) => {
       setSheet((prev) => ({ ...prev, ...sheetData } as SheetData))
