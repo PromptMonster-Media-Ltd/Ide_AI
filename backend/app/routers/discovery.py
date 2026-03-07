@@ -191,7 +191,7 @@ async def send_message(
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
-@router.patch("/{session_id}/progress", redirect_slashes=False)
+@router.patch("/{session_id}/progress")
 async def save_progress(
     session_id: uuid.UUID,
     payload: ProgressPayload,
@@ -222,7 +222,7 @@ async def save_progress(
     return {"status": "saved", "session_id": str(session_id)}
 
 
-@router.get("/{session_id}/transcript", redirect_slashes=False)
+@router.get("/{session_id}/transcript")
 async def export_transcript(
     session_id: uuid.UUID,
     format: str = Query("txt", regex="^(txt|pdf|md)$"),

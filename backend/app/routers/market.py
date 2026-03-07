@@ -95,7 +95,7 @@ MARKET_EXPORT_CONTENT_TYPES = {
 }
 
 
-@router.get("/{project_id}/export", redirect_slashes=False)
+@router.get("/{project_id}/export")
 async def export_market_analysis(
     project_id: uuid.UUID,
     format: str = "pdf",
