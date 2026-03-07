@@ -15,7 +15,7 @@ from app.models.user import User
 from app.routers.auth import get_current_user
 from app.services import sprint_service
 
-router = APIRouter(prefix="/sprints", tags=["sprints"], redirect_slashes=False)
+router = APIRouter(prefix="/sprints", tags=["sprints"])
 
 
 @router.post("/{project_id}/generate")

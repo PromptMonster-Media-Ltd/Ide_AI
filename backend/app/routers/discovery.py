@@ -225,7 +225,7 @@ async def save_progress(
 @router.get("/{session_id}/transcript")
 async def export_transcript(
     session_id: uuid.UUID,
-    format: str = Query("txt", regex="^(txt|pdf|md)$"),
+    format: str = Query("txt", pattern="^(txt|pdf|md)$"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

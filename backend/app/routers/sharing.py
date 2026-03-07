@@ -17,7 +17,7 @@ from app.models.user import User
 from app.routers.auth import get_current_user
 from app.services import sharing_service
 
-router = APIRouter(prefix="/sharing", tags=["sharing"], redirect_slashes=False)
+router = APIRouter(prefix="/sharing", tags=["sharing"])
 
 
 class CreateShareRequest(BaseModel):
