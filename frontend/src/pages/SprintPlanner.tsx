@@ -209,7 +209,7 @@ export function SprintPlanner() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar projectId={projectId} />
-      <div className="ml-0 md:ml-[232px] flex-1 flex flex-col h-screen">
+      <div className="ml-0 md:ml-[232px] flex-1 min-w-0 flex flex-col h-screen">
         <TopBar title="Sprint Planner" subtitle="AI-generated roadmap & sprint breakdown">
           {hasPlan && (
             <>
@@ -222,7 +222,7 @@ export function SprintPlanner() {
           )}
         </TopBar>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
+        <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 md:p-6 pb-20 md:pb-6">
           {/* Loading */}
           {loading && (
             <div className="flex items-center justify-center py-20">
@@ -365,7 +365,7 @@ export function SprintPlanner() {
                 </div>
               )}
               {activeView === 'board' && sprints.length > 0 && (
-                <div className="flex gap-4 overflow-x-auto pb-4">
+                <div className="flex gap-4 overflow-x-auto pb-4 min-w-0 w-full">
                   {sprints.map(s => (
                     <div key={s.id} className="min-w-[280px] max-w-[320px] flex-shrink-0">
                       <div className="bg-surface/50 border border-border rounded-xl p-4">
