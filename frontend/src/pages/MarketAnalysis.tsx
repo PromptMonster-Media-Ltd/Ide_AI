@@ -155,6 +155,11 @@ const TABS: Array<{ key: TabKey; label: string; icon: string }> = [
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Safe array helper — returns [] if input is not an array. */
+function safeArr<T>(v: unknown): T[] {
+  return Array.isArray(v) ? v : []
+}
+
 function formatUSD(n: number): string {
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -311,7 +316,7 @@ function TargetMarketSection({ data }: { data: TargetMarket }) {
             <div>
               <div className="text-white/70 mb-1.5">Pain Points</div>
               <ul className="space-y-1">
-                {data.psychographics.pain_points?.map((p, i) => (
+                {safeArr<string>(data.psychographics.pain_points).map((p, i) => (
                   <li key={i} className="text-text-muted flex gap-2"><span className="text-red-400 shrink-0">*</span> {p}</li>
                 ))}
               </ul>
@@ -319,7 +324,7 @@ function TargetMarketSection({ data }: { data: TargetMarket }) {
             <div>
               <div className="text-white/70 mb-1.5">Values</div>
               <ul className="space-y-1">
-                {data.psychographics.values?.map((v, i) => (
+                {safeArr<string>(data.psychographics.values).map((v, i) => (
                   <li key={i} className="text-text-muted flex gap-2"><span className="text-emerald-400 shrink-0">*</span> {v}</li>
                 ))}
               </ul>
@@ -360,11 +365,11 @@ function CompetitiveSection({ data }: { data: CompetitiveLandscape }) {
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
                     <div className="text-emerald-400 mb-1">Strengths</div>
-                    <ul className="space-y-0.5">{comp.strengths?.map((s, j) => <li key={j} className="text-text-muted">+ {s}</li>)}</ul>
+                    <ul className="space-y-0.5">{safeArr<string>(comp.strengths).map((s, j) => <li key={j} className="text-text-muted">+ {s}</li>)}</ul>
                   </div>
                   <div>
                     <div className="text-red-400 mb-1">Weaknesses</div>
-                    <ul className="space-y-0.5">{comp.weaknesses?.map((w, j) => <li key={j} className="text-text-muted">- {w}</li>)}</ul>
+                    <ul className="space-y-0.5">{safeArr<string>(comp.weaknesses).map((w, j) => <li key={j} className="text-text-muted">- {w}</li>)}</ul>
                   </div>
                 </div>
                 {comp.pricing && <div className="mt-2 text-xs text-text-muted">Pricing: <span className="text-white">{comp.pricing}</span></div>}
@@ -517,7 +522,7 @@ function RevenueSection({ data }: { data: RevenueProjections }) {
               </div>
               <div className="text-[10px] text-text-muted uppercase mb-2">{tier.target_segment}</div>
               <ul className="space-y-1">
-                {tier.features?.map((f, j) => <li key={j} className="text-xs text-text-muted">* {f}</li>)}
+                {safeArr<string>(tier.features).map((f, j) => <li key={j} className="text-xs text-text-muted">* {f}</li>)}
               </ul>
             </Card>
           ))}
@@ -579,9 +584,9 @@ function RevenueSection({ data }: { data: RevenueProjections }) {
                   ) : null
                 })}
               </div>
-              {scenario.assumptions?.length > 0 && (
+              {safeArr<string>(scenario.assumptions).length > 0 && (
                 <div className="mt-2 text-[10px] text-text-muted">
-                  {scenario.assumptions.map((a, i) => <div key={i}>* {a}</div>)}
+                  {safeArr<string>(scenario.assumptions).map((a, i) => <div key={i}>* {a}</div>)}
                 </div>
               )}
             </Card>
@@ -660,7 +665,7 @@ function StrategySection({ data }: { data: MarketingStrategies }) {
                 </div>
                 <div className="text-xs text-text-muted mb-2">{ch.timeline}</div>
                 <div className="flex flex-wrap gap-1.5">
-                  {ch.tactics?.map((t, j) => (
+                  {safeArr<string>(ch.tactics).map((t, j) => (
                     <span key={j} className="text-[10px] bg-white/5 border border-border rounded px-2 py-0.5 text-text-muted">{t}</span>
                   ))}
                 </div>
@@ -868,11 +873,13 @@ export function MarketAnalysis() {
 
       while (true) {
         const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
+        if (done) {
+          buffer += decoder.decode() // flush remaining bytes
+        } else {
+          buffer += decoder.decode(value, { stream: true })
+        }
         const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
+        buffer = done ? '' : (lines.pop() || '')
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
@@ -913,6 +920,7 @@ export function MarketAnalysis() {
             }
           } catch { /* skip malformed lines */ }
         }
+        if (done) break
       }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
