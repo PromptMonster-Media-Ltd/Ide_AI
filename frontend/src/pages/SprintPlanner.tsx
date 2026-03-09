@@ -69,34 +69,37 @@ export function SprintPlanner() {
   const [generating, setGenerating] = useState(false)
   const [progress, setProgress] = useState(0)
   const [statusMessage, setStatusMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
   const [activeView, setActiveView] = useState<ViewTab>('milestones')
 
-  // Fetch existing plan
-  useEffect(() => {
+  // Fetch existing plan from DB
+  const fetchPlan = useCallback(async () => {
     if (!projectId) return
-    const fetchPlan = async () => {
-      try {
-        const { data } = await apiClient.get(`/sprints/${projectId}`)
-        setPlan(data)
-      } catch {
-        // No plan yet — that's fine
-      } finally {
-        setLoading(false)
-      }
+    try {
+      const { data } = await apiClient.get(`/sprints/${projectId}`)
+      setPlan(data)
+    } catch {
+      // No plan yet — that's fine
     }
-    fetchPlan()
   }, [projectId])
+
+  // Initial load
+  useEffect(() => {
+    fetchPlan().finally(() => setLoading(false))
+  }, [fetchPlan])
 
   // Generate via SSE
   const generate = useCallback(async () => {
     if (!projectId || generating) return
     setGenerating(true)
     setProgress(0)
+    setErrorMessage('')
     setStatusMessage('Analyzing project blocks...')
 
     const token = localStorage.getItem('token')
     const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
     const hasPlanAlready = plan && plan.status === 'complete'
+    let receivedPlan = false
 
     try {
       const url = `${baseUrl}/sprints/${projectId}/generate${hasPlanAlready ? '?force=true' : ''}`
@@ -118,7 +121,6 @@ export function SprintPlanner() {
       while (true) {
         const { done, value } = await reader.read()
         if (done) {
-          // Flush remaining buffer — the plan_complete event often lands here
           buffer += decoder.decode()
         } else {
           buffer += decoder.decode(value, { stream: true })
@@ -136,27 +138,36 @@ export function SprintPlanner() {
             } else if (data.type === 'plan_progress') {
               setProgress(data.progress || 0)
               setStatusMessage(data.message || data.label || 'Generating...')
+            } else if (data.type === 'section_complete') {
+              setProgress(data.progress || 0)
+              setStatusMessage(`${data.section || 'Section'} complete`)
             } else if (data.type === 'plan_complete') {
               setProgress(1)
+              setStatusMessage('Complete!')
+              receivedPlan = true
               if (data.plan) {
                 setPlan(data.plan)
               }
-              setStatusMessage('Complete!')
             } else if (data.type === 'error') {
-              setStatusMessage(`Error: ${data.message}`)
+              setErrorMessage(data.message || 'Generation failed')
             }
-          } catch { /* skip */ }
+          } catch { /* skip malformed SSE line */ }
         }
 
         if (done) break
       }
+
+      // Fallback: if we didn't get plan data from SSE, fetch from DB
+      if (!receivedPlan || !plan) {
+        await fetchPlan()
+      }
     } catch (err) {
       console.error('Sprint generation error:', err)
-      setStatusMessage('Generation failed. Please try again.')
+      setErrorMessage('Generation failed. Please try again.')
     } finally {
       setGenerating(false)
     }
-  }, [projectId, generating, plan])
+  }, [projectId, generating, plan, fetchPlan])
 
   const exportCSV = async () => {
     if (!projectId) return
@@ -209,6 +220,13 @@ export function SprintPlanner() {
                   style={{ width: `${Math.round(progress * 100)}%` }}
                 />
               </div>
+            </div>
+          )}
+
+          {/* Error banner */}
+          {errorMessage && !generating && (
+            <div className="mb-4 px-4 py-3 rounded-lg bg-red-400/10 border border-red-400/20 text-red-400 text-sm">
+              {errorMessage}
             </div>
           )}
 
