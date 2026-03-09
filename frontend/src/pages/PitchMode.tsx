@@ -34,7 +34,8 @@ export function PitchMode() {
         apiClient.get(`/projects/${projectId}/blocks`),
       ])
       setSheet(sheetRes.data)
-      setBlocks(blocksRes.data.filter((b: { priority: string }) => b.priority === 'mvp').slice(0, 5))
+      const blocksArr = Array.isArray(blocksRes.data) ? blocksRes.data : []
+      setBlocks(blocksArr.filter((b: { priority: string }) => b.priority === 'mvp').slice(0, 5))
     } catch (err) {
       console.error('Failed to load pitch data:', err)
     } finally {

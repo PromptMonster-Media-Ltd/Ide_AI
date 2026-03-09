@@ -168,9 +168,9 @@ export function SprintPlanner() {
     }
   }
 
-  const milestones = plan?.milestones || []
-  const sprints = plan?.sprints || []
-  const timeline = plan?.timeline || []
+  const milestones = Array.isArray(plan?.milestones) ? plan.milestones : []
+  const sprints = Array.isArray(plan?.sprints) ? plan.sprints : []
+  const timeline = Array.isArray(plan?.timeline) ? plan.timeline : []
   const hasPlan = plan && plan.status === 'complete'
 
   return (

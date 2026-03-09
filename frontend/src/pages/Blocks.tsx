@@ -36,7 +36,7 @@ export function Blocks() {
     setLoading(true)
     try {
       const { data } = await apiClient.get(`/projects/${projectId}/blocks`)
-      setBlocks(data)
+      setBlocks(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error('Failed to fetch blocks:', err)
     } finally {
@@ -51,7 +51,7 @@ export function Blocks() {
     setGenerating(true)
     try {
       const { data } = await apiClient.post(`/projects/${projectId}/blocks/generate`)
-      setBlocks(data)
+      setBlocks(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error('Failed to generate blocks:', err)
     } finally {
