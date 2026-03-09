@@ -179,10 +179,32 @@ export function SprintPlanner() {
     }
   }
 
-  const milestones = Array.isArray(plan?.milestones) ? plan.milestones : []
-  const sprints = Array.isArray(plan?.sprints) ? plan.sprints : []
-  const timeline = Array.isArray(plan?.timeline) ? plan.timeline : []
+  // AI sometimes wraps arrays: {"milestones": [...]} instead of [...].
+  // Extract the inner array when that happens.
+  const extractArr = (val: unknown, key: string): unknown[] => {
+    if (Array.isArray(val)) return val
+    if (val && typeof val === 'object' && key in (val as Record<string, unknown>)) {
+      const inner = (val as Record<string, unknown>)[key]
+      if (Array.isArray(inner)) return inner
+    }
+    return []
+  }
+
+  const milestones = extractArr(plan?.milestones, 'milestones') as Milestone[]
+  const sprints = extractArr(plan?.sprints, 'sprints') as Sprint[]
+  const timeline = extractArr(plan?.timeline, 'timeline') as TimelineItem[]
   const hasPlan = plan && plan.status === 'complete'
+
+  // Debug: log plan data shape to help diagnose rendering issues
+  useEffect(() => {
+    if (plan) {
+      console.log('[SprintPlanner] plan.status:', plan.status)
+      console.log('[SprintPlanner] milestones type:', typeof plan.milestones, Array.isArray(plan.milestones) ? `array(${(plan.milestones as unknown[]).length})` : plan.milestones)
+      console.log('[SprintPlanner] sprints type:', typeof plan.sprints, Array.isArray(plan.sprints) ? `array(${(plan.sprints as unknown[]).length})` : plan.sprints)
+      console.log('[SprintPlanner] timeline type:', typeof plan.timeline, Array.isArray(plan.timeline) ? `array(${(plan.timeline as unknown[]).length})` : plan.timeline)
+      console.log('[SprintPlanner] extracted:', { milestones: milestones.length, sprints: sprints.length, timeline: timeline.length })
+    }
+  }, [plan, milestones.length, sprints.length, timeline.length])
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -269,7 +291,13 @@ export function SprintPlanner() {
               </div>
 
               {/* Milestones View */}
-              {activeView === 'milestones' && (
+              {activeView === 'milestones' && milestones.length === 0 && (
+                <div className="text-center py-16">
+                  <p className="text-sm text-text-muted">No milestones data. Try regenerating the plan.</p>
+                  <Button variant="secondary" className="mt-4" onClick={generate} disabled={generating}>Regenerate</Button>
+                </div>
+              )}
+              {activeView === 'milestones' && milestones.length > 0 && (
                 <div className="space-y-4">
                   {milestones.map((m, i) => {
                     const mSprints = sprints.filter(s => s.milestone_id === m.id)
@@ -330,7 +358,13 @@ export function SprintPlanner() {
               )}
 
               {/* Sprint Board View */}
-              {activeView === 'board' && (
+              {activeView === 'board' && sprints.length === 0 && (
+                <div className="text-center py-16">
+                  <p className="text-sm text-text-muted">No sprint data. Try regenerating the plan.</p>
+                  <Button variant="secondary" className="mt-4" onClick={generate} disabled={generating}>Regenerate</Button>
+                </div>
+              )}
+              {activeView === 'board' && sprints.length > 0 && (
                 <div className="flex gap-4 overflow-x-auto pb-4">
                   {sprints.map(s => (
                     <div key={s.id} className="min-w-[280px] max-w-[320px] flex-shrink-0">

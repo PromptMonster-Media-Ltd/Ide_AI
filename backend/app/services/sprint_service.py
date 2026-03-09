@@ -376,6 +376,18 @@ async def generate_sprint_plan(
                 text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
 
             section_data = json.loads(text)
+
+            # Claude sometimes wraps the array in an object:
+            #   {"milestones": [...]} instead of [...]
+            # Unwrap so we always store a plain list.
+            if isinstance(section_data, dict):
+                if section_key in section_data and isinstance(section_data[section_key], list):
+                    section_data = section_data[section_key]
+                elif len(section_data) == 1:
+                    only_val = next(iter(section_data.values()))
+                    if isinstance(only_val, list):
+                        section_data = only_val
+
             generated_data[section_key] = section_data
 
             # Store in database
