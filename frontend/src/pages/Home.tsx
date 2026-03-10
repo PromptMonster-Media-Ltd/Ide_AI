@@ -18,7 +18,6 @@ import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
 import { IdeaNebulaCanvas } from '../components/nebula/IdeaNebulaCanvas'
 import { PresetCard } from '../components/home/PresetCard'
-import { PartnerSelector } from '../components/partner/PartnerSelector'
 import { usePathwayStore } from '../stores/pathwayStore'
 import type { PathwayDefinition, CreationPreset, CreationField } from '../types/pathway'
 import type { PartnerStyleMeta } from '../types/project'
@@ -47,8 +46,7 @@ export function Home() {
 
   // AI Partner state
   const [partnerStyle, setPartnerStyle] = useState('strategist')
-  const [partnerMeta, setPartnerMeta] = useState<PartnerStyleMeta | null>(null)
-  const [showPartnerPicker, setShowPartnerPicker] = useState(false)
+  const [allPartners, setAllPartners] = useState<PartnerStyleMeta[]>([])
 
   // Pathway confirmation state (hybrid detection UX)
   const [showConfirmation, setShowConfirmation] = useState(false)
@@ -60,12 +58,9 @@ export function Home() {
   useEffect(() => { fetchPathways() }, [fetchPathways])
   useEffect(() => {
     apiClient.get('/meta/partner-styles')
-      .then(({ data }) => {
-        const match = data.find((p: PartnerStyleMeta) => p.id === partnerStyle)
-        if (match) setPartnerMeta(match)
-      })
+      .then(({ data }) => setAllPartners(data))
       .catch(() => {})
-  }, [partnerStyle])
+  }, [])
   useEffect(() => {
     apiClient.get('/auth/me')
       .then(({ data }) => {
@@ -274,18 +269,6 @@ export function Home() {
                         }}
                       />
                     ))}
-                    {/* AI Partner pill */}
-                    <button
-                      type="button"
-                      onClick={() => setShowPartnerPicker(true)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all border border-border bg-white/5 text-text-muted hover:text-white hover:bg-white/10"
-                    >
-                      <span className="opacity-50 mr-0.5">Partner:</span>
-                      {partnerMeta?.icon ?? '♟️'} {partnerMeta?.name ?? 'Strategist'}
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
                   </div>
                 </div>
               </div>
@@ -306,6 +289,36 @@ export function Home() {
                         selected={selectedPreset === preset.id}
                         onClick={() => handlePresetSelect(preset.id)}
                       />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Partner Style Selector */}
+              {allPartners.length > 0 && (
+                <div className="w-full max-w-2xl mb-4 md:mb-6">
+                  <label className="text-xs text-text-muted font-medium mb-3 block">
+                    Choose a partner style:
+                  </label>
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                    {allPartners.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setPartnerStyle(p.id)}
+                        className={`
+                          flex flex-col items-center text-center rounded-lg px-2 py-2.5 cursor-pointer
+                          transition-all duration-200 ease-out
+                          ${
+                            partnerStyle === p.id
+                              ? 'bg-accent/5 border border-accent shadow-[0_0_16px_rgba(0,229,255,0.1)]'
+                              : 'bg-white/5 border border-border hover:border-white/15 hover:scale-[1.02]'
+                          }
+                        `}
+                      >
+                        <span className="text-xl leading-none">{p.icon}</span>
+                        <span className="text-[11px] font-semibold text-white mt-1.5">{p.name}</span>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -375,16 +388,6 @@ export function Home() {
           )}
         </AnimatePresence>
 
-        {/* AI Partner selector modal */}
-        <PartnerSelector
-          open={showPartnerPicker}
-          currentStyle={partnerStyle}
-          onSelect={(s) => {
-            setPartnerStyle(s)
-            setShowPartnerPicker(false)
-          }}
-          onClose={() => setShowPartnerPicker(false)}
-        />
       </main>
     </div>
   )
