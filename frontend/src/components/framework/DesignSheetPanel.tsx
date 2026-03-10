@@ -44,7 +44,7 @@ interface Props {
 /** Resolve a field value — checks named columns first, then fields_data. */
 function getFieldValue(sheet: SheetData, key: string): unknown {
   if (NAMED_COLUMNS.has(key)) {
-    return (sheet as Record<string, unknown>)[key]
+    return (sheet as unknown as Record<string, unknown>)[key]
   }
   return sheet.fields_data?.[key]
 }

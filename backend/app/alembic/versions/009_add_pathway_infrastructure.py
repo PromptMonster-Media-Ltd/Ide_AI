@@ -1,7 +1,7 @@
 """Add pathway infrastructure: pathway_id, fields_data, module_artifacts table.
 
-Revision ID: 001_pathway
-Revises: None
+Revision ID: 009
+Revises: 008
 Create Date: 2026-03-10
 """
 from typing import Sequence, Union
@@ -11,8 +11,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "001_pathway"
-down_revision: Union[str, None] = None
+revision: str = "009"
+down_revision: Union[str, None] = "008"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
