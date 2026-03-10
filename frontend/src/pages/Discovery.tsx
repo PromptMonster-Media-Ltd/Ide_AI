@@ -14,6 +14,7 @@ import { DesignSheetPanel } from '../components/framework/DesignSheetPanel'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { useSSE } from '../hooks/useSSE'
+import { usePathwayStore } from '../stores/pathwayStore'
 import apiClient from '../lib/apiClient'
 
 interface Message {
@@ -46,6 +47,7 @@ const AUTO_SAVE_INTERVAL_MS = 30_000
 
 export function Discovery() {
   const { projectId } = useParams<{ projectId: string }>()
+  const { active: activePathway, fetchPathways, setActiveByProject } = usePathwayStore()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [streamingContent, setStreamingContent] = useState('')
@@ -117,6 +119,15 @@ export function Discovery() {
       stage,
     }).catch((err) => console.error('Stage-change save failed:', err))
   }, [sessionId, stage, messages])
+
+  // Fetch pathways + activate the project's pathway
+  useEffect(() => {
+    if (!projectId) return
+    fetchPathways()
+    apiClient.get(`/projects/${projectId}`)
+      .then(({ data }) => setActiveByProject(data))
+      .catch(() => { /* Project fetch failed — pathway stays at default */ })
+  }, [projectId, fetchPathways, setActiveByProject])
 
   // Start session and trigger AI greeting on mount
   useEffect(() => {
@@ -198,7 +209,7 @@ export function Discovery() {
         <div className="flex-1 flex min-h-0">
           {/* Left: Stepper — hidden on mobile */}
           <div className="hidden md:block w-48 border-r border-border bg-surface/30 shrink-0 overflow-y-auto">
-            <StagesStepper currentStage={stage} />
+            <StagesStepper currentStage={stage} stages={activePathway?.stages} />
           </div>
 
           {/* Center: Chat — hidden on mobile when sheet is shown */}
@@ -237,7 +248,7 @@ export function Discovery() {
               <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">Design Sheet</h3>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <DesignSheetPanel sheet={sheet} />
+              <DesignSheetPanel sheet={sheet} fieldConfigs={activePathway?.sheet_fields} />
             </div>
           </div>
         </div>

@@ -3,25 +3,28 @@
  * Desktop: Fixed left sidebar (232px) with logo + labels.
  * Mobile: Fixed bottom nav bar with icons only + hamburger for overflow.
  * Shows "Back to Project" when user navigates to Home with an active project.
+ * Project module items are driven by the active pathway from pathwayStore.
  * @module components/layout/Sidebar
  */
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { usePathwayStore } from '../../stores/pathwayStore'
 
 const NAV_ITEMS = [
-  { path: '/', label: 'Home', icon: '✦' },
+  { path: '/', label: 'Home', icon: '\u2726' },
   { path: '/library', label: 'Library', icon: '\u{1F4DA}' },
-  { path: '/settings', label: 'Settings', icon: '⚙' },
+  { path: '/settings', label: 'Settings', icon: '\u2699' },
 ]
 
-const PROJECT_ITEMS = [
-  { path: '/discovery', label: 'Discovery', icon: '🔍' },
-  { path: '/blocks', label: 'Blocks', icon: '◫' },
-  { path: '/pipeline', label: 'Pipeline', icon: '⟡' },
-  { path: '/market', label: 'Market', icon: '📊' },
-  { path: '/sprints', label: 'Sprints', icon: '🏃' },
-  { path: '/exports', label: 'Exports', icon: '↗' },
-  { path: '/pitch', label: 'Pitch', icon: '📄' },
+/** Hardcoded fallback project items — used when pathway hasn't loaded yet. */
+const FALLBACK_PROJECT_ITEMS = [
+  { path: '/discovery', label: 'Discovery', icon: '\u{1F50D}' },
+  { path: '/blocks', label: 'Blocks', icon: '\u25EB' },
+  { path: '/pipeline', label: 'Pipeline', icon: '\u27E1' },
+  { path: '/market', label: 'Market', icon: '\u{1F4CA}' },
+  { path: '/sprints', label: 'Sprints', icon: '\u{1F3C3}' },
+  { path: '/exports', label: 'Exports', icon: '\u2197' },
+  { path: '/pitch', label: 'Pitch', icon: '\u{1F4C4}' },
 ]
 
 const ACTIVE_PROJECT_KEY = 'ideai_active_project'
@@ -32,6 +35,18 @@ export function Sidebar({ projectId }: { projectId?: string }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null)
   const [savedPath, setSavedPath] = useState<string | null>(null)
+
+  const { active: activePathway, fetchPathways } = usePathwayStore()
+
+  // Fetch pathways on mount (deduped inside the store)
+  useEffect(() => { fetchPathways() }, [fetchPathways])
+
+  // Build project items from active pathway's modules (or fallback)
+  const projectItems = activePathway?.modules
+    ? [...activePathway.modules]
+        .sort((a, b) => a.order - b.order)
+        .map(m => ({ path: `/${m.route_suffix}`, label: m.label, icon: m.icon }))
+    : FALLBACK_PROJECT_ITEMS
 
   // Persist active project when user is inside a project
   useEffect(() => {
@@ -54,7 +69,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
   const showBackToProject = isOnHomePage && savedProjectId && !projectId
 
   const allItems = projectId
-    ? [...NAV_ITEMS, ...PROJECT_ITEMS]
+    ? [...NAV_ITEMS, ...projectItems]
     : NAV_ITEMS
 
   const mobileBarItems = allItems.slice(0, 4)
@@ -66,7 +81,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
       : location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path
 
   const buildTo = (item: { path: string }) =>
-    projectId && PROJECT_ITEMS.some((p) => p.path === item.path)
+    projectId && projectItems.some((p) => p.path === item.path)
       ? `${item.path}/${projectId}`
       : item.path
 
@@ -102,7 +117,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
                 to={savedPath || `/discovery/${savedProjectId}`}
                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-accent bg-accent/5 border border-accent/20 mx-2 rounded-lg hover:bg-accent/10 transition-colors"
               >
-                <span className="shrink-0 text-base">↩</span>
+                <span className="shrink-0 text-base">\u21A9</span>
                 <span className="whitespace-nowrap">Back to Project</span>
               </Link>
             </>
@@ -111,7 +126,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
           {projectId && (
             <>
               <div className="mx-4 my-2 border-t border-border" />
-              {PROJECT_ITEMS.map((item) => (
+              {projectItems.map((item) => (
                 <Link
                   key={item.path}
                   to={`${item.path}/${projectId}`}
@@ -137,7 +152,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
             to={savedPath || `/discovery/${savedProjectId}`}
             className="flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg text-xs text-accent"
           >
-            <span className="text-lg">↩</span>
+            <span className="text-lg">\u21A9</span>
             <span className="text-[10px] leading-tight">Project</span>
           </Link>
         )}
@@ -164,7 +179,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
               mobileMenuOpen ? 'text-accent' : 'text-text-muted'
             }`}
           >
-            <span className="text-lg">•••</span>
+            <span className="text-lg">\u2022\u2022\u2022</span>
             <span className="text-[10px] leading-tight">More</span>
           </button>
         )}

@@ -1,25 +1,33 @@
 /**
- * StagesStepper — Vertical 5-stage progress indicator.
+ * StagesStepper — Vertical stage progress indicator.
+ * Accepts pathway stages as props for dynamic discovery flows.
+ * Falls back to software-product stages when none provided.
  * @module components/discovery/StagesStepper
  */
+import type { StageConfig } from '../../types/pathway'
 
-const STAGES = [
-  { id: 'greeting', label: 'Welcome', icon: '👋' },
-  { id: 'problem', label: 'Problem', icon: '🎯' },
-  { id: 'audience', label: 'Audience', icon: '👥' },
-  { id: 'features', label: 'Features', icon: '◫' },
-  { id: 'constraints', label: 'Constraints', icon: '⚙' },
-  { id: 'confirm', label: 'Confirm', icon: '✓' },
+const DEFAULT_STAGES: StageConfig[] = [
+  { id: 'greeting', label: 'Welcome', icon: '\u{1F44B}' },
+  { id: 'problem', label: 'Problem', icon: '\u{1F3AF}' },
+  { id: 'audience', label: 'Audience', icon: '\u{1F465}' },
+  { id: 'features', label: 'Features', icon: '\u25EB' },
+  { id: 'constraints', label: 'Constraints', icon: '\u2699' },
+  { id: 'confirm', label: 'Confirm', icon: '\u2713' },
 ]
 
-const STAGE_ORDER = STAGES.map(s => s.id)
+interface Props {
+  currentStage: string
+  stages?: StageConfig[]
+}
 
-export function StagesStepper({ currentStage }: { currentStage: string }) {
-  const currentIndex = STAGE_ORDER.indexOf(currentStage)
+export function StagesStepper({ currentStage, stages }: Props) {
+  const stageList = stages && stages.length > 0 ? stages : DEFAULT_STAGES
+  const stageIds = stageList.map(s => s.id)
+  const currentIndex = stageIds.indexOf(currentStage)
 
   return (
     <div className="flex flex-col gap-1 py-4">
-      {STAGES.map((stage, i) => {
+      {stageList.map((stage, i) => {
         const isComplete = i < currentIndex
         const isCurrent = i === currentIndex
 
@@ -30,7 +38,7 @@ export function StagesStepper({ currentStage }: { currentStage: string }) {
               isCurrent ? 'bg-accent/20 text-accent border border-accent' :
               'bg-white/5 text-text-muted border border-border'
             }`}>
-              {isComplete ? '✓' : stage.icon}
+              {isComplete ? '\u2713' : stage.icon}
             </div>
             <span className={`text-xs font-medium transition-colors ${
               isCurrent ? 'text-accent' : isComplete ? 'text-white' : 'text-text-muted'

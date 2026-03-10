@@ -1,6 +1,6 @@
 /**
- * Home -- Idea input landing page with nebula canvas background
- * and design scheme preset cards.
+ * Home -- Idea input landing page with nebula canvas background,
+ * pathway picker, and dynamic creation fields from the active pathway.
  * @module pages/Home
  */
 import { useEffect, useRef, useState } from 'react'
@@ -10,108 +10,108 @@ import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
 import { IdeaNebulaCanvas } from '../components/nebula/IdeaNebulaCanvas'
 import { PresetCard } from '../components/home/PresetCard'
-import { DESIGN_PRESETS } from '../components/home/designPresets'
-import type { DesignPresetDefaults } from '../components/home/designPresets'
+import { usePathwayStore } from '../stores/pathwayStore'
+import type { PathwayDefinition, CreationPreset, CreationField } from '../types/pathway'
 import apiClient from '../lib/apiClient'
 
-/* ── Option lists for the Customize section ─────────────────────── */
-const PLATFORMS = [
-  'Mobile', 'Web', 'Desktop', 'Browser Extension',
-  'Bubble', 'Webflow', 'FlutterFlow', 'Bolt', 'Lovable',
-  'Claude Code', 'Cursor', 'Replit', 'n8n', 'Custom',
-]
-const AUDIENCES = ['Consumers', 'Businesses', 'Internal Team', 'Developers']
-const COMPLEXITIES = ['Simple (1-5 screens)', 'Medium (5-15)', 'Complex (15+)']
-const TONES = ['Formal', 'Casual', 'Technical', 'Startup-style']
+/* ── Helpers ──────────────────────────────────────────────────── */
 
-/* ── Helpers to map preset defaults <-> display values ───────────── */
-const COMPLEXITY_MAP: Record<string, string> = {
-  simple: 'Simple (1-5 screens)',
-  medium: 'Medium (5-15)',
-  complex: 'Complex (15+)',
+/** Convert lowercase preset defaults into display strings used by PillDropdowns. */
+function resolvePresetValue(fieldId: string, rawValue: string, options: string[]): string {
+  // Try exact match first
+  const exact = options.find(o => o.toLowerCase() === rawValue.toLowerCase())
+  if (exact) return exact
+  // Try partial match (e.g. "medium" matches "Medium (5-15 screens)")
+  const partial = options.find(o => o.toLowerCase().startsWith(rawValue.toLowerCase()))
+  if (partial) return partial
+  return rawValue
 }
 
-const AUDIENCE_MAP: Record<string, string> = {
-  consumers: 'Consumers',
-  businesses: 'Businesses',
-  'internal-team': 'Internal Team',
-  developers: 'Developers',
-}
-
-const TONE_MAP: Record<string, string> = {
-  formal: 'Formal',
-  casual: 'Casual',
-  technical: 'Technical',
-  startup: 'Startup-style',
-}
-
-/** Convert lowercase preset defaults into the display strings used by ChipRows. */
-function presetDefaultsToDisplay(defaults: DesignPresetDefaults) {
-  return {
-    platform: defaults.platform,
-    complexity: COMPLEXITY_MAP[defaults.complexity] ?? defaults.complexity,
-    audience: AUDIENCE_MAP[defaults.audience] ?? defaults.audience,
-    tone: TONE_MAP[defaults.tone] ?? defaults.tone,
-  }
-}
-
-/* ── Page ─────────────────────────────────────────────────────────── */
+/* ── Page ─────────────────────────────────────────────────────── */
 export function Home() {
   const navigate = useNavigate()
+  const { pathways, active: activePathway, fetchPathways, setActive } = usePathwayStore()
+
   const [idea, setIdea] = useState('')
-  const [platform, setPlatform] = useState('Custom')
-  const [audience, setAudience] = useState('Consumers')
-  const [complexity, setComplexity] = useState('Medium (5-15)')
-  const [tone, setTone] = useState('Casual')
   const [loading, setLoading] = useState(false)
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState<string | null>(null)
 
-  /* Fetch user profile for greeting */
+  // Dynamic field values — keyed by field id
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({})
+
+  // Fetch pathways + user profile on mount
+  useEffect(() => { fetchPathways() }, [fetchPathways])
   useEffect(() => {
     apiClient.get('/auth/me')
       .then(({ data }) => {
         setDisplayName(data.display_name || data.name || data.email?.split('@')[0] || null)
       })
-      .catch(() => { /* Silently ignore — greeting just won't show */ })
+      .catch(() => {})
   }, [])
 
-  /* Apply a preset -- fills all four fields at once */
+  // Initialize field defaults when pathway changes
+  const creationFields: CreationField[] = activePathway?.creation_fields ?? []
+  const creationPresets: CreationPreset[] = activePathway?.creation_presets ?? []
+
+  useEffect(() => {
+    if (creationFields.length === 0) return
+    setFieldValues(prev => {
+      const next: Record<string, string> = {}
+      for (const f of creationFields) {
+        next[f.id] = prev[f.id] ?? f.options[0] ?? ''
+      }
+      return next
+    })
+  }, [activePathway?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Apply a preset — fills all fields at once */
   const handlePresetSelect = (presetId: string) => {
     if (selectedPreset === presetId) {
-      // Deselect
       setSelectedPreset(null)
       return
     }
-    const preset = DESIGN_PRESETS.find((p) => p.id === presetId)
+    const preset = creationPresets.find(p => p.id === presetId)
     if (!preset) return
-    const display = presetDefaultsToDisplay(preset.defaults)
-    setPlatform(display.platform)
-    setComplexity(display.complexity)
-    setAudience(display.audience)
-    setTone(display.tone)
+    const newValues: Record<string, string> = {}
+    for (const field of creationFields) {
+      const raw = preset.defaults[field.id]
+      newValues[field.id] = raw
+        ? resolvePresetValue(field.id, raw, field.options)
+        : fieldValues[field.id] ?? field.options[0] ?? ''
+    }
+    setFieldValues(newValues)
     setSelectedPreset(presetId)
   }
 
-  /* Submit -- unchanged; normalizes values before POST */
+  /* Select a pathway */
+  const handlePathwaySelect = (pw: PathwayDefinition) => {
+    setActive(pw.id)
+    setSelectedPreset(null)
+  }
+
+  /* Submit — normalize values and POST */
   const handleSubmit = async () => {
     if (!idea.trim()) return
     setLoading(true)
     try {
+      const normalized: Record<string, string> = {}
+      for (const [key, val] of Object.entries(fieldValues)) {
+        normalized[key] = val.split(' ')[0].toLowerCase().replace(/\s+/g, '-')
+      }
       const { data } = await apiClient.post('/projects', {
         name: idea.slice(0, 100),
         description: idea,
-        platform: platform.toLowerCase().replace(/\s+/g, '-'),
-        audience: audience.toLowerCase().replace(/\s+/g, '-'),
-        complexity: complexity.split(' ')[0].toLowerCase(),
-        tone: tone.toLowerCase().replace(/-/g, '_'),
+        pathway_id: activePathway?.id ?? 'software_product',
+        ...normalized,
       })
       navigate(`/discovery/${data.id}`)
     } catch {
-      // TODO: toast error
       setLoading(false)
     }
   }
+
+  const showPathwayPicker = pathways.length > 1
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,12 +142,43 @@ export function Home() {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-2xl md:text-4xl font-bold text-white mb-3">
-            What do you want to <span className="text-accent">build</span>?
+            What do you want to <span className="text-accent">create</span>?
           </h1>
           <p className="text-text-muted text-sm md:text-lg">
             Describe your idea and let AI forge it into a complete design kit.
           </p>
         </motion.div>
+
+        {/* Pathway Picker — shown when multiple pathways exist */}
+        {showPathwayPicker && (
+          <motion.div
+            className="w-full max-w-2xl mb-4 md:mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+          >
+            <label className="text-xs text-text-muted font-medium mb-3 block">
+              Project Type
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {pathways.map(pw => (
+                <button
+                  key={pw.id}
+                  type="button"
+                  onClick={() => handlePathwaySelect(pw)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all border ${
+                    activePathway?.id === pw.id
+                      ? 'border-accent bg-accent/10 text-accent shadow-[0_0_12px_rgba(0,229,255,0.08)]'
+                      : 'border-border bg-white/5 text-text-muted hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <span className="text-lg">{pw.icon}</span>
+                  <span className="font-medium">{pw.name}</span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Idea textarea with inline pill dropdowns */}
         <motion.div
@@ -160,41 +191,51 @@ export function Home() {
             <textarea
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
-              placeholder="Describe your product in one sentence..."
+              placeholder="Describe your idea in one sentence..."
               className="w-full bg-transparent px-4 md:px-6 pt-3 md:pt-4 pb-2 text-white text-base md:text-lg placeholder:text-text-muted focus:outline-none resize-none h-20 md:h-24"
             />
             <div className="flex flex-wrap gap-1.5 px-3 md:px-5 pb-3">
-              <PillDropdown label="Platform" value={platform} options={PLATFORMS} onChange={(v) => { setPlatform(v); setSelectedPreset(null) }} />
-              <PillDropdown label="Audience" value={audience} options={AUDIENCES} onChange={(v) => { setAudience(v); setSelectedPreset(null) }} />
-              <PillDropdown label="Complexity" value={complexity} options={COMPLEXITIES} onChange={(v) => { setComplexity(v); setSelectedPreset(null) }} />
-              <PillDropdown label="Tone" value={tone} options={TONES} onChange={(v) => { setTone(v); setSelectedPreset(null) }} />
+              {creationFields.map(field => (
+                <PillDropdown
+                  key={field.id}
+                  label={field.label}
+                  value={fieldValues[field.id] ?? field.options[0] ?? ''}
+                  options={field.options}
+                  onChange={(v) => {
+                    setFieldValues(prev => ({ ...prev, [field.id]: v }))
+                    setSelectedPreset(null)
+                  }}
+                />
+              ))}
             </div>
           </div>
         </motion.div>
 
-        {/* Design Scheme Presets */}
-        <motion.div
-          className="w-full max-w-2xl mb-4 md:mb-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <label className="text-xs text-text-muted font-medium mb-3 block">
-            Design Scheme
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {DESIGN_PRESETS.map((preset) => (
-              <PresetCard
-                key={preset.id}
-                icon={preset.icon}
-                name={preset.name}
-                description={preset.description}
-                selected={selectedPreset === preset.id}
-                onClick={() => handlePresetSelect(preset.id)}
-              />
-            ))}
-          </div>
-        </motion.div>
+        {/* Design Scheme Presets — from active pathway */}
+        {creationPresets.length > 0 && (
+          <motion.div
+            className="w-full max-w-2xl mb-4 md:mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <label className="text-xs text-text-muted font-medium mb-3 block">
+              Quick Start
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {creationPresets.map((preset) => (
+                <PresetCard
+                  key={preset.id}
+                  icon={preset.icon}
+                  name={preset.name}
+                  description=""
+                  selected={selectedPreset === preset.id}
+                  onClick={() => handlePresetSelect(preset.id)}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Spacer between presets and submit */}
         <div className="mb-2" />
@@ -214,7 +255,7 @@ export function Home() {
   )
 }
 
-/* ── PillDropdown — inline pill with floating option list ───────────── */
+/* ── PillDropdown — inline pill with floating option list ───────── */
 function PillDropdown({ label, value, options, onChange }: {
   label: string
   value: string
