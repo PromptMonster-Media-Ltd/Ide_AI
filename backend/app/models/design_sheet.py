@@ -24,6 +24,7 @@ class DesignSheet(Base):
     platform: Mapped[str | None] = mapped_column(String(50), nullable=True)
     tech_constraints: Mapped[str | None] = mapped_column(Text, nullable=True)
     success_metric: Mapped[str | None] = mapped_column(Text, nullable=True)
+    fields_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=dict)
     confidence_score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

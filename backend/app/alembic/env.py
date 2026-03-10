@@ -17,6 +17,7 @@ from app.models import (  # noqa: F401
     Block, PipelineNode, PromptKit, Version,
     MarketAnalysis, ProjectSnapshot,
     UserMemory, ProjectShare, SprintPlan,
+    ModuleArtifact,
 )
 
 config = context.config

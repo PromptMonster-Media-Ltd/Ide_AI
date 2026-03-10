@@ -23,6 +23,7 @@ class Project(Base):
     complexity: Mapped[str] = mapped_column(String(50), nullable=False, default="medium")
     tone: Mapped[str] = mapped_column(String(50), nullable=False, default="casual")
     accent_color: Mapped[str] = mapped_column(String(20), nullable=False, default="#00E5FF")
+    pathway_id: Mapped[str] = mapped_column(String(50), nullable=False, default="software_product")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -37,3 +38,4 @@ class Project(Base):
     snapshots = relationship("ProjectSnapshot", back_populates="project", cascade="all, delete-orphan")
     shares = relationship("ProjectShare", back_populates="project", cascade="all, delete-orphan")
     sprint_plan = relationship("SprintPlan", back_populates="project", uselist=False, cascade="all, delete-orphan")
+    module_artifacts = relationship("ModuleArtifact", back_populates="project", cascade="all, delete-orphan")

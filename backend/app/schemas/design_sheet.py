@@ -20,6 +20,7 @@ class DesignSheetRead(BaseModel):
     platform: Optional[str] = None
     tech_constraints: Optional[str] = None
     success_metric: Optional[str] = None
+    fields_data: Optional[dict] = None
     confidence_score: int = 0
     created_at: datetime
     updated_at: datetime
@@ -37,4 +38,5 @@ class DesignSheetUpdate(BaseModel):
     platform: Optional[str] = None
     tech_constraints: Optional[str] = None
     success_metric: Optional[str] = None
+    fields_data: Optional[dict] = None
     confidence_score: Optional[int] = None

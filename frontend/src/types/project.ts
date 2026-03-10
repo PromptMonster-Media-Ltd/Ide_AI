@@ -13,6 +13,7 @@ export interface Project {
   complexity: string
   tone: string
   accent_color: string
+  pathway_id: string
   created_at: string
   updated_at: string
 }
@@ -25,4 +26,5 @@ export interface ProjectCreate {
   tone: string
   description?: string
   accent_color?: string
+  pathway_id?: string
 }

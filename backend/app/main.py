@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import auth, blocks, design_sheet, discovery, exports, library, market, pipeline, projects, prompts, sharing, sprints
+from app.routers import auth, blocks, design_sheet, discovery, exports, library, market, pathways, pipeline, projects, prompts, sharing, sprints
 
 
 def create_app() -> FastAPI:
@@ -41,6 +41,7 @@ def create_app() -> FastAPI:
     app.include_router(library.router, prefix=prefix)
     app.include_router(sharing.router, prefix=prefix)
     app.include_router(sprints.router, prefix=prefix)
+    app.include_router(pathways.router, prefix=prefix)
 
     @app.get("/api/v1/health")
     async def health():
