@@ -22,6 +22,9 @@ const Exports = lazy(() => import('./pages/Exports').then(m => ({ default: m.Exp
 const MarketAnalysis = lazy(() => import('./pages/MarketAnalysis').then(m => ({ default: m.MarketAnalysis })))
 const PitchMode = lazy(() => import('./pages/PitchMode').then(m => ({ default: m.PitchMode })))
 const SprintPlanner = lazy(() => import('./pages/SprintPlanner').then(m => ({ default: m.SprintPlanner })))
+const ChannelMix = lazy(() => import('./pages/modules/ChannelMix').then(m => ({ default: m.ChannelMix })))
+const MoodBoard = lazy(() => import('./pages/modules/MoodBoard').then(m => ({ default: m.MoodBoard })))
+const WorldBuilder = lazy(() => import('./pages/modules/WorldBuilder').then(m => ({ default: m.WorldBuilder })))
 
 /**
  * Component registry — maps component_key (from pathway modules) to lazy components.
@@ -35,7 +38,9 @@ const MODULE_COMPONENTS: Record<string, React.LazyExoticComponent<React.Componen
   MarketAnalysis,
   PitchMode,
   SprintPlanner,
-  // Phase 6 will add: MoodBoard, ChannelMix, WorldBuilder, etc.
+  ChannelMix,
+  MoodBoard,
+  WorldBuilder,
 }
 
 /** Loading fallback for lazy-loaded modules. */
@@ -66,6 +71,9 @@ const ROUTE_SUFFIX_MAP: Record<string, string> = {
   market: 'MarketAnalysis',
   pitch: 'PitchMode',
   sprints: 'SprintPlanner',
+  'channel-mix': 'ChannelMix',
+  'mood-board': 'MoodBoard',
+  'world-builder': 'WorldBuilder',
 }
 
 function ModuleRouter() {

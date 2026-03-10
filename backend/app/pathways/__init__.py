@@ -41,6 +41,9 @@ class PathwayRegistry:
 def _load_pathways() -> None:
     """Import all pathway modules to trigger registration."""
     import app.pathways.software_product  # noqa: F401
+    import app.pathways.marketing_campaign  # noqa: F401
+    import app.pathways.creative_writing  # noqa: F401
+    import app.pathways.brand_identity  # noqa: F401
 
 
 _load_pathways()
