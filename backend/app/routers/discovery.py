@@ -14,7 +14,7 @@ from app.models.project import Project
 from app.models.user import User
 from app.pathways import PathwayRegistry
 from app.routers.auth import get_current_user
-from app.schemas.session import MessagePayload, ProgressPayload, SessionCreate, SessionRead
+from app.schemas.session import MessagePayload, PartnerUpdatePayload, ProgressPayload, SessionCreate, SessionRead
 from app.schemas.design_sheet import DesignSheetRead
 from app.services import discovery_service, ai_service, transcript_service
 
@@ -32,11 +32,15 @@ async def start_session(
     proj_result = await db.execute(
         select(Project).where(Project.id == payload.project_id, Project.user_id == current_user.id)
     )
-    if not proj_result.scalar_one_or_none():
+    project = proj_result.scalar_one_or_none()
+    if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
     try:
         session = await discovery_service.create_session(db, payload.project_id)
+        # Inherit AI partner style from project
+        session.ai_partner_style = getattr(project, "ai_partner_style", "strategist")
+        await db.commit()
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     return session
@@ -71,11 +75,12 @@ async def init_greeting(
     # Resolve the project's pathway
     pw = PathwayRegistry.get_or_default(project.pathway_id)
 
-    # Build greeting prompt with project context
+    # Build greeting prompt with project context + partner style
     system_prompt = await ai_service.build_greeting_prompt(
         project_description=project.description,
         platform=project.platform or "custom",
         pathway=pw,
+        ai_partner_style=session.ai_partner_style,
     )
 
     # The AI speaks first — no user message in the history
@@ -148,7 +153,10 @@ async def send_message(
     platform = project.platform if project else "custom"
     pw = PathwayRegistry.get_or_default(project.pathway_id if project else None)
 
-    system_prompt = await ai_service.build_system_prompt(platform, session.stage, sheet_context, pathway=pw)
+    system_prompt = await ai_service.build_system_prompt(
+        platform, session.stage, sheet_context,
+        pathway=pw, ai_partner_style=session.ai_partner_style,
+    )
 
     # Build Claude message history
     claude_messages = [
@@ -275,6 +283,39 @@ async def export_transcript(
             media_type="text/plain; charset=utf-8",
             headers={"Content-Disposition": f'attachment; filename="{slug}-transcript.txt"'},
         )
+
+
+@router.patch("/{session_id}/partner")
+async def update_partner(
+    session_id: uuid.UUID,
+    payload: PartnerUpdatePayload,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Switch AI partner mid-session. Persists to both session and project."""
+    from app.services.partner_style_service import validate_partner_style
+
+    session = await discovery_service.get_session(db, session_id)
+    if not session:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    proj_result = await db.execute(
+        select(Project).where(Project.id == session.project_id, Project.user_id == current_user.id)
+    )
+    project = proj_result.scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+    try:
+        style = validate_partner_style(payload.ai_partner_style)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+
+    session.ai_partner_style = style
+    project.ai_partner_style = style
+    await db.commit()
+
+    return {"status": "updated", "ai_partner_style": style}
 
 
 @router.get("/{session_id}", response_model=SessionRead)

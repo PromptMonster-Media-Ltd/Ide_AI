@@ -18,6 +18,7 @@ class ProjectCreate(BaseModel):
     description: Optional[str] = None
     accent_color: Optional[str] = Field(default="#00E5FF", max_length=20)
     pathway_id: str = Field(default="software_product", max_length=50)
+    ai_partner_style: str = Field(default="strategist", max_length=30)
 
 
 class ProjectRead(BaseModel):
@@ -32,6 +33,7 @@ class ProjectRead(BaseModel):
     tone: str
     accent_color: str
     pathway_id: str = "software_product"
+    ai_partner_style: str = "strategist"
     created_at: datetime
     updated_at: datetime
 
@@ -48,3 +50,4 @@ class ProjectUpdate(BaseModel):
     tone: Optional[str] = Field(None, max_length=50)
     accent_color: Optional[str] = Field(None, max_length=20)
     pathway_id: Optional[str] = Field(None, max_length=50)
+    ai_partner_style: Optional[str] = Field(None, max_length=30)

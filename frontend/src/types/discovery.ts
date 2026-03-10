@@ -25,6 +25,7 @@ export interface Session {
   project_id: string
   status: 'active' | 'complete'
   stage: Stage
+  ai_partner_style: string
   messages: Message[]
   created_at: string
 }

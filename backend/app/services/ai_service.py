@@ -198,8 +198,16 @@ async def build_system_prompt(
     memories: str | None = None,
     *,
     pathway: PathwayConfig | None = None,
+    ai_partner_style: str | None = None,
 ) -> str:
-    """Build a dynamic system prompt from project context and discovery stage.
+    """Build a 3-layer system prompt: base + partner fragment + session context.
+
+    Layer 1 — Base discovery prompt:
+        App role, safety, extraction, stage logic, formatting.
+    Layer 2 — Partner style fragment:
+        Behaviour, tone, questioning style, guardrails.
+    Layer 3 — Session context:
+        Platform, stage, known fields, user info, memories.
 
     Args:
         platform: Target platform string (e.g. 'bubble', 'custom').
@@ -208,10 +216,21 @@ async def build_system_prompt(
         user_name: If provided, address the user by name in the greeting.
         memories: Formatted memory context block from memory_service.format_memory_context().
         pathway: PathwayConfig to use. Falls back to software_product if None.
+        ai_partner_style: Partner collaboration style (e.g. 'skeptic', 'coach').
     """
+    from app.services.partner_style_service import get_partner_style_fragment, DEFAULT_PARTNER_STYLE
+
     pw = _get_pathway(pathway)
+
+    # ── Layer 1: Base discovery persona ──
     parts = [pw.base_persona]
 
+    # ── Layer 2: Partner style fragment ──
+    style = ai_partner_style or DEFAULT_PARTNER_STYLE
+    partner_fragment = get_partner_style_fragment(style)
+    parts.append(f"\n{partner_fragment}")
+
+    # ── Layer 3: Session context ──
     if user_name:
         parts.append(f"\nThe user's name is {user_name}. Address them by name where natural — especially in greetings.")
 
@@ -243,10 +262,17 @@ async def build_greeting_prompt(
     platform: str = "custom",
     *,
     pathway: PathwayConfig | None = None,
+    ai_partner_style: str | None = None,
 ) -> str:
     """Build a system prompt specifically for the initial AI greeting."""
+    from app.services.partner_style_service import get_partner_style_fragment, DEFAULT_PARTNER_STYLE
+
     pw = _get_pathway(pathway)
     parts = [pw.base_persona]
+
+    # Partner style fragment
+    style = ai_partner_style or DEFAULT_PARTNER_STYLE
+    parts.append(f"\n{get_partner_style_fragment(style)}")
 
     # Platform context (software pathway only)
     if platform and pw.id == "software_product":

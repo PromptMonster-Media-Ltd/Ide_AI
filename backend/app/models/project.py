@@ -24,6 +24,7 @@ class Project(Base):
     tone: Mapped[str] = mapped_column(String(50), nullable=False, default="casual")
     accent_color: Mapped[str] = mapped_column(String(20), nullable=False, default="#00E5FF")
     pathway_id: Mapped[str] = mapped_column(String(50), nullable=False, default="software_product")
+    ai_partner_style: Mapped[str] = mapped_column(String(30), nullable=False, default="strategist")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

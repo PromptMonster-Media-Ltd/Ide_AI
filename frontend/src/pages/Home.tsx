@@ -18,8 +18,10 @@ import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
 import { IdeaNebulaCanvas } from '../components/nebula/IdeaNebulaCanvas'
 import { PresetCard } from '../components/home/PresetCard'
+import { PartnerSelector } from '../components/partner/PartnerSelector'
 import { usePathwayStore } from '../stores/pathwayStore'
 import type { PathwayDefinition, CreationPreset, CreationField } from '../types/pathway'
+import type { PartnerStyleMeta } from '../types/project'
 import apiClient from '../lib/apiClient'
 
 /* ── Helpers ──────────────────────────────────────────────────── */
@@ -43,14 +45,27 @@ export function Home() {
   const [displayName, setDisplayName] = useState<string | null>(null)
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({})
 
+  // AI Partner state
+  const [partnerStyle, setPartnerStyle] = useState('strategist')
+  const [partnerMeta, setPartnerMeta] = useState<PartnerStyleMeta | null>(null)
+  const [showPartnerPicker, setShowPartnerPicker] = useState(false)
+
   // Pathway confirmation state (hybrid detection UX)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [detectedPathwayId, setDetectedPathwayId] = useState<string | null>(null)
   const [detectionReasoning, setDetectionReasoning] = useState('')
   const [detecting, setDetecting] = useState(false)
 
-  // Fetch pathways + user profile on mount
+  // Fetch pathways + user profile + partner styles on mount
   useEffect(() => { fetchPathways() }, [fetchPathways])
+  useEffect(() => {
+    apiClient.get('/meta/partner-styles')
+      .then(({ data }) => {
+        const match = data.find((p: PartnerStyleMeta) => p.id === partnerStyle)
+        if (match) setPartnerMeta(match)
+      })
+      .catch(() => {})
+  }, [partnerStyle])
   useEffect(() => {
     apiClient.get('/auth/me')
       .then(({ data }) => {
@@ -104,6 +119,7 @@ export function Home() {
       name: idea.slice(0, 100),
       description: idea,
       pathway_id: pathwayId,
+      ai_partner_style: partnerStyle,
       ...normalized,
     })
     navigate(`/discovery/${data.id}`)
@@ -258,6 +274,18 @@ export function Home() {
                         }}
                       />
                     ))}
+                    {/* AI Partner pill */}
+                    <button
+                      type="button"
+                      onClick={() => setShowPartnerPicker(true)}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all border border-border bg-white/5 text-text-muted hover:text-white hover:bg-white/10"
+                    >
+                      <span className="opacity-50 mr-0.5">Partner:</span>
+                      {partnerMeta?.icon ?? '♟️'} {partnerMeta?.name ?? 'Strategist'}
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -346,6 +374,17 @@ export function Home() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* AI Partner selector modal */}
+        <PartnerSelector
+          open={showPartnerPicker}
+          currentStyle={partnerStyle}
+          onSelect={(s) => {
+            setPartnerStyle(s)
+            setShowPartnerPicker(false)
+          }}
+          onClose={() => setShowPartnerPicker(false)}
+        />
       </main>
     </div>
   )

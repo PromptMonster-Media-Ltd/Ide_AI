@@ -18,6 +18,7 @@ class SessionRead(BaseModel):
     project_id: uuid.UUID
     status: str
     stage: str
+    ai_partner_style: str = "strategist"
     messages: list = []
     created_at: datetime
 
@@ -33,3 +34,8 @@ class ProgressPayload(BaseModel):
     """Schema for saving discovery session progress (auto-save)."""
     messages: list = []
     stage: str
+
+
+class PartnerUpdatePayload(BaseModel):
+    """Schema for switching AI partner mid-session."""
+    ai_partner_style: str

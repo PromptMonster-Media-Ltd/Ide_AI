@@ -11,11 +11,14 @@ import { StagesStepper } from '../components/discovery/StagesStepper'
 import { QuickChips } from '../components/discovery/QuickChips'
 import { TranscriptExportMenu } from '../components/discovery/TranscriptExportMenu'
 import { DesignSheetPanel } from '../components/framework/DesignSheetPanel'
+import { ActivePartnerBadge } from '../components/partner/ActivePartnerBadge'
+import { PartnerSelector } from '../components/partner/PartnerSelector'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { useSSE } from '../hooks/useSSE'
 import { usePathwayStore } from '../stores/pathwayStore'
 import apiClient from '../lib/apiClient'
+import type { PartnerStyleMeta } from '../types/project'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -57,6 +60,10 @@ export function Discovery() {
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [showSheet, setShowSheet] = useState(false)
+  const [partnerStyle, setPartnerStyle] = useState('strategist')
+  const [partnerMeta, setPartnerMeta] = useState<PartnerStyleMeta | null>(null)
+  const [allPartners, setAllPartners] = useState<PartnerStyleMeta[]>([])
+  const [showPartnerPicker, setShowPartnerPicker] = useState(false)
 
   // Auto-save refs
   const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -120,6 +127,25 @@ export function Discovery() {
     }).catch((err) => console.error('Stage-change save failed:', err))
   }, [sessionId, stage, messages])
 
+  // Fetch partner style metadata
+  useEffect(() => {
+    apiClient.get('/meta/partner-styles')
+      .then(({ data }) => {
+        setAllPartners(data)
+        const match = data.find((p: PartnerStyleMeta) => p.id === partnerStyle)
+        if (match) setPartnerMeta(match)
+      })
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Resolve partner meta whenever style changes
+  useEffect(() => {
+    if (allPartners.length) {
+      setPartnerMeta(allPartners.find((p) => p.id === partnerStyle) || null)
+    }
+  }, [partnerStyle, allPartners])
+
   // Fetch pathways + activate the project's pathway
   useEffect(() => {
     if (!projectId) return
@@ -139,6 +165,7 @@ export function Discovery() {
         const { data } = await apiClient.post('/discovery/start', { project_id: projectId })
         if (cancelled) return
         setSessionId(data.id)
+        if (data.ai_partner_style) setPartnerStyle(data.ai_partner_style)
 
         if (data.messages?.length) {
           setMessages(data.messages)
@@ -182,6 +209,22 @@ export function Discovery() {
     }
   }
 
+  const handlePartnerSwitch = useCallback(async (newStyle: string) => {
+    if (!sessionId || newStyle === partnerStyle) return
+    setPartnerStyle(newStyle)
+    try {
+      await apiClient.patch(`/discovery/${sessionId}/partner`, { ai_partner_style: newStyle })
+      // Add a system event to the chat timeline
+      const partnerName = allPartners.find((p) => p.id === newStyle)?.name || newStyle
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: `*AI Partner switched to ${partnerName}*` },
+      ])
+    } catch (err) {
+      console.error('Failed to switch partner:', err)
+    }
+  }, [sessionId, partnerStyle, allPartners])
+
   const showExport = stage === 'confirm' || messages.length >= 4
 
   return (
@@ -190,6 +233,8 @@ export function Discovery() {
 
       <div className="ml-0 md:ml-[232px] flex-1 flex flex-col min-h-0">
         <TopBar title="Discovery" subtitle={`Stage: ${stage}`}>
+          {/* Active partner badge */}
+          <ActivePartnerBadge partner={partnerMeta} onClick={() => setShowPartnerPicker(true)} />
           {/* Transcript export */}
           {showExport && sessionId && (
             <TranscriptExportMenu sessionId={sessionId} messages={messages} />
@@ -253,6 +298,14 @@ export function Discovery() {
           </div>
         </div>
       </div>
+
+      {/* Partner selector modal */}
+      <PartnerSelector
+        open={showPartnerPicker}
+        currentStyle={partnerStyle}
+        onSelect={handlePartnerSwitch}
+        onClose={() => setShowPartnerPicker(false)}
+      />
     </div>
   )
 }

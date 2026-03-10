@@ -14,6 +14,7 @@ export interface Project {
   tone: string
   accent_color: string
   pathway_id: string
+  ai_partner_style: string
   created_at: string
   updated_at: string
 }
@@ -27,4 +28,16 @@ export interface ProjectCreate {
   description?: string
   accent_color?: string
   pathway_id?: string
+  ai_partner_style?: string
+}
+
+/** AI Partner metadata returned by GET /meta/partner-styles */
+export interface PartnerStyleMeta {
+  id: string
+  name: string
+  icon: string
+  color: string
+  description: string
+  best_for: string[]
+  traits: string[]
 }
