@@ -1,11 +1,19 @@
 /**
  * Home -- Idea input landing page with nebula canvas background,
- * pathway picker, and dynamic creation fields from the active pathway.
+ * pathway picker, and AI-powered hybrid pathway detection.
+ *
+ * Flow (when multiple pathways exist):
+ * 1. User types idea + optional field tweaks
+ * 2. Clicks "Start Discovery"
+ * 3. AI detects pathway → confirmation step shown
+ * 4. User confirms or overrides → project created
+ *
+ * When only one pathway exists, step 3-4 are skipped.
  * @module pages/Home
  */
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
 import { IdeaNebulaCanvas } from '../components/nebula/IdeaNebulaCanvas'
@@ -16,12 +24,9 @@ import apiClient from '../lib/apiClient'
 
 /* ── Helpers ──────────────────────────────────────────────────── */
 
-/** Convert lowercase preset defaults into display strings used by PillDropdowns. */
-function resolvePresetValue(fieldId: string, rawValue: string, options: string[]): string {
-  // Try exact match first
+function resolvePresetValue(_fieldId: string, rawValue: string, options: string[]): string {
   const exact = options.find(o => o.toLowerCase() === rawValue.toLowerCase())
   if (exact) return exact
-  // Try partial match (e.g. "medium" matches "Medium (5-15 screens)")
   const partial = options.find(o => o.toLowerCase().startsWith(rawValue.toLowerCase()))
   if (partial) return partial
   return rawValue
@@ -36,9 +41,13 @@ export function Home() {
   const [loading, setLoading] = useState(false)
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState<string | null>(null)
-
-  // Dynamic field values — keyed by field id
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({})
+
+  // Pathway confirmation state (hybrid detection UX)
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [detectedPathwayId, setDetectedPathwayId] = useState<string | null>(null)
+  const [detectionReasoning, setDetectionReasoning] = useState('')
+  const [detecting, setDetecting] = useState(false)
 
   // Fetch pathways + user profile on mount
   useEffect(() => { fetchPathways() }, [fetchPathways])
@@ -65,12 +74,8 @@ export function Home() {
     })
   }, [activePathway?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* Apply a preset — fills all fields at once */
   const handlePresetSelect = (presetId: string) => {
-    if (selectedPreset === presetId) {
-      setSelectedPreset(null)
-      return
-    }
+    if (selectedPreset === presetId) { setSelectedPreset(null); return }
     const preset = creationPresets.find(p => p.id === presetId)
     if (!preset) return
     const newValues: Record<string, string> = {}
@@ -84,31 +89,77 @@ export function Home() {
     setSelectedPreset(presetId)
   }
 
-  /* Select a pathway */
   const handlePathwaySelect = (pw: PathwayDefinition) => {
     setActive(pw.id)
     setSelectedPreset(null)
   }
 
-  /* Submit — normalize values and POST */
+  /** Create the project and navigate to discovery. */
+  const createProject = async (pathwayId: string) => {
+    const normalized: Record<string, string> = {}
+    for (const [key, val] of Object.entries(fieldValues)) {
+      normalized[key] = val.split(' ')[0].toLowerCase().replace(/\s+/g, '-')
+    }
+    const { data } = await apiClient.post('/projects', {
+      name: idea.slice(0, 100),
+      description: idea,
+      pathway_id: pathwayId,
+      ...normalized,
+    })
+    navigate(`/discovery/${data.id}`)
+  }
+
+  /** Main submit handler — detect pathway first if multiple exist. */
   const handleSubmit = async () => {
     if (!idea.trim()) return
     setLoading(true)
+
     try {
-      const normalized: Record<string, string> = {}
-      for (const [key, val] of Object.entries(fieldValues)) {
-        normalized[key] = val.split(' ')[0].toLowerCase().replace(/\s+/g, '-')
+      // If only one pathway, skip detection
+      if (pathways.length <= 1) {
+        await createProject(activePathway?.id ?? 'software_product')
+        return
       }
-      const { data } = await apiClient.post('/projects', {
-        name: idea.slice(0, 100),
+
+      // AI-detect pathway
+      setDetecting(true)
+      const { data } = await apiClient.post('/pathways/detect', {
         description: idea,
-        pathway_id: activePathway?.id ?? 'software_product',
-        ...normalized,
       })
-      navigate(`/discovery/${data.id}`)
+      setDetecting(false)
+
+      const detectedId = data.pathway_id ?? 'software_product'
+      setDetectedPathwayId(detectedId)
+      setDetectionReasoning(data.reasoning ?? '')
+      setActive(detectedId)
+      setShowConfirmation(true)
+      setLoading(false)
+    } catch {
+      // On error, just create with current pathway
+      setDetecting(false)
+      try {
+        await createProject(activePathway?.id ?? 'software_product')
+      } catch {
+        setLoading(false)
+      }
+    }
+  }
+
+  /** Confirm the detected pathway and create project. */
+  const handleConfirm = async () => {
+    setLoading(true)
+    setShowConfirmation(false)
+    try {
+      await createProject(activePathway?.id ?? detectedPathwayId ?? 'software_product')
     } catch {
       setLoading(false)
     }
+  }
+
+  /** Override with a different pathway in the confirmation step. */
+  const handleOverride = (pw: PathwayDefinition) => {
+    setActive(pw.id)
+    setDetectedPathwayId(pw.id)
   }
 
   const showPathwayPicker = pathways.length > 1
@@ -149,107 +200,152 @@ export function Home() {
           </p>
         </motion.div>
 
-        {/* Pathway Picker — shown when multiple pathways exist */}
-        {showPathwayPicker && (
-          <motion.div
-            className="w-full max-w-2xl mb-4 md:mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-          >
-            <label className="text-xs text-text-muted font-medium mb-3 block">
-              Project Type
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {pathways.map(pw => (
-                <button
-                  key={pw.id}
-                  type="button"
-                  onClick={() => handlePathwaySelect(pw)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all border ${
-                    activePathway?.id === pw.id
-                      ? 'border-accent bg-accent/10 text-accent shadow-[0_0_12px_rgba(0,229,255,0.08)]'
-                      : 'border-border bg-white/5 text-text-muted hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  <span className="text-lg">{pw.icon}</span>
-                  <span className="font-medium">{pw.name}</span>
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
+        <AnimatePresence mode="wait">
+          {!showConfirmation ? (
+            <motion.div
+              key="input"
+              className="w-full flex flex-col items-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Pathway Picker — shown when multiple pathways exist */}
+              {showPathwayPicker && (
+                <div className="w-full max-w-2xl mb-4 md:mb-6">
+                  <label className="text-xs text-text-muted font-medium mb-3 block">
+                    Project Type
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {pathways.map(pw => (
+                      <button
+                        key={pw.id}
+                        type="button"
+                        onClick={() => handlePathwaySelect(pw)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all border ${
+                          activePathway?.id === pw.id
+                            ? 'border-accent bg-accent/10 text-accent shadow-[0_0_12px_rgba(0,229,255,0.08)]'
+                            : 'border-border bg-white/5 text-text-muted hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <span className="text-lg">{pw.icon}</span>
+                        <span className="font-medium">{pw.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-        {/* Idea textarea with inline pill dropdowns */}
-        <motion.div
-          className="w-full max-w-2xl mb-6 md:mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="bg-surface border border-border rounded-xl focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30 transition-colors overflow-visible">
-            <textarea
-              value={idea}
-              onChange={(e) => setIdea(e.target.value)}
-              placeholder="Describe your idea in one sentence..."
-              className="w-full bg-transparent px-4 md:px-6 pt-3 md:pt-4 pb-2 text-white text-base md:text-lg placeholder:text-text-muted focus:outline-none resize-none h-20 md:h-24"
-            />
-            <div className="flex flex-wrap gap-1.5 px-3 md:px-5 pb-3">
-              {creationFields.map(field => (
-                <PillDropdown
-                  key={field.id}
-                  label={field.label}
-                  value={fieldValues[field.id] ?? field.options[0] ?? ''}
-                  options={field.options}
-                  onChange={(v) => {
-                    setFieldValues(prev => ({ ...prev, [field.id]: v }))
-                    setSelectedPreset(null)
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </motion.div>
+              {/* Idea textarea with inline pill dropdowns */}
+              <div className="w-full max-w-2xl mb-6 md:mb-8">
+                <div className="bg-surface border border-border rounded-xl focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30 transition-colors overflow-visible">
+                  <textarea
+                    value={idea}
+                    onChange={(e) => setIdea(e.target.value)}
+                    placeholder="Describe your idea in one sentence..."
+                    className="w-full bg-transparent px-4 md:px-6 pt-3 md:pt-4 pb-2 text-white text-base md:text-lg placeholder:text-text-muted focus:outline-none resize-none h-20 md:h-24"
+                  />
+                  <div className="flex flex-wrap gap-1.5 px-3 md:px-5 pb-3">
+                    {creationFields.map(field => (
+                      <PillDropdown
+                        key={field.id}
+                        label={field.label}
+                        value={fieldValues[field.id] ?? field.options[0] ?? ''}
+                        options={field.options}
+                        onChange={(v) => {
+                          setFieldValues(prev => ({ ...prev, [field.id]: v }))
+                          setSelectedPreset(null)
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-        {/* Design Scheme Presets — from active pathway */}
-        {creationPresets.length > 0 && (
-          <motion.div
-            className="w-full max-w-2xl mb-4 md:mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            <label className="text-xs text-text-muted font-medium mb-3 block">
-              Quick Start
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {creationPresets.map((preset) => (
-                <PresetCard
-                  key={preset.id}
-                  icon={preset.icon}
-                  name={preset.name}
-                  description=""
-                  selected={selectedPreset === preset.id}
-                  onClick={() => handlePresetSelect(preset.id)}
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
+              {/* Quick Start Presets */}
+              {creationPresets.length > 0 && (
+                <div className="w-full max-w-2xl mb-4 md:mb-6">
+                  <label className="text-xs text-text-muted font-medium mb-3 block">
+                    Quick Start
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {creationPresets.map((preset) => (
+                      <PresetCard
+                        key={preset.id}
+                        icon={preset.icon}
+                        name={preset.name}
+                        description=""
+                        selected={selectedPreset === preset.id}
+                        onClick={() => handlePresetSelect(preset.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
-        {/* Spacer between presets and submit */}
-        <div className="mb-2" />
+              <div className="mb-2" />
 
-        {/* Submit */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <Button size="lg" onClick={handleSubmit} disabled={!idea.trim() || loading}>
-            {loading ? 'Creating...' : 'Start Discovery \u2192'}
-          </Button>
-        </motion.div>
+              {/* Submit */}
+              <Button size="lg" onClick={handleSubmit} disabled={!idea.trim() || loading}>
+                {detecting ? 'Analyzing idea...' : loading ? 'Creating...' : 'Start Discovery \u2192'}
+              </Button>
+            </motion.div>
+          ) : (
+            /* ── Pathway Confirmation Step ── */
+            <motion.div
+              key="confirm"
+              className="w-full max-w-2xl flex flex-col items-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="bg-surface border border-border rounded-xl p-6 md:p-8 w-full mb-6">
+                <div className="text-center mb-6">
+                  <span className="text-4xl mb-3 block">{activePathway?.icon}</span>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    I think this is a <span className="text-accent">{activePathway?.name}</span> project
+                  </h3>
+                  {detectionReasoning && (
+                    <p className="text-sm text-text-muted">{detectionReasoning}</p>
+                  )}
+                </div>
+
+                <p className="text-xs text-text-muted text-center mb-4">Is that right? Or pick a different type:</p>
+
+                <div className="flex flex-wrap justify-center gap-2 mb-6">
+                  {pathways.map(pw => (
+                    <button
+                      key={pw.id}
+                      type="button"
+                      onClick={() => handleOverride(pw)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all border ${
+                        activePathway?.id === pw.id
+                          ? 'border-accent bg-accent/10 text-accent'
+                          : 'border-border bg-white/5 text-text-muted hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <span>{pw.icon}</span>
+                      <span className="font-medium">{pw.name}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    variant="ghost"
+                    onClick={() => { setShowConfirmation(false); setLoading(false) }}
+                  >
+                    Back
+                  </Button>
+                  <Button size="lg" onClick={handleConfirm} disabled={loading}>
+                    {loading ? 'Creating...' : `Yes, let's go! \u2192`}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   )
@@ -274,7 +370,6 @@ function PillDropdown({ label, value, options, onChange }: {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
 
-  // Shorten display value for compact pills
   const display = value.length > 14 ? value.split(' ')[0] : value
 
   return (
