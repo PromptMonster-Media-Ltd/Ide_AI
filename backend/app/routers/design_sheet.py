@@ -51,7 +51,8 @@ async def update_design_sheet(
     proj_result = await db.execute(
         select(Project).where(Project.id == project_id, Project.user_id == current_user.id)
     )
-    if not proj_result.scalar_one_or_none():
+    project = proj_result.scalar_one_or_none()
+    if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
     result = await db.execute(
@@ -65,9 +66,11 @@ async def update_design_sheet(
     for field, value in update_data.items():
         setattr(sheet, field, value)
 
-    # Recompute confidence
+    # Recompute confidence using pathway weights
+    from app.pathways import PathwayRegistry
     from app.services.discovery_service import compute_confidence
-    sheet.confidence_score = compute_confidence(sheet)
+    pw = PathwayRegistry.get_or_default(project.pathway_id)
+    sheet.confidence_score = compute_confidence(sheet, pathway=pw)
 
     await db.flush()
     return sheet

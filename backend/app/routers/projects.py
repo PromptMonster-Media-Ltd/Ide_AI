@@ -46,6 +46,7 @@ async def create_project(
         complexity=payload.complexity,
         tone=payload.tone,
         accent_color=payload.accent_color or "#00E5FF",
+        pathway_id=payload.pathway_id,
     )
     db.add(project)
     await db.flush()

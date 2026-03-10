@@ -1,9 +1,13 @@
 """
-pipeline_service.py — Tech stack recommendation engine.
+pipeline_service.py — Tech stack / domain-layer recommendation engine.
 Provides curated tool options, cost estimation, and compatibility checking.
+Domain layers are driven by the active PathwayConfig.
 """
+from __future__ import annotations
+
 import json
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,36 +17,17 @@ from app.models.design_sheet import DesignSheet
 from app.models.pipeline_node import PipelineNode
 from app.services.ai_service import client
 
-LAYER_OPTIONS = {
-    "frontend": {
-        "tools": ["Bubble", "Webflow", "FlutterFlow", "React", "Next.js", "Bolt", "Lovable", "Replit"],
-        "costs": {"Bubble": (29, 119), "Webflow": (14, 39), "FlutterFlow": (30, 70), "React": (0, 0), "Next.js": (0, 20), "Bolt": (10, 30), "Lovable": (10, 30), "Replit": (7, 20)},
-    },
-    "backend": {
-        "tools": ["Bubble Backend", "Xano", "Supabase", "Firebase", "FastAPI", "Node.js", "n8n"],
-        "costs": {"Bubble Backend": (0, 0), "Xano": (0, 85), "Supabase": (0, 25), "Firebase": (0, 25), "FastAPI": (0, 0), "Node.js": (0, 0), "n8n": (0, 20)},
-    },
-    "database": {
-        "tools": ["Bubble DB", "Supabase Postgres", "Firebase Firestore", "PlanetScale", "MongoDB Atlas", "Xano DB"],
-        "costs": {"Bubble DB": (0, 0), "Supabase Postgres": (0, 25), "Firebase Firestore": (0, 25), "PlanetScale": (0, 29), "MongoDB Atlas": (0, 57), "Xano DB": (0, 0)},
-    },
-    "automations": {
-        "tools": ["n8n", "Make (Integromat)", "Zapier", "Bubble Workflows", "Custom Code"],
-        "costs": {"n8n": (0, 20), "Make (Integromat)": (9, 29), "Zapier": (20, 49), "Bubble Workflows": (0, 0), "Custom Code": (0, 0)},
-    },
-    "ai_agents": {
-        "tools": ["Claude API", "OpenAI API", "Langchain", "None"],
-        "costs": {"Claude API": (5, 50), "OpenAI API": (5, 50), "Langchain": (0, 0), "None": (0, 0)},
-    },
-    "analytics": {
-        "tools": ["Mixpanel", "PostHog", "Google Analytics", "Amplitude", "None"],
-        "costs": {"Mixpanel": (0, 25), "PostHog": (0, 0), "Google Analytics": (0, 0), "Amplitude": (0, 25), "None": (0, 0)},
-    },
-    "deployment": {
-        "tools": ["Vercel", "Netlify", "Railway", "Fly.io", "AWS", "Bubble Hosting", "Replit Hosting"],
-        "costs": {"Vercel": (0, 20), "Netlify": (0, 19), "Railway": (5, 20), "Fly.io": (0, 15), "AWS": (5, 100), "Bubble Hosting": (0, 0), "Replit Hosting": (0, 0)},
-    },
-}
+if TYPE_CHECKING:
+    from app.pathways.base import PathwayConfig
+
+
+def _get_pathway(pathway: PathwayConfig | None = None) -> PathwayConfig:
+    """Resolve a pathway, falling back to software_product."""
+    if pathway is not None:
+        return pathway
+    from app.pathways import PathwayRegistry
+    return PathwayRegistry.get("software_product")
+
 
 RECOMMENDATION_PROMPT = """Based on this product design, recommend the best tech stack.
 
@@ -62,14 +47,24 @@ Only return valid JSON, no markdown."""
 
 
 async def recommend_pipeline(
-    db: AsyncSession, sheet: DesignSheet, project_id: uuid.UUID, complexity: str = "medium"
+    db: AsyncSession,
+    sheet: DesignSheet,
+    project_id: uuid.UUID,
+    complexity: str = "medium",
+    pathway: PathwayConfig | None = None,
 ) -> tuple[list[PipelineNode], list[str], dict]:
     """Recommend a tech pipeline based on design sheet analysis.
-    Returns (nodes, reasoning_bullets, cost_estimate)."""
+    Returns (nodes, reasoning_bullets, cost_estimate).
+
+    Uses the pathway's ``domain_layers`` for available tools/costs.
+    """
+    pw = _get_pathway(pathway)
+    layers = pw.domain_layers
+
     features_str = json.dumps(sheet.features or [])
     layer_str = "\n".join(
         f"- {layer}: {', '.join(info['tools'])}"
-        for layer, info in LAYER_OPTIONS.items()
+        for layer, info in layers.items()
     )
 
     prompt = RECOMMENDATION_PROMPT.format(
@@ -96,7 +91,7 @@ async def recommend_pipeline(
     except (json.JSONDecodeError, IndexError):
         recommendations = [
             {"layer": layer, "selected_tool": info["tools"][0], "reason": "Default recommendation"}
-            for layer, info in LAYER_OPTIONS.items()
+            for layer, info in layers.items()
         ]
 
     # Delete existing nodes
@@ -110,7 +105,7 @@ async def recommend_pipeline(
         tool = rec.get("selected_tool", "")
         reason = rec.get("reason", "")
 
-        if layer in LAYER_OPTIONS:
+        if layer in layers:
             node = PipelineNode(
                 project_id=project_id,
                 layer=layer,
@@ -123,23 +118,32 @@ async def recommend_pipeline(
 
     await db.flush()
 
-    cost_est = estimate_cost_from_nodes(nodes)
+    cost_est = estimate_cost_from_nodes(nodes, pathway=pw)
     return nodes, reasoning, cost_est
 
 
-def estimate_cost(pipeline_nodes: list[PipelineNode]) -> dict:
+def estimate_cost(
+    pipeline_nodes: list[PipelineNode],
+    pathway: PathwayConfig | None = None,
+) -> dict:
     """Estimate monthly cost range for a pipeline configuration."""
-    return estimate_cost_from_nodes(pipeline_nodes)
+    return estimate_cost_from_nodes(pipeline_nodes, pathway=pathway)
 
 
-def estimate_cost_from_nodes(nodes: list[PipelineNode]) -> dict:
+def estimate_cost_from_nodes(
+    nodes: list[PipelineNode],
+    pathway: PathwayConfig | None = None,
+) -> dict:
     """Calculate cost estimates from pipeline nodes."""
+    pw = _get_pathway(pathway)
+    layers = pw.domain_layers
+
     total_min = 0
     total_max = 0
     breakdown = []
 
     for node in nodes:
-        layer_info = LAYER_OPTIONS.get(node.layer, {})
+        layer_info = layers.get(node.layer, {})
         costs = layer_info.get("costs", {})
         tool_cost = costs.get(node.selected_tool, (0, 50))
         total_min += tool_cost[0]

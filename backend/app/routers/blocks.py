@@ -12,6 +12,7 @@ from app.models.block import Block
 from app.models.design_sheet import DesignSheet
 from app.models.project import Project
 from app.models.user import User
+from app.pathways import PathwayRegistry
 from app.routers.auth import get_current_user
 from app.schemas.block import BlockCreate, BlockRead, BlockUpdate
 from app.services.sheet_service import generate_blocks
@@ -80,7 +81,10 @@ async def ai_generate_blocks(
     db: AsyncSession = Depends(get_db),
 ):
     """AI-generate blocks from the design sheet. Replaces existing blocks."""
-    await _verify_project(project_id, current_user, db)
+    project = await _verify_project(project_id, current_user, db)
+
+    # Resolve pathway
+    pw = PathwayRegistry.get_or_default(project.pathway_id)
 
     # Get design sheet
     sheet_result = await db.execute(
@@ -94,7 +98,7 @@ async def ai_generate_blocks(
     await db.execute(delete(Block).where(Block.project_id == project_id))
 
     # Generate new blocks
-    blocks = await generate_blocks(db, sheet, project_id)
+    blocks = await generate_blocks(db, sheet, project_id, pathway=pw)
     return blocks
 
 

@@ -1,9 +1,13 @@
 """
 sheet_service.py — Design sheet auto-fill and block generation logic.
 Extracts structured data from AI responses and generates feature blocks.
+Block generation prompt and categories are driven by the active PathwayConfig.
 """
+from __future__ import annotations
+
 import json
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,36 +16,58 @@ from app.models.block import Block
 from app.models.design_sheet import DesignSheet
 from app.services.ai_service import client
 
-BLOCK_GENERATION_PROMPT = """Based on this design sheet, generate a list of feature blocks for the product.
-
-Design Sheet:
-- Problem: {problem}
-- Audience: {audience}
-- MVP Scope: {mvp}
-- Features: {features}
-- Platform: {platform}
-- Tone: {tone}
-
-Generate 8-12 feature blocks. For each block, provide:
-- name: short feature name (2-4 words)
-- description: one sentence explaining what it does
-- category: one of [core, ux, data, integration, admin]
-- priority: "mvp" or "v2"
-- effort: "S" (1-2 days), "M" (3-5 days), or "L" (1-2 weeks)
-
-Return as a JSON array. No markdown, just valid JSON."""
+if TYPE_CHECKING:
+    from app.pathways.base import PathwayConfig
 
 
-async def generate_blocks(db: AsyncSession, sheet: DesignSheet, project_id: uuid.UUID) -> list[Block]:
-    """Generate feature blocks from a completed design sheet using Claude."""
-    prompt = BLOCK_GENERATION_PROMPT.format(
-        problem=sheet.problem or "Not specified",
-        audience=sheet.audience or "Not specified",
-        mvp=sheet.mvp or "Not specified",
-        features=json.dumps(sheet.features or []),
-        platform=sheet.platform or "Not specified",
-        tone=sheet.tone or "Not specified",
-    )
+def _get_pathway(pathway: PathwayConfig | None = None) -> PathwayConfig:
+    """Resolve a pathway, falling back to software_product."""
+    if pathway is not None:
+        return pathway
+    from app.pathways import PathwayRegistry
+    return PathwayRegistry.get("software_product")
+
+
+def _build_sheet_context(sheet: DesignSheet, pathway: PathwayConfig) -> dict[str, str]:
+    """Build a context dict from the sheet for prompt formatting."""
+    ctx: dict[str, str] = {}
+    for sf in pathway.sheet_fields:
+        val = getattr(sheet, sf.key, None)
+        if not val and sheet.fields_data:
+            val = sheet.fields_data.get(sf.key)
+        if isinstance(val, (list, dict)):
+            ctx[sf.key] = json.dumps(val)
+        else:
+            ctx[sf.key] = str(val) if val else "Not specified"
+    return ctx
+
+
+async def generate_blocks(
+    db: AsyncSession,
+    sheet: DesignSheet,
+    project_id: uuid.UUID,
+    pathway: PathwayConfig | None = None,
+) -> list[Block]:
+    """Generate feature blocks from a completed design sheet using Claude.
+
+    Uses the pathway's ``block_generation_prompt`` and ``block_categories``
+    to produce domain-appropriate blocks.
+    """
+    pw = _get_pathway(pathway)
+    ctx = _build_sheet_context(sheet, pw)
+
+    # Format the pathway's block generation prompt with sheet context
+    try:
+        prompt = pw.block_generation_prompt.format(**ctx)
+    except KeyError:
+        # Fallback: inject whatever keys are available
+        prompt = pw.block_generation_prompt
+        for k, v in ctx.items():
+            prompt = prompt.replace(f"{{{k}}}", v)
+
+    # Build valid category ids for validation
+    valid_categories = {c.id for c in pw.block_categories}
+    default_category = pw.block_categories[0].id if pw.block_categories else "core"
 
     response = await client.messages.create(
         model=settings.CLAUDE_MODEL,
@@ -60,15 +86,19 @@ async def generate_blocks(db: AsyncSession, sheet: DesignSheet, project_id: uuid
 
     blocks = []
     for i, bd in enumerate(block_data):
+        cat = bd.get("category", default_category)
+        if cat not in valid_categories:
+            cat = default_category
+
         block = Block(
             project_id=project_id,
             name=bd.get("name", f"Feature {i+1}"),
             description=bd.get("description", ""),
-            category=bd.get("category", "core"),
-            priority=bd.get("priority", "mvp"),
-            effort=bd.get("effort", "M"),
+            category=cat,
+            priority=bd.get("priority", pw.block_priorities[0] if pw.block_priorities else "mvp"),
+            effort=bd.get("effort", pw.block_efforts[1] if len(pw.block_efforts) > 1 else "M"),
             order=i,
-            is_mvp=bd.get("priority", "mvp") == "mvp",
+            is_mvp=bd.get("priority", "mvp") == (pw.block_priorities[0] if pw.block_priorities else "mvp"),
         )
         db.add(block)
         blocks.append(block)

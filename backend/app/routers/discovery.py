@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.models.project import Project
 from app.models.user import User
+from app.pathways import PathwayRegistry
 from app.routers.auth import get_current_user
 from app.schemas.session import MessagePayload, ProgressPayload, SessionCreate, SessionRead
 from app.schemas.design_sheet import DesignSheetRead
@@ -67,10 +68,14 @@ async def init_greeting(
     if session.messages and len(session.messages) > 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session already initialized")
 
+    # Resolve the project's pathway
+    pw = PathwayRegistry.get_or_default(project.pathway_id)
+
     # Build greeting prompt with project context
     system_prompt = await ai_service.build_greeting_prompt(
         project_description=project.description,
         platform=project.platform or "custom",
+        pathway=pw,
     )
 
     # The AI speaks first — no user message in the history
@@ -137,12 +142,13 @@ async def send_message(
             "tone": sheet.tone,
         }
 
-    # Build system prompt
+    # Resolve project and pathway
     proj_result = await db.execute(select(Project).where(Project.id == session.project_id))
     project = proj_result.scalar_one_or_none()
     platform = project.platform if project else "custom"
+    pw = PathwayRegistry.get_or_default(project.pathway_id if project else None)
 
-    system_prompt = await ai_service.build_system_prompt(platform, session.stage, sheet_context)
+    system_prompt = await ai_service.build_system_prompt(platform, session.stage, sheet_context, pathway=pw)
 
     # Build Claude message history
     claude_messages = [
@@ -165,7 +171,7 @@ async def send_message(
         await discovery_service.add_message(db, session, "assistant", clean_text)
 
         # Extract and update design sheet
-        sheet, changed = await discovery_service.update_sheet_from_conversation(db, session)
+        sheet, changed = await discovery_service.update_sheet_from_conversation(db, session, pathway=pw)
 
         await db.commit()
 

@@ -14,10 +14,10 @@ from app.models.design_sheet import DesignSheet
 from app.models.pipeline_node import PipelineNode
 from app.models.project import Project
 from app.models.user import User
+from app.pathways import PathwayRegistry
 from app.routers.auth import get_current_user
 from app.schemas.pipeline import PipelineNodeRead, PipelineNodeUpdate
 from app.services.pipeline_service import (
-    LAYER_OPTIONS,
     check_compatibility,
     estimate_cost,
     recommend_pipeline,
@@ -36,8 +36,11 @@ async def get_pipeline(
     proj_result = await db.execute(
         select(Project).where(Project.id == project_id, Project.user_id == current_user.id)
     )
-    if not proj_result.scalar_one_or_none():
+    project = proj_result.scalar_one_or_none()
+    if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+    pw = PathwayRegistry.get_or_default(project.pathway_id)
 
     result = await db.execute(
         select(PipelineNode).where(PipelineNode.project_id == project_id)
@@ -46,10 +49,10 @@ async def get_pipeline(
 
     return {
         "nodes": [PipelineNodeRead.model_validate(n).model_dump() for n in nodes],
-        "cost_estimate": estimate_cost(nodes),
+        "cost_estimate": estimate_cost(nodes, pathway=pw),
         "warnings": check_compatibility(nodes),
         "available_layers": {
-            layer: info["tools"] for layer, info in LAYER_OPTIONS.items()
+            layer: info["tools"] for layer, info in pw.domain_layers.items()
         },
     }
 
@@ -75,7 +78,11 @@ async def ai_recommend_pipeline(
     if not sheet:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Design sheet not found")
 
-    nodes, reasoning, cost_est = await recommend_pipeline(db, sheet, project_id, project.complexity)
+    pw = PathwayRegistry.get_or_default(project.pathway_id)
+
+    nodes, reasoning, cost_est = await recommend_pipeline(
+        db, sheet, project_id, project.complexity, pathway=pw,
+    )
 
     return {
         "nodes": [PipelineNodeRead.model_validate(n).model_dump() for n in nodes],
@@ -83,7 +90,7 @@ async def ai_recommend_pipeline(
         "cost_estimate": cost_est,
         "warnings": check_compatibility(nodes),
         "available_layers": {
-            layer: info["tools"] for layer, info in LAYER_OPTIONS.items()
+            layer: info["tools"] for layer, info in pw.domain_layers.items()
         },
     }
 

@@ -1,9 +1,13 @@
 """
 discovery_service.py — Socratic discovery engine with state machine and confidence scoring.
-Manages the 5-stage discovery flow and auto-updates the design sheet.
+Manages the discovery flow and auto-updates the design sheet.
+Stage order, transitions, and confidence weights are driven by the active PathwayConfig.
 """
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,29 +17,21 @@ from app.models.design_sheet import DesignSheet
 from app.models.project import Project
 from app.services.ai_service import extract_sheet_fields
 
-STAGE_ORDER = ["greeting", "problem", "audience", "features", "constraints", "confirm"]
+if TYPE_CHECKING:
+    from app.pathways.base import PathwayConfig
 
-STAGE_TRANSITIONS = {
-    "greeting": "problem",
-    "problem": "audience",
-    "audience": "features",
-    "features": "constraints",
-    "constraints": "confirm",
-    "confirm": "confirm",
-}
 
-# Fields that contribute to confidence, with their weights
-CONFIDENCE_WEIGHTS = {
-    "problem": 20,
-    "audience": 20,
-    "mvp": 15,
-    "features": 20,
-    "platform": 10,
-    "tech_constraints": 5,
-    "success_metric": 5,
-    "tone": 5,
-}
+def _get_pathway(pathway: PathwayConfig | None = None) -> PathwayConfig:
+    """Resolve a pathway, falling back to software_product."""
+    if pathway is not None:
+        return pathway
+    from app.pathways import PathwayRegistry
+    return PathwayRegistry.get("software_product")
 
+
+# ---------------------------------------------------------------------------
+# Session helpers
+# ---------------------------------------------------------------------------
 
 async def create_session(db: AsyncSession, project_id: uuid.UUID) -> DiscoverySession:
     """Create a new discovery session and initialize an empty design sheet."""
@@ -85,45 +81,109 @@ async def add_message(
     return session
 
 
-def next_stage(current_stage: str, sheet: DesignSheet) -> str:
-    """Determine the next discovery stage based on current state and sheet completeness."""
+# ---------------------------------------------------------------------------
+# Stage machine — driven by PathwayConfig.stages
+# ---------------------------------------------------------------------------
+
+def _get_sheet_value(sheet: DesignSheet, field_key: str) -> object:
+    """Get a design sheet field value, checking named columns first, then fields_data."""
+    # Named columns (used by the software pathway)
+    val = getattr(sheet, field_key, None)
+    if val:
+        return val
+    # Generic JSONB storage (used by other pathways)
+    if sheet.fields_data and field_key in sheet.fields_data:
+        return sheet.fields_data[field_key]
+    return None
+
+
+def next_stage(
+    current_stage: str,
+    sheet: DesignSheet,
+    pathway: PathwayConfig | None = None,
+) -> str:
+    """Determine the next discovery stage based on current state and sheet completeness.
+
+    Uses the pathway's stage list to determine ordering and checks
+    each stage's ``required_fields`` for advancement.
+    """
+    pw = _get_pathway(pathway)
+    stage_ids = [s.id for s in pw.stages]
+
+    # If current stage isn't in the pathway (shouldn't happen), stay put
+    if current_stage not in stage_ids:
+        return current_stage
+
+    current_idx = stage_ids.index(current_stage)
+
+    # Already at the last stage — stay
+    if current_idx >= len(stage_ids) - 1:
+        return current_stage
+
+    # Greeting always advances immediately
     if current_stage == "greeting":
-        return "problem"
+        return stage_ids[current_idx + 1]
 
-    if current_stage == "problem" and sheet.problem:
-        return "audience"
+    # For other stages, check required_fields of the CURRENT stage
+    current_stage_cfg = pw.stages[current_idx]
+    if current_stage_cfg.required_fields:
+        all_filled = all(
+            _get_sheet_value(sheet, f) for f in current_stage_cfg.required_fields
+        )
+        if all_filled:
+            return stage_ids[current_idx + 1]
+        # Stay on current stage if key fields aren't filled yet
+        return current_stage
 
-    if current_stage == "audience" and sheet.audience:
-        return "features"
-
-    if current_stage == "features" and sheet.features:
-        return "constraints"
-
-    if current_stage == "constraints":
-        return "confirm"
-
-    # Stay on current stage if key fields aren't filled yet
-    return current_stage
+    # No required fields — advance
+    return stage_ids[current_idx + 1]
 
 
-def compute_confidence(sheet: DesignSheet) -> int:
-    """Compute confidence score (0-100) based on populated design sheet fields."""
+# ---------------------------------------------------------------------------
+# Confidence scoring — driven by PathwayConfig.sheet_fields
+# ---------------------------------------------------------------------------
+
+def compute_confidence(
+    sheet: DesignSheet,
+    pathway: PathwayConfig | None = None,
+) -> int:
+    """Compute confidence score (0-100) based on populated design sheet fields.
+
+    Uses the pathway's ``sheet_fields`` weights.
+    """
+    pw = _get_pathway(pathway)
     score = 0
-    for field, weight in CONFIDENCE_WEIGHTS.items():
-        value = getattr(sheet, field, None)
+    for sf in pw.sheet_fields:
+        value = _get_sheet_value(sheet, sf.key)
         if value:
             if isinstance(value, list) and len(value) > 0:
-                score += weight
+                score += sf.weight
             elif isinstance(value, str) and len(value.strip()) > 0:
-                score += weight
+                score += sf.weight
+            elif isinstance(value, dict):
+                score += sf.weight
     return min(score, 100)
 
 
+# ---------------------------------------------------------------------------
+# Sheet extraction & update
+# ---------------------------------------------------------------------------
+
+# Named columns on DesignSheet (software pathway backward compat)
+_NAMED_COLUMNS = frozenset(
+    ["problem", "audience", "mvp", "tone", "platform", "tech_constraints", "success_metric"]
+)
+
+
 async def update_sheet_from_conversation(
-    db: AsyncSession, session: DiscoverySession
+    db: AsyncSession,
+    session: DiscoverySession,
+    pathway: PathwayConfig | None = None,
 ) -> tuple[DesignSheet, bool]:
     """Extract fields from conversation and update the design sheet.
     Returns (updated_sheet, changed) tuple."""
+    pw = _get_pathway(pathway)
+
     result = await db.execute(
         select(DesignSheet).where(DesignSheet.project_id == session.project_id)
     )
@@ -140,36 +200,52 @@ async def update_sheet_from_conversation(
     if not claude_messages:
         return sheet, False
 
-    extracted = await extract_sheet_fields(claude_messages)
+    extracted = await extract_sheet_fields(claude_messages, pathway=pw)
     if not extracted:
         return sheet, False
 
     changed = False
-    updatable_fields = ["problem", "audience", "mvp", "tone", "platform", "tech_constraints", "success_metric"]
 
-    for field in updatable_fields:
-        if field in extracted and extracted[field]:
-            current = getattr(sheet, field, None)
-            new_val = extracted[field]
+    # Determine which fields to update from the pathway's sheet_fields
+    for sf in pw.sheet_fields:
+        key = sf.key
+        if key not in extracted or not extracted[key]:
+            continue
+        new_val = extracted[key]
+
+        # Use named column if it exists on the model (software pathway compat)
+        if key in _NAMED_COLUMNS:
+            current = getattr(sheet, key, None)
             if new_val and new_val != current:
-                setattr(sheet, field, new_val)
+                setattr(sheet, key, new_val)
+                changed = True
+        else:
+            # Store in generic fields_data JSONB
+            fd = dict(sheet.fields_data or {})
+            if fd.get(key) != new_val:
+                fd[key] = new_val
+                sheet.fields_data = fd
                 changed = True
 
-    # Handle features separately (list type)
+    # Handle features separately (list type, stored as named column for software)
     if "features" in extracted and isinstance(extracted["features"], list) and extracted["features"]:
         sheet.features = extracted["features"]
         changed = True
 
     if changed:
-        sheet.confidence_score = compute_confidence(sheet)
+        sheet.confidence_score = compute_confidence(sheet, pw)
         # Check for stage advancement
-        new_stage = next_stage(session.stage, sheet)
+        new_stage = next_stage(session.stage, sheet, pw)
         if new_stage != session.stage:
             session.stage = new_stage
 
     await db.flush()
     return sheet, changed
 
+
+# ---------------------------------------------------------------------------
+# Fetchers
+# ---------------------------------------------------------------------------
 
 async def get_session(db: AsyncSession, session_id: uuid.UUID) -> DiscoverySession | None:
     """Fetch a discovery session by ID."""
