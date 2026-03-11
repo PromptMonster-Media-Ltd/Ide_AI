@@ -300,25 +300,32 @@ export function Home() {
                   <label className="text-xs text-text-muted font-medium mb-3 block">
                     Choose a partner style:
                   </label>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     {allPartners.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => setPartnerStyle(p.id)}
-                        className={`
-                          flex flex-col items-center text-center rounded-lg px-2 py-2.5 cursor-pointer
-                          transition-all duration-200 ease-out
-                          ${
-                            partnerStyle === p.id
-                              ? 'bg-accent/5 border border-accent shadow-[0_0_16px_rgba(0,229,255,0.1)]'
-                              : 'bg-white/5 border border-border hover:border-white/15 hover:scale-[1.02]'
-                          }
-                        `}
-                      >
-                        <span className="text-xl leading-none">{p.icon}</span>
-                        <span className="text-[11px] font-semibold text-white mt-1.5">{p.name}</span>
-                      </button>
+                      <div key={p.id} className="relative group">
+                        <button
+                          type="button"
+                          onClick={() => setPartnerStyle(p.id)}
+                          className={`
+                            w-full flex flex-col items-center text-center rounded-lg px-2 py-2.5 cursor-pointer
+                            transition-all duration-200 ease-out
+                            ${
+                              partnerStyle === p.id
+                                ? 'bg-accent/5 border border-accent shadow-[0_0_16px_rgba(0,229,255,0.1)]'
+                                : 'bg-white/5 border border-border hover:border-white/15 hover:scale-[1.02]'
+                            }
+                          `}
+                        >
+                          <span className="text-xl leading-none">{p.icon}</span>
+                          <span className="text-[11px] font-semibold text-white mt-1.5">{p.name}</span>
+                        </button>
+                        {/* Tooltip */}
+                        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-surface border border-border shadow-xl text-[11px] text-text-muted leading-snug w-48 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 hidden sm:block">
+                          <span className="font-semibold text-white">{p.name}</span>
+                          <span className="block mt-0.5">{p.description}</span>
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-2 h-2 bg-surface border-r border-b border-border rotate-45" />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
