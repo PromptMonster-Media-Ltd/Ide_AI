@@ -13,7 +13,7 @@
   --color-text-primary: #ffffff;
   --color-text-muted: rgba(255, 255, 255, 0.5);
   --radius-card: 12px;
-  --font-sans: "Inter", sans-serif;
+  --font-sans: "Arial", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   --animate-beacon-pulse: beacon-pulse 2s ease-in-out infinite;
 }
@@ -27,7 +27,12 @@ body {
   background-color: var(--color-background);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
+  font-weight: 400;
   min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 900;
 }
 
 * {
