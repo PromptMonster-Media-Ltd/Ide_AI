@@ -12,7 +12,7 @@ export function ChannelMix() {
   return (
     <div className="flex min-h-screen bg-background text-white">
       <Sidebar projectId={projectId} />
-      <main className="flex-1 md:ml-[232px] pb-16 md:pb-0">
+      <main className="ml-0 md:ml-[232px] pb-14 md:pb-0 flex-1">
         <div className="max-w-5xl mx-auto px-4 py-8">
           <h1 className="text-2xl font-bold mb-2">Channel Mix</h1>
           <p className="text-text-muted text-sm mb-8">

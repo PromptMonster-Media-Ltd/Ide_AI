@@ -29,6 +29,8 @@ const FALLBACK_PROJECT_ITEMS = [
 
 const ACTIVE_PROJECT_KEY = 'ideai_active_project'
 const ACTIVE_PROJECT_PATH_KEY = 'ideai_active_path'
+const ACTIVE_PROJECT_TS_KEY = 'ideai_active_ts'
+const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000 // 15 minutes
 
 export function Sidebar({ projectId }: { projectId?: string }) {
   const location = useLocation()
@@ -48,23 +50,35 @@ export function Sidebar({ projectId }: { projectId?: string }) {
         .map(m => ({ path: `/${m.route_suffix}`, label: m.label, icon: m.icon }))
     : FALLBACK_PROJECT_ITEMS
 
-  // Persist active project when user is inside a project
+  // Persist active project + timestamp when user is inside a project
   useEffect(() => {
     if (projectId) {
       localStorage.setItem(ACTIVE_PROJECT_KEY, projectId)
       localStorage.setItem(ACTIVE_PROJECT_PATH_KEY, location.pathname)
+      localStorage.setItem(ACTIVE_PROJECT_TS_KEY, Date.now().toString())
       setSavedProjectId(projectId)
       setSavedPath(location.pathname)
     }
   }, [projectId, location.pathname])
 
-  // Load saved project on mount
+  // Load saved project on mount — only if within 15min inactivity window
   useEffect(() => {
-    setSavedProjectId(localStorage.getItem(ACTIVE_PROJECT_KEY))
-    setSavedPath(localStorage.getItem(ACTIVE_PROJECT_PATH_KEY))
+    const id = localStorage.getItem(ACTIVE_PROJECT_KEY)
+    const ts = localStorage.getItem(ACTIVE_PROJECT_TS_KEY)
+    if (id && ts && Date.now() - Number(ts) < INACTIVITY_TIMEOUT_MS) {
+      setSavedProjectId(id)
+      setSavedPath(localStorage.getItem(ACTIVE_PROJECT_PATH_KEY))
+    } else {
+      // Expired — clear stale project reference
+      localStorage.removeItem(ACTIVE_PROJECT_KEY)
+      localStorage.removeItem(ACTIVE_PROJECT_PATH_KEY)
+      localStorage.removeItem(ACTIVE_PROJECT_TS_KEY)
+      setSavedProjectId(null)
+      setSavedPath(null)
+    }
   }, [])
 
-  // Show "Back to Project" when on Home/Settings but there's a saved project
+  // Show "Back to Project" only on Home or Settings when user just left a project
   const isOnHomePage = location.pathname === '/' || location.pathname === '/settings'
   const showBackToProject = isOnHomePage && savedProjectId && !projectId
 
@@ -145,11 +159,12 @@ export function Sidebar({ projectId }: { projectId?: string }) {
       </aside>
 
       {/* ── Mobile bottom nav ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-surface border-t border-border z-50 flex items-center justify-around px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-surface border-t border-border z-50 flex items-center justify-around px-2" aria-label="Mobile navigation">
         {showBackToProject && (
           <Link
             to={savedPath || `/discovery/${savedProjectId}`}
-            className="flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg text-xs text-accent"
+            className="flex flex-col items-center justify-center gap-0.5 min-h-[44px] min-w-[44px] px-2 rounded-lg text-xs text-accent"
+            aria-label="Back to Project"
           >
             <span className="text-[10px] leading-tight">Back to Project</span>
           </Link>
@@ -159,11 +174,13 @@ export function Sidebar({ projectId }: { projectId?: string }) {
           <Link
             key={item.path}
             to={buildTo(item)}
-            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg text-xs transition-colors ${
+            className={`flex flex-col items-center justify-center gap-0.5 min-h-[44px] min-w-[44px] px-2 rounded-lg text-xs transition-colors ${
               isActive(item)
                 ? 'text-accent'
                 : 'text-text-muted'
             }`}
+            aria-label={item.label}
+            aria-current={isActive(item) ? 'page' : undefined}
           >
             <span className="text-lg">{item.icon}</span>
             <span className="text-[10px] leading-tight">{item.label}</span>
@@ -173,9 +190,12 @@ export function Sidebar({ projectId }: { projectId?: string }) {
         {mobileOverflowItems.length > 0 && (
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg text-xs transition-colors ${
+            className={`flex flex-col items-center justify-center gap-0.5 min-h-[44px] min-w-[44px] px-2 rounded-lg text-xs transition-colors ${
               mobileMenuOpen ? 'text-accent' : 'text-text-muted'
             }`}
+            aria-label="More navigation options"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-overflow-menu"
           >
             <span className="text-lg">{'\u2022\u2022\u2022'}</span>
             <span className="text-[10px] leading-tight">More</span>
@@ -190,7 +210,12 @@ export function Sidebar({ projectId }: { projectId?: string }) {
             className="md:hidden fixed inset-0 bg-black/50 z-40"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="md:hidden fixed bottom-14 left-0 right-0 bg-surface border-t border-border z-50 py-2">
+          <div
+            id="mobile-overflow-menu"
+            role="menu"
+            className="md:hidden fixed bottom-14 left-0 right-0 bg-surface border-t border-border z-50 py-2"
+            onKeyDown={(e) => { if (e.key === 'Escape') setMobileMenuOpen(false) }}
+          >
             <div className="px-4 py-2 flex items-center border-b border-border mb-2">
               <img src="/logo.png" alt="Ide/AI" className="w-[120px] object-contain" />
             </div>

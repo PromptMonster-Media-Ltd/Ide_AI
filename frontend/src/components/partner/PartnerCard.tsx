@@ -16,6 +16,8 @@ export function PartnerCard({ partner, selected, onSelect }: Props) {
     <button
       type="button"
       onClick={() => onSelect(partner.id)}
+      aria-pressed={selected}
+      aria-label={`${partner.name} — ${partner.description}`}
       className={`
         group relative w-full text-left rounded-xl p-3.5 transition-all duration-200
         border backdrop-blur-md
@@ -23,6 +25,7 @@ export function PartnerCard({ partner, selected, onSelect }: Props) {
           ? 'border-accent bg-accent/10 shadow-[0_0_16px_rgba(0,229,255,0.12)]'
           : 'border-white/8 bg-surface/60 hover:border-white/15 hover:bg-white/5'
         }
+        focus:outline-none focus:ring-2 focus:ring-accent/50
       `}
     >
       {/* Header */}

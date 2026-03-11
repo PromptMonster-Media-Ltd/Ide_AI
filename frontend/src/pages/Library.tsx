@@ -217,7 +217,7 @@ export function Library() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar />
-      <div className="ml-0 md:ml-[232px] flex-1 flex flex-col h-screen">
+      <div className="ml-0 md:ml-[232px] pb-14 md:pb-0 flex-1 flex flex-col h-screen">
         <TopBar title="Projects" subtitle="Manage projects, snapshots, and exports">
           <input
             ref={fileInputRef}

@@ -33,15 +33,24 @@ export function TranscriptExportMenu({ sessionId, projectName, messages }: Trans
   const [copied, setCopied] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Close on outside click
+  // Close on outside click or Escape key
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
+    const handleClick = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
     }
-    if (open) document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    if (open) {
+      document.addEventListener('mousedown', handleClick)
+      document.addEventListener('keydown', handleKey)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('keydown', handleKey)
+    }
   }, [open])
 
   const handleExport = async (format: FormatKey) => {
@@ -90,9 +99,12 @@ export function TranscriptExportMenu({ sessionId, projectName, messages }: Trans
     <div ref={menuRef} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/5 border border-border text-text-muted hover:text-white hover:bg-white/10 transition-colors"
+        aria-label="Export transcript"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[44px] md:min-h-0 text-xs font-medium rounded-lg bg-white/5 border border-border text-text-muted hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors"
       >
-        <span>↗</span>
+        <span aria-hidden="true">↗</span>
         <span>{copied ? 'Copied!' : 'Export Transcript'}</span>
       </button>
 

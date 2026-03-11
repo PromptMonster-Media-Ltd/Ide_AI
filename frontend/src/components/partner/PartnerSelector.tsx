@@ -28,19 +28,27 @@ export function PartnerSelector({ open, currentStyle, onSelect, onClose }: Props
     setPending(currentStyle)
   }, [currentStyle, open])
 
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [open, onClose])
+
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-labelledby="partner-selector-title" aria-modal="true">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-0" onClick={onClose} />
 
       {/* Panel */}
       <div className="relative z-10 w-full max-w-2xl max-h-[85vh] rounded-2xl bg-surface border border-white/8 shadow-xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
           <div>
-            <h2 className="text-base font-semibold text-text-primary">Choose AI Partner</h2>
+            <h2 id="partner-selector-title" className="text-base font-semibold text-text-primary">Choose AI Partner</h2>
             <p className="text-xs text-text-muted mt-0.5">
               Pick a collaboration style — changes how the AI thinks with you, not what it produces.
             </p>
@@ -58,7 +66,7 @@ export function PartnerSelector({ open, currentStyle, onSelect, onClose }: Props
 
         {/* Grid */}
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {styles.map((s) => (
               <PartnerCard
                 key={s.id}

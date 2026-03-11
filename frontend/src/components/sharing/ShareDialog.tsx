@@ -43,6 +43,14 @@ export function ShareDialog({ projectId, projectName, open, onClose }: ShareDial
     }
   }, [open, projectId])
 
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [open, onClose])
+
   const fetchShareStatus = async () => {
     setLoading(true)
     try {
@@ -117,16 +125,16 @@ export function ShareDialog({ projectId, projectName, open, onClose }: ShareDial
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
         onClick={onClose}
       />
 
       {/* Dialog */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4" role="dialog" aria-labelledby="share-dialog-title" aria-modal="true">
         <Card glow className="w-full max-w-md relative">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-white">Share Project</h2>
+            <h2 id="share-dialog-title" className="text-base font-semibold text-white">Share Project</h2>
             <button
               onClick={onClose}
               className="text-text-muted hover:text-white transition-colors text-lg"

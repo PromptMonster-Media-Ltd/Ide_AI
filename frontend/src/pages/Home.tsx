@@ -178,7 +178,7 @@ export function Home() {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <main className="ml-0 md:ml-[232px] flex flex-col items-center justify-center min-h-screen px-4 md:px-6 pb-20 md:pb-0">
+      <main className="ml-0 md:ml-[232px] flex flex-col items-center justify-center min-h-screen px-4 md:px-6 pb-14 md:pb-0">
         <IdeaNebulaCanvas />
 
         {/* Greeting */}

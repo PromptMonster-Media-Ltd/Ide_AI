@@ -277,7 +277,8 @@ export function Discovery() {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Type your response..."
-                  className="flex-1 bg-surface border border-border rounded-xl px-3 md:px-4 py-2.5 md:py-3 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent resize-none h-11 md:h-12 max-h-32"
+                  aria-label="Enter your response to the AI partner"
+                  className="flex-1 bg-surface border border-border rounded-xl px-3 md:px-4 py-2.5 md:py-3 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 resize-none h-11 md:h-12 max-h-32"
                   rows={1}
                 />
                 <Button onClick={() => sendMessage(input)} disabled={!input.trim() || isStreaming}>
