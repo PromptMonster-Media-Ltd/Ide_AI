@@ -288,6 +288,7 @@ D:\Development\Ide_AI\
 5. **Frontend: hooks only, no class components. Zustand for local state, React Query for server state.**
 6. **Railway deployment: both services auto-deploy on push to `main`. No reverse proxy — backend and frontend are exposed publicly.**
 7. **Partner style default is `"strategist"` everywhere (model defaults, schema defaults, frontend state init).**
+8. **No preview verification required.** Do not start dev servers or take screenshots to verify code changes. The user handles testing manually.
 
 ---
 

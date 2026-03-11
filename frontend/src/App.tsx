@@ -25,6 +25,9 @@ const SprintPlanner = lazy(() => import('./pages/SprintPlanner').then(m => ({ de
 const ChannelMix = lazy(() => import('./pages/modules/ChannelMix').then(m => ({ default: m.ChannelMix })))
 const MoodBoard = lazy(() => import('./pages/modules/MoodBoard').then(m => ({ default: m.MoodBoard })))
 const WorldBuilder = lazy(() => import('./pages/modules/WorldBuilder').then(m => ({ default: m.WorldBuilder })))
+const PathwayReview = lazy(() => import('./pages/PathwayReview').then(m => ({ default: m.PathwayReview })))
+const PathwayExecute = lazy(() => import('./pages/PathwayExecute').then(m => ({ default: m.PathwayExecute })))
+const ModuleSessionPage = lazy(() => import('./pages/ModuleSession').then(m => ({ default: m.ModuleSession })))
 
 /**
  * Component registry — maps component_key (from pathway modules) to lazy components.
@@ -112,6 +115,20 @@ export default function App() {
       <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
       <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+
+      {/* Modular pathway routes */}
+      <Route
+        path="/pathway-review/:projectId"
+        element={<ProtectedRoute><Suspense fallback={<ModuleLoading />}><PathwayReview /></Suspense></ProtectedRoute>}
+      />
+      <Route
+        path="/pathway-execute/:projectId"
+        element={<ProtectedRoute><Suspense fallback={<ModuleLoading />}><PathwayExecute /></Suspense></ProtectedRoute>}
+      />
+      <Route
+        path="/module-session/:projectId/:moduleId"
+        element={<ProtectedRoute><Suspense fallback={<ModuleLoading />}><ModuleSessionPage /></Suspense></ProtectedRoute>}
+      />
 
       {/* Dynamic project-scoped module route */}
       <Route

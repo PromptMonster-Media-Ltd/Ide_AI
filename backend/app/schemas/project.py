@@ -34,6 +34,9 @@ class ProjectRead(BaseModel):
     accent_color: str
     pathway_id: str = "software_product"
     ai_partner_style: str = "strategist"
+    primary_category: Optional[str] = None
+    secondary_category: Optional[str] = None
+    pathway_locked: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -51,3 +54,5 @@ class ProjectUpdate(BaseModel):
     accent_color: Optional[str] = Field(None, max_length=20)
     pathway_id: Optional[str] = Field(None, max_length=50)
     ai_partner_style: Optional[str] = Field(None, max_length=30)
+    primary_category: Optional[str] = Field(None, max_length=50)
+    secondary_category: Optional[str] = Field(None, max_length=50)

@@ -3,7 +3,7 @@
  * @module pages/Discovery
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Sidebar } from '../components/layout/Sidebar'
 import { TopBar } from '../components/layout/TopBar'
 import { ChatThread } from '../components/discovery/ChatThread'
@@ -50,6 +50,7 @@ const AUTO_SAVE_INTERVAL_MS = 30_000
 
 export function Discovery() {
   const { projectId } = useParams<{ projectId: string }>()
+  const navigate = useNavigate()
   const { active: activePathway, fetchPathways, setActiveByProject } = usePathwayStore()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -267,6 +268,19 @@ export function Discovery() {
 
             <ChatThread messages={messages} streamingContent={streamingContent} />
             <QuickChips chips={chips} onSelect={sendMessage} disabled={isStreaming} />
+
+            {/* Proceed to pathway CTA — appears when confidence is high enough */}
+            {sheet.confidence_score >= 70 && projectId && (
+              <div className="px-3 md:px-4 py-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/pathway-review/${projectId}`)}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold bg-accent/20 text-accent border border-accent/30 hover:bg-accent/30 transition-colors"
+                >
+                  Proceed to Design Kit Pathway
+                </button>
+              </div>
+            )}
 
             {/* Input */}
             <div className="border-t border-border p-3 md:p-4 shrink-0">

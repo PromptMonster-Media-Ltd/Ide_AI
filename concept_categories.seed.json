@@ -1,0 +1,375 @@
+[
+  {
+    "id": "software_tech",
+    "label": "Software & Tech",
+    "examples": [
+      "Apps",
+      "SaaS",
+      "APIs",
+      "tools",
+      "platforms",
+      "plugins"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "problem_opportunity_framer",
+      "goals_success_metrics",
+      "constraints_mapper",
+      "design_blocks_board",
+      "pipeline_builder",
+      "data_model_planner",
+      "prompt_kit_generator",
+      "sprint_planner",
+      "launch_strategy",
+      "pitch_mode"
+    ]
+  },
+  {
+    "id": "physical_product",
+    "label": "Physical Product",
+    "examples": [
+      "Consumer goods",
+      "hardware",
+      "gadgets",
+      "manufacturing"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "problem_opportunity_framer",
+      "goals_success_metrics",
+      "constraints_mapper",
+      "risk_assessment",
+      "vendor_supplier_map",
+      "equipment_inventory_list",
+      "budget_cost_estimator",
+      "regulatory_compliance_check",
+      "launch_strategy",
+      "distribution_channel_planner",
+      "pricing_strategy"
+    ]
+  },
+  {
+    "id": "built_environment",
+    "label": "Built Environment",
+    "examples": [
+      "Houses",
+      "buildings",
+      "interiors",
+      "renovations",
+      "landscapes"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "goals_success_metrics",
+      "constraints_mapper",
+      "space_program",
+      "materials_finish_selector",
+      "footprint_flow_diagram",
+      "vendor_supplier_map",
+      "equipment_inventory_list",
+      "budget_cost_estimator",
+      "dependency_mapper",
+      "operations_planner"
+    ]
+  },
+  {
+    "id": "business_startup",
+    "label": "Business & Startup",
+    "examples": [
+      "Ventures",
+      "franchises",
+      "brick-and-mortar",
+      "service businesses"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "problem_opportunity_framer",
+      "goals_success_metrics",
+      "constraints_mapper",
+      "market_analysis",
+      "risk_assessment",
+      "revenue_model_designer",
+      "business_model_canvas",
+      "budget_cost_estimator",
+      "launch_strategy",
+      "marketing_messaging_framework",
+      "pricing_strategy",
+      "legal_ip_planner",
+      "pitch_mode"
+    ]
+  },
+  {
+    "id": "creative_writing",
+    "label": "Creative Writing",
+    "examples": [
+      "Novels",
+      "screenplays",
+      "scripts",
+      "short stories",
+      "comics"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "goals_success_metrics",
+      "narrative_story_arc",
+      "character_world_builder",
+      "brand_identity_framework",
+      "content_strategy",
+      "constraints_mapper",
+      "production_bible"
+    ]
+  },
+  {
+    "id": "research_academic",
+    "label": "Research & Academic",
+    "examples": [
+      "Theories",
+      "studies",
+      "papers",
+      "experiments",
+      "formulas"
+    ],
+    "default_modules": [
+      "problem_opportunity_framer",
+      "goals_success_metrics",
+      "assumptions_log",
+      "proof_of_concept_planner",
+      "risk_assessment",
+      "trend_timing_analysis",
+      "regulatory_compliance_check",
+      "dependency_mapper"
+    ]
+  },
+  {
+    "id": "art_visual",
+    "label": "Art & Visual Design",
+    "examples": [
+      "Paintings",
+      "installations",
+      "graphic work",
+      "photography"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "goals_success_metrics",
+      "creative_direction_brief",
+      "brand_identity_framework",
+      "design_language_guide",
+      "content_strategy",
+      "distribution_channel_planner",
+      "pricing_strategy"
+    ]
+  },
+  {
+    "id": "music_audio",
+    "label": "Music & Audio",
+    "examples": [
+      "Albums",
+      "compositions",
+      "podcasts",
+      "sound design",
+      "live shows"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "goals_success_metrics",
+      "narrative_story_arc",
+      "creative_direction_brief",
+      "content_strategy",
+      "distribution_channel_planner",
+      "pricing_strategy",
+      "partnership_outreach_map"
+    ]
+  },
+  {
+    "id": "film_video",
+    "label": "Film & Video",
+    "examples": [
+      "Short films",
+      "documentaries",
+      "YouTube series",
+      "commercials"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "goals_success_metrics",
+      "narrative_story_arc",
+      "character_world_builder",
+      "creative_direction_brief",
+      "production_bible",
+      "budget_cost_estimator",
+      "team_resource_planner",
+      "vendor_supplier_map",
+      "distribution_channel_planner",
+      "launch_strategy"
+    ]
+  },
+  {
+    "id": "food_hospitality",
+    "label": "Food & Hospitality",
+    "examples": [
+      "Restaurants",
+      "cafes",
+      "catering",
+      "menus",
+      "food products"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "problem_opportunity_framer",
+      "goals_success_metrics",
+      "constraints_mapper",
+      "space_program",
+      "footprint_flow_diagram",
+      "vendor_supplier_map",
+      "equipment_inventory_list",
+      "budget_cost_estimator",
+      "brand_identity_framework",
+      "regulatory_compliance_check",
+      "launch_strategy",
+      "operations_planner"
+    ]
+  },
+  {
+    "id": "fashion_apparel",
+    "label": "Fashion & Apparel",
+    "examples": [
+      "Clothing lines",
+      "accessories",
+      "brand identity",
+      "collections"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "goals_success_metrics",
+      "brand_identity_framework",
+      "design_language_guide",
+      "creative_direction_brief",
+      "vendor_supplier_map",
+      "budget_cost_estimator",
+      "pricing_strategy",
+      "distribution_channel_planner",
+      "launch_strategy",
+      "marketing_messaging_framework"
+    ]
+  },
+  {
+    "id": "education_training",
+    "label": "Education & Training",
+    "examples": [
+      "Courses",
+      "curricula",
+      "workshops",
+      "coaching programs"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "problem_opportunity_framer",
+      "goals_success_metrics",
+      "content_strategy",
+      "narrative_story_arc",
+      "budget_cost_estimator",
+      "pricing_strategy",
+      "distribution_channel_planner",
+      "community_retention_plan",
+      "launch_strategy"
+    ]
+  },
+  {
+    "id": "event_experience",
+    "label": "Event & Experience",
+    "examples": [
+      "Conferences",
+      "festivals",
+      "pop-ups",
+      "activations",
+      "exhibitions"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "goals_success_metrics",
+      "constraints_mapper",
+      "space_program",
+      "footprint_flow_diagram",
+      "vendor_supplier_map",
+      "budget_cost_estimator",
+      "team_resource_planner",
+      "operations_planner",
+      "launch_strategy",
+      "partnership_outreach_map",
+      "marketing_messaging_framework"
+    ]
+  },
+  {
+    "id": "health_wellness",
+    "label": "Health & Wellness",
+    "examples": [
+      "Clinics",
+      "fitness",
+      "wellness brands",
+      "mental health programs"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "problem_opportunity_framer",
+      "goals_success_metrics",
+      "constraints_mapper",
+      "risk_assessment",
+      "regulatory_compliance_check",
+      "brand_identity_framework",
+      "budget_cost_estimator",
+      "operations_planner",
+      "launch_strategy",
+      "community_retention_plan"
+    ]
+  },
+  {
+    "id": "social_impact",
+    "label": "Social Impact & Nonprofit",
+    "examples": [
+      "Charities",
+      "community programs",
+      "advocacy",
+      "NGOs"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "problem_opportunity_framer",
+      "goals_success_metrics",
+      "assumptions_log",
+      "risk_assessment",
+      "funding_investment_map",
+      "legal_ip_planner",
+      "partnership_outreach_map",
+      "marketing_messaging_framework",
+      "operations_planner",
+      "community_retention_plan",
+      "pitch_mode"
+    ]
+  },
+  {
+    "id": "finance_investment",
+    "label": "Finance & Investment",
+    "examples": [
+      "Funds",
+      "financial products",
+      "investment theses",
+      "fintech"
+    ],
+    "default_modules": [
+      "audience_persona_builder",
+      "problem_opportunity_framer",
+      "goals_success_metrics",
+      "constraints_mapper",
+      "risk_assessment",
+      "regulatory_compliance_check",
+      "revenue_model_designer",
+      "financial_projection_builder",
+      "funding_investment_map",
+      "business_model_canvas",
+      "legal_ip_planner",
+      "investor_deck_outline",
+      "pitch_mode"
+    ]
+  }
+]

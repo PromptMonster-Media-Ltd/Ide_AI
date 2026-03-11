@@ -13,11 +13,13 @@ from app.models.user_memory import UserMemory
 from app.models.project_share import ProjectShare
 from app.models.sprint_plan import SprintPlan
 from app.models.module_artifact import ModuleArtifact
+from app.models.module_pathway import ModulePathway
+from app.models.module_response import ModuleResponse
 
 __all__ = [
     "User", "Project", "DiscoverySession", "DesignSheet",
     "Block", "PipelineNode", "PromptKit", "Version",
     "MarketAnalysis", "ProjectSnapshot",
     "UserMemory", "ProjectShare", "SprintPlan",
-    "ModuleArtifact",
+    "ModuleArtifact", "ModulePathway", "ModuleResponse",
 ]
