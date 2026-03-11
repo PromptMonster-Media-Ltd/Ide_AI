@@ -14,7 +14,7 @@ import { StageInterlude, Whisper } from '../components/tutorial'
 import { useSSE } from '../hooks/useSSE'
 import { useModulePathwayStore } from '../stores/modulePathwayStore'
 import apiClient from '../lib/apiClient'
-import type { ModuleStartResponse, PathwayModuleEntry } from '../types/modulePathway'
+import type { ModuleStartResponse } from '../types/modulePathway'
 
 interface Message {
   role: 'user' | 'assistant'

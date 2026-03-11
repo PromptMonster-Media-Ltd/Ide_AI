@@ -18,7 +18,6 @@ export function PathwayReview() {
   const navigate = useNavigate()
   const {
     assembledModules,
-    pathway,
     loading,
     error,
     categorize,
