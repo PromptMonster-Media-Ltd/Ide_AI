@@ -231,7 +231,7 @@ export function Discovery() {
     <div className="h-screen bg-background flex overflow-hidden">
       <Sidebar projectId={projectId} />
 
-      <div className="ml-0 md:ml-[232px] flex-1 flex flex-col min-h-0">
+      <div className="ml-0 md:ml-[232px] pb-14 md:pb-0 flex-1 flex flex-col min-h-0">
         <TopBar title="Discovery" subtitle={`Stage: ${stage}`}>
           {/* Active partner badge */}
           <ActivePartnerBadge partner={partnerMeta} onClick={() => setShowPartnerPicker(true)} />

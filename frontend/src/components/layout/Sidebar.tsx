@@ -117,7 +117,6 @@ export function Sidebar({ projectId }: { projectId?: string }) {
                 to={savedPath || `/discovery/${savedProjectId}`}
                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-accent bg-accent/5 border border-accent/20 mx-2 rounded-lg hover:bg-accent/10 transition-colors"
               >
-                <span className="shrink-0 text-base">\u21A9</span>
                 <span className="whitespace-nowrap">Back to Project</span>
               </Link>
             </>
@@ -152,8 +151,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
             to={savedPath || `/discovery/${savedProjectId}`}
             className="flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg text-xs text-accent"
           >
-            <span className="text-lg">\u21A9</span>
-            <span className="text-[10px] leading-tight">Project</span>
+            <span className="text-[10px] leading-tight">Back to Project</span>
           </Link>
         )}
 
@@ -179,7 +177,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
               mobileMenuOpen ? 'text-accent' : 'text-text-muted'
             }`}
           >
-            <span className="text-lg">\u2022\u2022\u2022</span>
+            <span className="text-lg">{'\u2022\u2022\u2022'}</span>
             <span className="text-[10px] leading-tight">More</span>
           </button>
         )}
