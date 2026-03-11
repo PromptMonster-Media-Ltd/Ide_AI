@@ -55,12 +55,9 @@ export function ModuleSession() {
         }
         return ''
       })
-      // data from module SSE includes 'complete' and 'chips'
-      const done = (data as unknown as { complete?: boolean })
-      if (done?.complete) setIsComplete(true)
+      if (data.complete) setIsComplete(true)
       if (data.chips?.length) setChips(data.chips)
-      const qn = (data as unknown as { question_number?: number })
-      if (qn?.question_number) setQuestionNumber(qn.question_number)
+      if (data.question_number) setQuestionNumber(data.question_number)
     },
     onError(err) {
       console.error('[ModuleSession] SSE error:', err)

@@ -10,11 +10,21 @@ interface SSEMessage {
   stage?: string
   chips?: string[]
   sheet?: Record<string, unknown>
+  complete?: boolean
+  question_number?: number
+  [key: string]: unknown
+}
+
+interface SSEDoneData {
+  stage: string
+  chips: string[]
+  complete?: boolean
+  question_number?: number
 }
 
 interface UseSSEOptions {
   onToken?: (token: string) => void
-  onDone?: (data: { stage: string; chips: string[] }) => void
+  onDone?: (data: SSEDoneData) => void
   onSheetUpdate?: (sheet: Record<string, unknown>) => void
   onError?: (error: Error) => void
 }
@@ -72,7 +82,12 @@ export function useSSE(options: UseSSEOptions) {
               optionsRef.current.onToken?.(data.content)
             } else if (data.type === 'done') {
               receivedDone = true
-              optionsRef.current.onDone?.({ stage: data.stage || '', chips: data.chips || [] })
+              optionsRef.current.onDone?.({
+                stage: data.stage || '',
+                chips: data.chips || [],
+                complete: data.complete,
+                question_number: data.question_number,
+              })
             } else if (data.type === 'sheet_update' && data.sheet) {
               optionsRef.current.onSheetUpdate?.(data.sheet)
             }
