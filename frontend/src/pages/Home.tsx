@@ -22,6 +22,7 @@ import { usePathwayStore } from '../stores/pathwayStore'
 import type { PathwayDefinition, CreationPreset, CreationField } from '../types/pathway'
 import type { PartnerStyleMeta } from '../types/project'
 import apiClient from '../lib/apiClient'
+import { PulseBeacon, Whisper } from '../components/tutorial'
 
 /* ── Helpers ──────────────────────────────────────────────────── */
 
@@ -248,6 +249,7 @@ export function Home() {
               )}
 
               {/* Idea textarea with inline pill dropdowns */}
+              <Whisper id="home:idea" text="Describe your concept in a few sentences — the AI will take it from there">
               <div className="w-full max-w-2xl mb-6 md:mb-8">
                 <div className="bg-surface border border-border rounded-xl focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30 transition-colors overflow-visible">
                   <textarea
@@ -272,6 +274,7 @@ export function Home() {
                   </div>
                 </div>
               </div>
+              </Whisper>
 
               {/* Quick Start Presets */}
               {creationPresets.length > 0 && (
@@ -296,6 +299,7 @@ export function Home() {
 
               {/* AI Partner Style Selector */}
               {allPartners.length > 0 && (
+                <PulseBeacon id="home:partners" position="top-right" className="w-full max-w-2xl">
                 <div className="w-full max-w-2xl mb-4 md:mb-6">
                   <label className="text-xs text-text-muted font-medium mb-3 block">
                     Choose a partner style:
@@ -329,14 +333,17 @@ export function Home() {
                     ))}
                   </div>
                 </div>
+                </PulseBeacon>
               )}
 
               <div className="mb-2" />
 
               {/* Submit */}
-              <Button size="lg" onClick={handleSubmit} disabled={!idea.trim() || loading}>
-                {detecting ? 'Analyzing idea...' : loading ? 'Creating...' : 'Start Discovery \u2192'}
-              </Button>
+              <PulseBeacon id="home:start">
+                <Button size="lg" onClick={handleSubmit} disabled={!idea.trim() || loading}>
+                  {detecting ? 'Analyzing idea...' : loading ? 'Creating...' : 'Start Discovery \u2192'}
+                </Button>
+              </PulseBeacon>
             </motion.div>
           ) : (
             /* ── Pathway Confirmation Step ── */

@@ -10,6 +10,7 @@ import { TopBar } from '../components/layout/TopBar'
 import { PathwayProgress } from '../components/pathway/PathwayProgress'
 import { QuickChips } from '../components/discovery/QuickChips'
 import { Button } from '../components/ui/Button'
+import { StageInterlude, Whisper } from '../components/tutorial'
 import { useSSE } from '../hooks/useSSE'
 import { useModulePathwayStore } from '../stores/modulePathwayStore'
 import apiClient from '../lib/apiClient'
@@ -151,6 +152,12 @@ export function ModuleSession() {
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
+      <StageInterlude
+        phase="module-session"
+        message="Answer your AI partner's questions. They'll extract structured data from your answers."
+        stepIndex={3}
+        totalSteps={5}
+      />
       <Sidebar />
       <div className="flex-1 flex min-w-0">
         {/* Main chat area */}
@@ -167,7 +174,7 @@ export function ModuleSession() {
                   {currentModule && ` · ${currentModule.mode} mode`}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <Whisper id="module:skip" text="Skip if this module isn't relevant to your concept">
                 <button
                   type="button"
                   onClick={handleSkip}
@@ -175,7 +182,7 @@ export function ModuleSession() {
                 >
                   Skip module
                 </button>
-              </div>
+              </Whisper>
             </div>
           </div>
 

@@ -15,6 +15,7 @@ import { ActivePartnerBadge } from '../components/partner/ActivePartnerBadge'
 import { PartnerSelector } from '../components/partner/PartnerSelector'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
+import { StageInterlude, PulseBeacon, Whisper } from '../components/tutorial'
 import { useSSE } from '../hooks/useSSE'
 import { usePathwayStore } from '../stores/pathwayStore'
 import apiClient from '../lib/apiClient'
@@ -230,6 +231,12 @@ export function Discovery() {
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
+      <StageInterlude
+        phase="discovery"
+        message="Tell your AI partner about your idea. They'll extract the building blocks as you talk."
+        stepIndex={0}
+        totalSteps={5}
+      />
       <Sidebar projectId={projectId} />
 
       <div className="ml-0 md:ml-[232px] pb-14 md:pb-0 flex-1 flex flex-col min-h-0">
@@ -267,22 +274,27 @@ export function Discovery() {
             </div>
 
             <ChatThread messages={messages} streamingContent={streamingContent} />
-            <QuickChips chips={chips} onSelect={sendMessage} disabled={isStreaming} />
+            <PulseBeacon id="discovery:chips">
+              <QuickChips chips={chips} onSelect={sendMessage} disabled={isStreaming} />
+            </PulseBeacon>
 
             {/* Proceed to pathway CTA — appears when confidence is high enough */}
             {sheet.confidence_score >= 70 && projectId && (
               <div className="px-3 md:px-4 py-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/pathway-review/${projectId}`)}
-                  className="w-full py-2.5 rounded-xl text-sm font-semibold bg-accent/20 text-accent border border-accent/30 hover:bg-accent/30 transition-colors"
-                >
-                  Proceed to Design Kit Pathway
-                </button>
+                <PulseBeacon id="discovery:proceed">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/pathway-review/${projectId}`)}
+                    className="w-full py-2.5 rounded-xl text-sm font-semibold bg-accent/20 text-accent border border-accent/30 hover:bg-accent/30 transition-colors"
+                  >
+                    Proceed to Design Kit Pathway
+                  </button>
+                </PulseBeacon>
               </div>
             )}
 
             {/* Input */}
+            <Whisper id="discovery:input" text="Use the quick replies or type freely">
             <div className="border-t border-border p-3 md:p-4 shrink-0">
               <div className="flex gap-2 md:gap-3 items-end">
                 <textarea
@@ -300,6 +312,7 @@ export function Discovery() {
                 </Button>
               </div>
             </div>
+            </Whisper>
           </div>
 
           {/* Right: Design Sheet — full width on mobile when toggled, side panel on desktop */}

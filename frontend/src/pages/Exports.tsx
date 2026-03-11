@@ -8,6 +8,7 @@ import { Sidebar } from '../components/layout/Sidebar'
 import { TopBar } from '../components/layout/TopBar'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
+import { StageInterlude, Whisper } from '../components/tutorial'
 import apiClient from '../lib/apiClient'
 import { downloadBlob, formatFilename } from '../lib/exportUtils'
 
@@ -98,6 +99,12 @@ export function Exports() {
 
   return (
     <div className="min-h-screen bg-background flex">
+      <StageInterlude
+        phase="exports"
+        message="Your design kit is ready. Choose a format and platform to export."
+        stepIndex={4}
+        totalSteps={5}
+      />
       <Sidebar projectId={projectId} />
       <div className="ml-0 md:ml-[232px] pb-14 md:pb-0 flex-1 flex flex-col h-screen">
         <TopBar title="Export Design Kit" subtitle="Download your project artifacts">
@@ -110,6 +117,7 @@ export function Exports() {
             <h2 className="text-lg font-semibold text-white mb-1">Design Kit</h2>
             <p className="text-sm text-text-muted mb-5">Export your project design sheet in various formats.</p>
 
+            <Whisper id="exports:formats" text="Pick a format to download your complete design kit">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
               {FORMATS.map(fmt => (
                 <button
@@ -127,6 +135,7 @@ export function Exports() {
                 </button>
               ))}
             </div>
+            </Whisper>
 
             <div className="flex justify-center">
               <Button size="lg" onClick={handleExport} disabled={downloading}>

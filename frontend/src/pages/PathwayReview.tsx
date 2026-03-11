@@ -10,6 +10,7 @@ import { ModuleCard } from '../components/pathway/ModuleCard'
 import { Button } from '../components/ui/Button'
 import { useModulePathwayStore } from '../stores/modulePathwayStore'
 import apiClient from '../lib/apiClient'
+import { StageInterlude, PulseBeacon, Whisper } from '../components/tutorial'
 import type { ModuleDefinition, PathwayModuleEntry } from '../types/modulePathway'
 
 export function PathwayReview() {
@@ -155,6 +156,12 @@ export function PathwayReview() {
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
+      <StageInterlude
+        phase="pathway-review"
+        message="Your custom module pathway is ready. Reorder, toggle depth, or add modules before locking in."
+        stepIndex={1}
+        totalSteps={5}
+      />
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar />
@@ -213,13 +220,25 @@ export function PathwayReview() {
                       </button>
                     </div>
                     <div className="flex-1">
-                      <ModuleCard
-                        module={mod}
-                        index={i}
-                        isEditable
-                        onToggleMode={handleToggleMode}
-                        onRemove={handleRemove}
-                      />
+                      {i === 0 ? (
+                        <Whisper id="pathway:first-card" text="Lite asks 2-3 questions, Deep goes to 6-10">
+                          <ModuleCard
+                            module={mod}
+                            index={i}
+                            isEditable
+                            onToggleMode={handleToggleMode}
+                            onRemove={handleRemove}
+                          />
+                        </Whisper>
+                      ) : (
+                        <ModuleCard
+                          module={mod}
+                          index={i}
+                          isEditable
+                          onToggleMode={handleToggleMode}
+                          onRemove={handleRemove}
+                        />
+                      )}
                     </div>
                   </div>
                 ))}
@@ -227,13 +246,15 @@ export function PathwayReview() {
 
               {/* Add module */}
               <div className="mb-8">
-                <button
-                  type="button"
-                  onClick={() => setShowAddPanel(!showAddPanel)}
-                  className="w-full py-3 border border-dashed border-white/20 rounded-xl text-sm text-text-muted hover:text-accent hover:border-accent/40 transition-colors"
-                >
-                  + Add a module
-                </button>
+                <PulseBeacon id="pathway:add-module">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddPanel(!showAddPanel)}
+                    className="w-full py-3 border border-dashed border-white/20 rounded-xl text-sm text-text-muted hover:text-accent hover:border-accent/40 transition-colors"
+                  >
+                    + Add a module
+                  </button>
+                </PulseBeacon>
 
                 {showAddPanel && (
                   <div className="mt-3 p-4 rounded-xl border border-white/10 bg-white/[0.02] max-h-80 overflow-y-auto">

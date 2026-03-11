@@ -9,6 +9,7 @@ import { TopBar } from '../components/layout/TopBar'
 import { ModuleCard } from '../components/pathway/ModuleCard'
 import { PathwayProgress } from '../components/pathway/PathwayProgress'
 import { Button } from '../components/ui/Button'
+import { StageInterlude, PulseBeacon } from '../components/tutorial'
 import { useModulePathwayStore } from '../stores/modulePathwayStore'
 import type { PathwayModuleEntry } from '../types/modulePathway'
 
@@ -71,6 +72,12 @@ export function PathwayExecute() {
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
+      <StageInterlude
+        phase="pathway-execute"
+        message="Work through each module to build your design kit. Click any module to start."
+        stepIndex={2}
+        totalSteps={5}
+      />
       <Sidebar />
       <div className="flex-1 flex min-w-0">
         <div className="flex-1 flex flex-col min-w-0">
@@ -101,12 +108,14 @@ export function PathwayExecute() {
               {/* Continue button */}
               {!pathwayComplete && firstIncomplete && (
                 <div className="mb-6">
-                  <Button
-                    onClick={() => handleStartModule(firstIncomplete.module_id)}
-                    className="w-full py-3"
-                  >
-                    Continue: {firstIncomplete.label}
-                  </Button>
+                  <PulseBeacon id="execute:continue">
+                    <Button
+                      onClick={() => handleStartModule(firstIncomplete.module_id)}
+                      className="w-full py-3"
+                    >
+                      Continue: {firstIncomplete.label}
+                    </Button>
+                  </PulseBeacon>
                 </div>
               )}
 

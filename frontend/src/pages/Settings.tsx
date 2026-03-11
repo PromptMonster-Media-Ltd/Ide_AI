@@ -8,6 +8,7 @@ import { TopBar } from '../components/layout/TopBar'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import apiClient from '../lib/apiClient'
+import { useTutorialStore } from '../stores/tutorialStore'
 
 interface UserProfile {
   id: string
@@ -29,6 +30,9 @@ export function Settings() {
   const [displayName, setDisplayName] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  // Tutorial reset
+  const [tutorialReset, setTutorialReset] = useState(false)
 
   // Password form
   const [currentPw, setCurrentPw] = useState('')
@@ -267,6 +271,30 @@ export function Settings() {
                     <Button variant="ghost" size="sm" onClick={handleLogout}>
                       Sign Out
                     </Button>
+                  </div>
+                </Card>
+
+                {/* ── Tutorial ── */}
+                <Card>
+                  <h3 className="text-sm font-semibold text-white mb-3">Tutorial</h3>
+                  <p className="text-xs text-text-muted mb-3">
+                    Reset all tutorial hints, beacons, and stage interludes so they appear again.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        useTutorialStore.getState().resetTutorial()
+                        setTutorialReset(true)
+                        setTimeout(() => setTutorialReset(false), 2000)
+                      }}
+                    >
+                      Reset Tutorial
+                    </Button>
+                    {tutorialReset && (
+                      <span className="text-xs text-green-400">Tutorial hints reset!</span>
+                    )}
                   </div>
                 </Card>
 
