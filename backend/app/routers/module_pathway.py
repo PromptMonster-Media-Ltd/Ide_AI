@@ -82,7 +82,11 @@ async def categorize_project_endpoint(
     project = await _get_project(project_id, current_user, db)
     concept_sheet = await _get_concept_sheet(project_id, db)
 
-    result = await categorize_project(concept_sheet)
+    result = await categorize_project(
+        concept_sheet,
+        project_name=project.name or "",
+        project_description=project.description or "",
+    )
 
     # Persist categories on the project
     project.primary_category = result["primary_category"]

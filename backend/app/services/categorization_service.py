@@ -97,9 +97,17 @@ def _keyword_fallback(concept_text: str) -> dict:
     }
 
 
-async def categorize_project(concept_sheet: dict) -> dict:
+async def categorize_project(
+    concept_sheet: dict,
+    project_name: str = "",
+    project_description: str = "",
+) -> dict:
     """
-    Categorize a project based on its completed concept sheet.
+    Categorize a project based on its concept sheet, name, and description.
+
+    The project name and description are the most reliable signals (set at
+    creation time), so they're always included even if concept sheet fields
+    are sparse after a short discovery session.
 
     Returns:
         {"primary_category": str, "secondary_category": str|None, "confidence": float, "reasoning": str}
@@ -110,8 +118,14 @@ async def categorize_project(concept_sheet: dict) -> dict:
         for c in categories
     )
 
-    # Build a text summary from the concept sheet
+    # Build a text summary — start with the always-available project info
     parts = []
+    if project_name:
+        parts.append(f"project_name: {project_name}")
+    if project_description:
+        parts.append(f"project_description: {project_description}")
+
+    # Add structured concept sheet fields
     for key in ["problem", "audience", "mvp", "tone", "platform", "tech_constraints", "success_metric"]:
         val = concept_sheet.get(key)
         if val:
@@ -166,7 +180,7 @@ async def categorize_project(concept_sheet: dict) -> dict:
 
         confidence = float(result.get("confidence", 0.5))
 
-        # If AI confidence is too low, try keyword fallback
+        # If AI confidence is too low, try keyword fallback with all text
         if confidence < 0.4:
             return _keyword_fallback(concept_text)
 
