@@ -29,7 +29,8 @@ The full process takes 15–30 minutes: describe an idea, configure options, go 
 |-------|-------|
 | Backend | Python 3.12, FastAPI, SQLAlchemy 2.0 (async), Alembic, PostgreSQL, Anthropic Claude API (claude-sonnet-4-6) |
 | Frontend | React 18, TypeScript, Vite 7, Tailwind CSS v4 (CSS-based config, no tailwind.config.js), Framer Motion, Zustand |
-| Auth | Google OAuth + email/password, JWT tokens |
+| Auth | Google/Microsoft/GitHub OAuth + email/password, JWT tokens, 6-digit email verification (Resend) |
+| Email | Resend API — verification codes, inbound email webhooks for Idea Inbox |
 | Deployment | Railway (2 services — backend + frontend exposed publicly), Docker |
 | AI Streaming | Server-Sent Events (SSE) for discovery chat + market analysis |
 | Export | fpdf2 (PDF), python-docx (DOCX), Jinja2 templates, ZIP bundling |
@@ -43,45 +44,76 @@ D:\Development\Ide_AI\
 ├── backend/
 │   ├── app/
 │   │   ├── main.py                    # FastAPI app, CORS, router registration
-│   │   ├── config.py                  # Settings from env vars (pydantic-settings)
 │   │   ├── core/
+│   │   │   ├── config.py              # Settings from env vars (pydantic-settings)
 │   │   │   ├── security.py            # JWT helpers
-│   │   │   └── database.py            # Async SQLAlchemy engine + session
+│   │   │   ├── database.py            # Async SQLAlchemy engine + session
+│   │   │   └── oauth.py               # OAuth provider helpers (Google, Microsoft, GitHub)
 │   │   ├── models/                    # SQLAlchemy ORM models (all UUID PKs)
-│   │   │   ├── user.py, project.py, session.py, design_sheet.py
+│   │   │   ├── user.py                # User account (email/password + OAuth, email_verified, account_type, bio, inbox_email)
+│   │   │   ├── project.py, session.py, design_sheet.py
 │   │   │   ├── block.py, pipeline_node.py, prompt_kit.py
 │   │   │   ├── market_analysis.py, sprint_plan.py, version.py
+│   │   │   ├── email_verification.py  # 6-digit codes with expiry
+│   │   │   ├── idea_inbox.py          # Inbound email → idea items
+│   │   │   ├── project_share.py       # Sharing with feedback/ratings toggles
+│   │   │   ├── share_comment.py       # Comments on shared projects
+│   │   │   ├── share_rating.py        # Star ratings on shared project blocks
+│   │   │   ├── project_template.py    # Seed template definitions
+│   │   │   ├── concept_branch.py      # Git-like project forking
+│   │   │   ├── external_integration.py # OAuth tokens for external tools
+│   │   │   ├── module_pathway.py, module_response.py, module_artifact.py
+│   │   │   └── project_snapshot.py, user_memory.py
 │   │   ├── schemas/                   # Pydantic v2 request/response schemas
 │   │   ├── routers/                   # FastAPI route handlers
-│   │   │   ├── auth.py                # Register, login, OAuth, /me
+│   │   │   ├── auth.py                # Register, login, OAuth, /me, avatar upload, password change, email verification
 │   │   │   ├── projects.py            # Project CRUD
 │   │   │   ├── discovery.py           # SSE chat, greeting, partner switching
 │   │   │   ├── meta.py                # GET /meta/partner-styles
 │   │   │   ├── pathways.py            # GET /pathways, POST /pathways/detect
 │   │   │   ├── blocks.py, pipeline.py, exports.py
 │   │   │   ├── market.py, sprints.py, sharing.py, library.py, prompts.py
+│   │   │   ├── inbox.py               # Idea inbox CRUD + build-to-project
+│   │   │   ├── templates.py           # GET /templates (seed data)
+│   │   │   ├── branching.py           # Concept branching (fork/compare/merge)
+│   │   │   ├── integrations.py        # External tool OAuth + push (Notion, Trello, etc.)
+│   │   │   ├── webhooks.py            # Inbound email webhook (Resend)
+│   │   │   └── module_pathway.py, modules.py
 │   │   ├── services/                  # Business logic
 │   │   │   ├── ai_service.py          # build_system_prompt(), build_greeting_prompt(), stream_chat()
 │   │   │   ├── partner_style_service.py  # 10 AI partner styles, metadata, prompt fragments
 │   │   │   ├── discovery_service.py   # Session management, stage progression, concept-sheet extraction
 │   │   │   ├── pathway_service.py     # Concept Pathway registry (4 pathways)
+│   │   │   ├── email_service.py       # Resend API: verification emails, generic send
 │   │   │   ├── sheet_service.py       # Design sheet CRUD + block generation
 │   │   │   ├── pipeline_service.py    # Stack recommendation, cost estimation, compatibility
 │   │   │   ├── export_service.py      # MD/PDF/DOCX/ZIP generation
+│   │   │   ├── categorization_service.py, modular_pathway_service.py, module_service.py
 │   │   │   ├── market_service.py, sprint_service.py, prompt_kit_service.py
-│   │   ├── alembic/versions/          # Database migrations (001–010, linear chain)
-│   │   ├── templates/                 # Jinja2 templates for prompts + exports
+│   │   │   └── sharing_service.py, library_service.py, memory_service.py, transcript_service.py
+│   │   ├── alembic/versions/          # Database migrations (001–016, linear chain)
+│   │   └── templates/                 # Jinja2 templates for prompts + exports
 │   ├── tests/                         # 24 unit tests + 4 integration tests
 │   ├── pyproject.toml, Dockerfile, railway.toml
 ├── frontend/
 │   ├── src/
 │   │   ├── pages/
-│   │   │   ├── Home.tsx               # Idea input, pathway picker, partner grid, project creation
+│   │   │   ├── Home.tsx               # Idea input, pathway picker, partner grid, template grid, project creation
 │   │   │   ├── Discovery.tsx          # SSE chat UI, partner badge, mid-session switching
 │   │   │   ├── Pipeline.tsx, Exports.tsx, MarketAnalysis.tsx, SprintPlanner.tsx
+│   │   │   ├── VerifyEmail.tsx        # 6-digit code input with auto-advance + resend cooldown
+│   │   │   ├── Profile.tsx            # Avatar upload, bio, stats, account type badge
+│   │   │   ├── Inbox.tsx              # Idea inbox list, partner picker, build-to-project
+│   │   │   ├── Library.tsx            # Project library with branch indicators
+│   │   │   ├── Settings.tsx           # App settings, tutorial reset, profile link
+│   │   │   ├── SharedProject.tsx      # Public shared view with comments + ratings
+│   │   │   ├── PathwayReview.tsx, PathwayExecute.tsx, ModuleSession.tsx
+│   │   │   └── Login.tsx, Register.tsx, OAuthCallback.tsx, PitchMode.tsx
 │   │   ├── components/
+│   │   │   ├── auth/ProtectedRoute.tsx # JWT + email verification gate
+│   │   │   ├── layout/Sidebar.tsx     # Desktop sidebar + mobile bottom nav, profile container, inbox badge
 │   │   │   ├── partner/               # PartnerCard, PartnerSelector, ActivePartnerBadge
-│   │   │   ├── home/PresetCard.tsx    # Glassmorphism preset card
+│   │   │   ├── home/                  # PresetCard, TemplateGrid
 │   │   │   ├── discovery/             # ChatBubble, TopBar, SheetSidebar, QuickChips
 │   │   │   ├── framework/             # DesignSheetPanel, SheetCard, ReadinessScores
 │   │   │   ├── blocks/                # BlocksBoard, BlockCard, ScopeSlider
@@ -89,15 +121,18 @@ D:\Development\Ide_AI\
 │   │   │   ├── promptkit/             # PromptKitPanel, PromptSnippet
 │   │   │   ├── projects/              # FolderTree, ProjectCard, VersionTimeline
 │   │   │   ├── pitch/                 # PitchDocument, SharePanel
-│   │   │   ├── layout/Sidebar.tsx     # Navigation sidebar
+│   │   │   ├── sharing/               # ShareDialog, CommentSection, StarRating, FeedbackPanel
+│   │   │   ├── voice/                 # VoiceMicButton (Web Speech API toggle)
+│   │   │   ├── tutorial/              # StageInterlude, PulseBeacon, Whisper
 │   │   │   ├── nebula/                # Animated background canvas
-│   │   │   ├── ui/                    # Button, Modal, Card, Input, Badge, Drawer
-│   │   ├── stores/                    # Zustand: projectStore, uiStore, discoveryStore, pathwayStore
-│   │   ├── hooks/                     # useSSE, useDiscovery, useExport, useVersions
+│   │   │   └── ui/                    # Button, Modal, Card, Input, Badge, Drawer
+│   │   ├── stores/                    # Zustand: authStore, projectStore, uiStore, discoveryStore, pathwayStore, modulePathwayStore, tutorialStore
+│   │   ├── hooks/                     # useSSE, useVoiceInput
 │   │   ├── lib/apiClient.ts           # Axios instance with auth interceptors
 │   │   ├── types/                     # TypeScript interfaces (project, discovery, pathway)
-│   │   ├── styles/                    # Tailwind v4 CSS globals
+│   │   └── styles/                    # Tailwind v4 CSS globals
 │   ├── vite.config.ts, tsconfig.json, Dockerfile, Caddyfile, railway.toml
+├── project_templates.seed.json        # ~25 seed templates across 16 categories
 ├── docker-compose.yml
 ├── CLAUDE.md                          # THIS FILE
 ├── AI_PARTNER_SELECTOR_SPEC.md
@@ -112,10 +147,15 @@ D:\Development\Ide_AI\
 
 ### 1. Authentication & User Management
 - Email/password registration + login
-- Google OAuth
+- Google, Microsoft, GitHub OAuth
 - JWT tokens with configurable expiry (default 7 days)
+- 6-digit email verification (Resend API) — required before accessing protected routes
+- OAuth users are auto-verified on first login
+- Avatar upload (JPEG/PNG/WebP, max 2MB, stored as base64 data URI)
+- Generated initials as default avatar fallback
+- Password change for email/password users
 - Per-user persistent memory injected into AI context
-- Endpoints: `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, OAuth callbacks
+- Endpoints: `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `PATCH /auth/me`, `POST /auth/me/avatar`, `POST /auth/me/password`, `POST /auth/verify-email`, `POST /auth/resend-verification`, OAuth callbacks
 
 ### 2. Project System
 - Single text input for idea description
@@ -125,7 +165,8 @@ D:\Development\Ide_AI\
 - Complexity: Simple (1–5 screens), Medium (5–15), Complex (15+)
 - Tone: Formal, Casual, Technical, Startup-style
 - Snapshot-based version history (JSONB), auto-saves at milestones, restore any version
-- Multi-user project sharing
+- Multi-user project sharing with feedback/ratings
+- Template-based creation from ~25 seed templates across 16 categories
 - DB: `projects` table — UUID PK, user_id FK, name, accent color, platform, pathway_id, ai_partner_style
 
 ### 3. Concept Pathways
@@ -156,6 +197,7 @@ D:\Development\Ide_AI\
 - After each AI response: backend extracts structured fields, writes to design_sheets, emits sheet_update
 - Confidence scoring: 0–100, recalculated per sheet update based on field completeness
 - Quick reply chips: AI-generated suggested replies per turn
+- Voice input: Web Speech API mic button next to chat input (browser-only, zero backend cost)
 - UI: left stage stepper, center chat thread, right live design sheet panel
 - AI model: Anthropic Claude (claude-sonnet-4-6), configurable via CLAUDE_MODEL env var
 - Designed for 15–30 minute sessions from idea to completed design kit
@@ -232,7 +274,7 @@ D:\Development\Ide_AI\
 - Backend: `categorization_service.py`, `modular_pathway_service.py`, `module_service.py`
 - Routers: `module_pathway.py` (categorize/assemble/review/lock), `modules.py` (start/respond/skip/summary)
 - Frontend: `PathwayReview.tsx`, `PathwayExecute.tsx`, `ModuleSession.tsx`, `modulePathwayStore.ts`
-- DB: `module_pathways` table, `module_responses` table (migrations 011, 012)
+- DB: `module_pathways` table, `module_responses` table (migration 011)
 
 ### 15. Ambient Guidance Tutorial System
 - Three components: StageInterlude (phase transition cards), PulseBeacon (attention rings), Whisper (contextual tips)
@@ -247,6 +289,73 @@ D:\Development\Ide_AI\
 - Sections per project: Discovery Notes, Design Sheet, Prompt Kit, Pipeline Map, Exports, Versions
 - Version timeline dots, click to restore any snapshot
 - Actions: New Project, Duplicate, Archive
+
+### 17. Email Verification
+- 6-digit code sent via Resend API on registration
+- Codes expire after 10 minutes, rate-limited to one per 60 seconds
+- ProtectedRoute gates unverified users — redirects to `/verify-email`
+- Exempt routes: `/verify-email`, `/settings`
+- OAuth users auto-verified (no code required)
+- Frontend: auto-advancing 6-digit input, paste support, auto-submit, resend cooldown timer
+- Backend: `EmailVerification` model, `email_service.py`, auth router endpoints
+- DB: `email_verifications` table (migration 012)
+
+### 18. User Profiles
+- Dedicated profile page (`/profile`) with avatar upload, bio editor, project stats
+- Avatar: uploaded image (JPEG/PNG/WebP, max 2MB) or generated initials fallback
+- Account type badge (free/pro)
+- Sidebar profile container: avatar circle, display name, plan badge, link to profile
+- Centralized `authStore` (Zustand) — `user`, `fetchUser()`, `updateUser()`, `logout()`, `initials()`
+- Backend: `POST /auth/me/avatar`, `PATCH /auth/me` for profile updates
+- DB: `account_type`, `bio` columns (migration 013)
+
+### 19. Idea Inbox
+- Email-to-idea pipeline: users get a unique `inbox_email` address
+- Inbound emails parsed via Resend webhook → `IdeaInboxItem` records
+- Manual idea capture also supported
+- Per-item: choose AI partner style, promote to full project ("Build"), or delete
+- Sidebar shows unread inbox count badge
+- Endpoints: `GET /inbox`, `GET /inbox/count`, `PATCH /inbox/{id}`, `POST /inbox/{id}/build`, `DELETE /inbox/{id}`
+- Webhook: `POST /webhooks/inbound-email`
+- DB: `idea_inbox_items` table, `inbox_email` on users (migration 014)
+
+### 20. Sharing Feedback & Ratings
+- Project shares can enable comments and/or star ratings via toggles
+- Viewers can leave threaded comments and rate individual feature blocks (1–5 stars)
+- Owner sees aggregated feedback in a FeedbackPanel
+- ShareDialog has "Allow Comments" and "Allow Feature Ratings" toggles
+- Endpoints: `POST/GET /sharing/public/{token}/comments`, `POST/GET /sharing/public/{token}/ratings`
+- DB: `share_comments`, `block_ratings` tables, `allow_feedback`/`allow_ratings` on `project_shares` (migration 015)
+
+### 21. Project Templates
+- ~25 seed templates across all 16 concept categories (Coffee Shop, iOS App, Short Film, Online Course, SaaS Platform, Podcast, E-commerce, etc.)
+- Displayed in a category-grouped TemplateGrid on the Home page
+- Selecting a template pre-populates design sheet fields at ~40% confidence
+- Seed data: `project_templates.seed.json`
+- Endpoint: `GET /templates`
+
+### 22. Voice Discovery
+- Browser Web Speech API — zero backend cost
+- `useVoiceInput` hook: `isListening`, `transcript`, `isSupported`, `startListening`, `stopListening`, `resetTranscript`
+- VoiceMicButton component with pulsing animation, hidden when browser doesn't support
+- Real-time transcript populates the Discovery chat input
+
+### 23. Concept Branching
+- Git-like project forking for exploring alternative directions
+- Deep-copies project and all child records into a new branch
+- Compare two branches side-by-side
+- Merge branch back into parent
+- Branch indicators visible in Library page
+- Endpoints: `POST /projects/{id}/branch`, `POST /projects/{id}/merge/{branch_id}`, `GET /projects/{id}/branches`, `GET /projects/{id}/compare/{branch_id}`
+- DB: `concept_branches` table (migration 016)
+
+### 24. External Integrations
+- 6 external tool integrations: Notion, Trello, Linear, Figma, Google Docs, Airtable
+- OAuth connect/disconnect per provider
+- Push project data to connected tools (design kit → formatted output per platform)
+- Encrypted token storage (Fernet) for stored OAuth credentials
+- Endpoints: `GET /integrations`, `GET /integrations/{provider}/auth`, `POST /integrations/{provider}/callback`, `DELETE /integrations/{provider}`, `POST /integrations/{provider}/push/{project_id}`
+- DB: `user_integrations` table (migration 016)
 
 ---
 
@@ -279,8 +388,12 @@ D:\Development\Ide_AI\
 | 008 | Sprint error message patch |
 | 009 | Pathway infrastructure (pathway_id on projects, stages on sessions) |
 | 010 | AI partner style (ai_partner_style on projects + sessions) |
-| 011 | Module pathway tables (module_pathways, module_responses) |
-| 012 | Concept category columns on projects (primary_category, secondary_category, pathway_locked) |
+| 011 | Modular pathway system (categories on projects, module_pathways, module_responses) |
+| 012 | Email verification (email_verified on users, email_verifications table) |
+| 013 | User profile fields (account_type, bio on users) |
+| 014 | Idea inbox (idea_inbox_items table, inbox_email on users) |
+| 015 | Sharing feedback + templates (allow_feedback/allow_ratings on project_shares, share_comments, block_ratings) |
+| 016 | Concept branches + external integrations (concept_branches, user_integrations tables) |
 
 ---
 
@@ -288,7 +401,7 @@ D:\Development\Ide_AI\
 
 | Domain | Key Routes |
 |--------|------------|
-| Auth | `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, OAuth |
+| Auth | `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `PATCH /auth/me`, `POST /auth/me/avatar`, `POST /auth/me/password`, `POST /auth/verify-email`, `POST /auth/resend-verification`, OAuth |
 | Projects | `POST /projects`, `GET /projects/{id}`, `PATCH /projects/{id}` |
 | Pathways | `GET /pathways`, `POST /pathways/detect` |
 | Meta | `GET /meta/partner-styles` |
@@ -298,8 +411,13 @@ D:\Development\Ide_AI\
 | Exports | `GET /projects/{id}/export?format=md\|pdf\|docx\|zip` |
 | Market | `POST /market/{project_id}/analyze` (SSE) |
 | Sprints | `POST /sprints/{project_id}/generate` |
-| Sharing | Project share management |
+| Sharing | Project share CRUD, `POST/GET /sharing/public/{token}/comments`, `POST/GET /sharing/public/{token}/ratings` |
 | Versions | `POST /projects/{id}/versions/{vid}/restore` |
+| Inbox | `GET /inbox`, `GET /inbox/count`, `PATCH /inbox/{id}`, `POST /inbox/{id}/build`, `DELETE /inbox/{id}` |
+| Templates | `GET /templates` |
+| Branching | `POST /projects/{id}/branch`, `POST /projects/{id}/merge/{branch_id}`, `GET /projects/{id}/branches`, `GET /projects/{id}/compare/{branch_id}` |
+| Integrations | `GET /integrations`, `GET /integrations/{provider}/auth`, `POST /integrations/{provider}/callback`, `DELETE /integrations/{provider}`, `POST /integrations/{provider}/push/{project_id}` |
+| Webhooks | `POST /webhooks/inbound-email` |
 
 ---
 
@@ -343,6 +461,5 @@ D:\Development\Ide_AI\
 
 ## Last Completed Task
 
-**Task:** Fixed dynamic module categorization — `categorize_project()` now receives project name + description for accurate category assignment across all 16 concept types. Previously only used concept sheet fields (often sparse), causing fallback to `software_tech` every time.
-**Tag:** `RC6v2`
-**Commit:** `9f525b0 fix: pass project name/description to categorization for dynamic module selection`
+**Task:** Implemented all 5 release candidate phases — email verification (Resend), user profiles + sidebar redesign, idea inbox, sharing feedback/ratings + project templates, voice discovery + concept branching + external integrations. 41 files changed, 2,634 lines added. Migrations 012–016.
+**Commit:** `8c17636 feat: implement all 5 phases — email verification, profiles, inbox, sharing, branching & integrations`
