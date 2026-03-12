@@ -78,9 +78,7 @@ export function Profile() {
     try {
       const form = new FormData()
       form.append('file', file)
-      const { data } = await apiClient.post('/auth/me/avatar', form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      const { data } = await apiClient.post('/auth/me/avatar', form)
       setUser(data as AuthUser)
     } catch (err: unknown) {
       setError(extractError(err, 'Failed to upload avatar.'))

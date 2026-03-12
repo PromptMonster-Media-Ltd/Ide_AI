@@ -41,7 +41,7 @@ export function ProtectedRoute({ children }: Props) {
         localStorage.removeItem('token')
         setStatus('unauthenticated')
       })
-  }, [])
+  }, [location.pathname])
 
   if (status === 'loading') {
     return (
