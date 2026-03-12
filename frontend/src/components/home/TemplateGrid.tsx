@@ -1,9 +1,9 @@
 /**
- * TemplateGrid — Displays system project templates as clickable cards.
- * When selected, notifies parent to populate the idea input.
+ * TemplateGrid — Displays system project templates grouped by category.
+ * Inline pill dropdown lets users switch categories.
  * @module components/home/TemplateGrid
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card } from '../ui/Card'
 import apiClient from '../../lib/apiClient'
@@ -21,9 +21,24 @@ interface Props {
   selectedId?: string | null
 }
 
+/** Display labels for each category slug */
+const CATEGORY_LABELS: Record<string, string> = {
+  software: 'Software',
+  business: 'Business',
+  creative: 'Creative',
+  education: 'Education',
+  marketing: 'Marketing',
+  personal: 'Personal',
+}
+
+const DEFAULT_CATEGORY = 'software'
+
 export function TemplateGrid({ onSelect, selectedId }: Props) {
   const [templates, setTemplates] = useState<Template[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeCategory, setActiveCategory] = useState(DEFAULT_CATEGORY)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     apiClient.get('/templates').then(({ data }) => {
@@ -31,15 +46,67 @@ export function TemplateGrid({ onSelect, selectedId }: Props) {
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!dropdownOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [dropdownOpen])
+
   if (loading || templates.length === 0) return null
 
+  // Derive available categories from data
+  const categories = [...new Set(templates.map(t => t.category))].filter(c => CATEGORY_LABELS[c])
+  const filtered = templates.filter(t => t.category === activeCategory)
+  const label = CATEGORY_LABELS[activeCategory] || activeCategory
+
   return (
-    <div className="w-full max-w-2xl mx-auto mt-6">
-      <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-        Or start from a template
-      </h3>
+    <div className="w-full max-w-2xl mx-auto mt-6 pb-[50px] md:pb-0">
+      {/* Header with inline category pill */}
+      <div className="flex items-center gap-1.5 text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
+        <span>Or start from a</span>
+        <div className="relative" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={() => setDropdownOpen(o => !o)}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all border normal-case tracking-normal ${
+              dropdownOpen
+                ? 'border-accent bg-accent/15 text-accent'
+                : 'border-accent/30 bg-accent/10 text-accent hover:bg-accent/15'
+            }`}
+          >
+            {label}
+            <svg className={`w-3 h-3 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {dropdownOpen && (
+            <div className="absolute top-full left-0 mt-1.5 z-50 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[140px]">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => { setActiveCategory(cat); setDropdownOpen(false) }}
+                  className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
+                    activeCategory === cat
+                      ? 'bg-accent/15 text-accent font-medium'
+                      : 'text-text-muted hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {CATEGORY_LABELS[cat] || cat}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <span>template</span>
+      </div>
+
+      {/* Template cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-        {templates.map((t, i) => (
+        {filtered.map((t, i) => (
           <motion.div
             key={t.id}
             initial={{ opacity: 0, y: 8 }}

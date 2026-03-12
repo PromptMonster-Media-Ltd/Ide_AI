@@ -1,5 +1,5 @@
 /**
- * Profile — Expanded user profile page with avatar upload, bio, stats, and account info.
+ * Profile — User identity, avatar, bio, password, and account management.
  * @module pages/Profile
  */
 import { useEffect, useState, useRef } from 'react'
@@ -15,7 +15,7 @@ export function Profile() {
   const { user, setUser, fetchUser, initials } = useAuthStore()
   const [loading, setLoading] = useState(!user)
 
-  // Form state
+  // Profile form
   const [name, setName] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
@@ -26,6 +26,14 @@ export function Profile() {
   // Avatar
   const fileRef = useRef<HTMLInputElement>(null)
   const [avatarUploading, setAvatarUploading] = useState(false)
+
+  // Password
+  const [currentPw, setCurrentPw] = useState('')
+  const [newPw, setNewPw] = useState('')
+  const [confirmPw, setConfirmPw] = useState('')
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwError, setPwError] = useState('')
+  const [pwSuccess, setPwSuccess] = useState(false)
 
   // Stats
   const [projectCount, setProjectCount] = useState(0)
@@ -44,7 +52,6 @@ export function Profile() {
       setLoading(false)
     }
     init()
-    // Fetch project count
     apiClient.get('/projects').then(({ data }) => {
       setProjectCount(Array.isArray(data) ? data.length : 0)
     }).catch(() => {})
@@ -88,6 +95,38 @@ export function Profile() {
     }
   }
 
+  const handleChangePassword = async () => {
+    setPwError('')
+    setPwSuccess(false)
+    if (newPw.length < 8) { setPwError('New password must be at least 8 characters.'); return }
+    if (newPw !== confirmPw) { setPwError('New passwords do not match.'); return }
+    setPwSaving(true)
+    try {
+      await apiClient.post('/auth/me/password', {
+        current_password: currentPw,
+        new_password: newPw,
+      })
+      setPwSuccess(true)
+      setCurrentPw('')
+      setNewPw('')
+      setConfirmPw('')
+      setTimeout(() => setPwSuccess(false), 3000)
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        'Failed to change password.'
+      setPwError(msg)
+    } finally {
+      setPwSaving(false)
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    window.location.href = '/'
+  }
+
+  const isOAuth = !!user?.oauth_provider
   const memberSince = user?.created_at
     ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : '...'
@@ -107,7 +146,6 @@ export function Profile() {
                 {/* ── Avatar + Identity ── */}
                 <Card glow>
                   <div className="flex items-start gap-5">
-                    {/* Avatar */}
                     <div className="relative group">
                       <div className="w-20 h-20 rounded-full bg-accent/20 border-2 border-accent/30 flex items-center justify-center text-2xl text-accent font-black shrink-0 overflow-hidden">
                         {user?.avatar_url ? (
@@ -132,8 +170,6 @@ export function Profile() {
                         className="hidden"
                       />
                     </div>
-
-                    {/* Name + badges */}
                     <div className="flex-1 min-w-0">
                       <h2 className="text-lg font-bold text-white truncate">
                         {user?.display_name || user?.name || user?.email}
@@ -143,9 +179,9 @@ export function Profile() {
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-accent capitalize">
                           {user?.account_type || 'free'} plan
                         </span>
-                        {user?.oauth_provider && (
+                        {isOAuth && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-border text-text-muted capitalize">
-                            {user.oauth_provider}
+                            {user?.oauth_provider}
                           </span>
                         )}
                         {user?.email_verified && (
@@ -175,52 +211,80 @@ export function Profile() {
                 {/* ── Edit Profile ── */}
                 <Card>
                   <h3 className="text-sm font-semibold text-white mb-4">Edit Profile</h3>
-
                   {error && (
                     <div className="mb-4 text-red-400 text-xs bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
                       {error}
                     </div>
                   )}
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label className="block text-xs text-text-muted font-medium mb-1.5">Name</label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Your name"
-                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
-                      />
+                      <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name"
+                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors" />
                     </div>
                     <div>
                       <label className="block text-xs text-text-muted font-medium mb-1.5">Display Name</label>
-                      <input
-                        type="text"
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        placeholder="How AI greets you"
-                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
-                      />
+                      <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="How AI greets you"
+                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors" />
                     </div>
                   </div>
-
                   <div className="mb-4">
                     <label className="block text-xs text-text-muted font-medium mb-1.5">Bio</label>
-                    <textarea
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      placeholder="A short bio about yourself (optional)"
-                      maxLength={500}
-                      rows={3}
-                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors resize-none"
-                    />
+                    <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="A short bio about yourself (optional)" maxLength={500} rows={3}
+                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors resize-none" />
                     <p className="text-[10px] text-text-muted text-right mt-1">{bio.length}/500</p>
                   </div>
-
                   <Button size="sm" onClick={handleSave} disabled={saving}>
                     {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
                   </Button>
+                </Card>
+
+                {/* ── Password (email/password users only) ── */}
+                {!isOAuth && (
+                  <Card>
+                    <h3 className="text-sm font-semibold text-white mb-4">Change Password</h3>
+                    {pwError && (
+                      <div className="text-red-400 text-xs bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2 mb-4">{pwError}</div>
+                    )}
+                    {pwSuccess && (
+                      <div className="text-green-400 text-xs bg-green-400/10 border border-green-400/20 rounded-lg px-3 py-2 mb-4">Password updated successfully.</div>
+                    )}
+                    <div className="space-y-3 mb-4">
+                      <div>
+                        <label className="block text-xs text-text-muted font-medium mb-1.5">Current Password</label>
+                        <input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)}
+                          className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent transition-colors" />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-text-muted font-medium mb-1.5">New Password</label>
+                          <input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="Min. 8 characters"
+                            className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-text-muted font-medium mb-1.5">Confirm New Password</label>
+                          <input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)}
+                            className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent transition-colors" />
+                        </div>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="secondary" onClick={handleChangePassword} disabled={pwSaving || !currentPw || !newPw}>
+                      {pwSaving ? 'Updating...' : 'Update Password'}
+                    </Button>
+                  </Card>
+                )}
+
+                {/* ── Account ── */}
+                <Card>
+                  <h3 className="text-sm font-semibold text-white mb-3">Account</h3>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-text-muted">
+                      Member since {memberSince}
+                    </p>
+                    <Button variant="ghost" size="sm" onClick={handleLogout}>
+                      Sign Out
+                    </Button>
+                  </div>
                 </Card>
               </>
             )}
