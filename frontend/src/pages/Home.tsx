@@ -18,7 +18,7 @@ import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
 import { IdeaNebulaCanvas } from '../components/nebula/IdeaNebulaCanvas'
 import { PresetCard } from '../components/home/PresetCard'
-import { TemplateGrid } from '../components/home/TemplateGrid'
+import { TemplateGrid, type Template } from '../components/home/TemplateGrid'
 import { usePathwayStore } from '../stores/pathwayStore'
 import type { PathwayDefinition, CreationPreset, CreationField } from '../types/pathway'
 import type { PartnerStyleMeta } from '../types/project'
@@ -45,6 +45,9 @@ export function Home() {
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState<string | null>(null)
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({})
+
+  // Template state
+  const [activeTemplate, setActiveTemplate] = useState<Template | null>(null)
 
   // AI Partner state
   const [partnerStyle, setPartnerStyle] = useState('strategist')
@@ -108,6 +111,16 @@ export function Home() {
 
   /** Create the project and navigate to discovery. */
   const createProject = async (pathwayId: string) => {
+    // If a template is active, use the template endpoint
+    if (activeTemplate) {
+      const { data } = await apiClient.post(`/templates/${activeTemplate.id}/use`, {
+        extra_description: idea.trim() || undefined,
+        ai_partner_style: partnerStyle,
+      })
+      navigate(`/discovery/${data.project_id}`)
+      return
+    }
+
     const normalized: Record<string, string> = {}
     for (const [key, val] of Object.entries(fieldValues)) {
       normalized[key] = val.split(' ')[0].toLowerCase().replace(/\s+/g, '-')
@@ -124,7 +137,7 @@ export function Home() {
 
   /** Main submit handler — detect pathway first if multiple exist. */
   const handleSubmit = async () => {
-    if (!idea.trim()) return
+    if (!idea.trim() && !activeTemplate) return
     setLoading(true)
 
     try {
@@ -253,11 +266,34 @@ export function Home() {
               <Whisper id="home:idea" text="Describe your concept in a few sentences — the AI will take it from there">
               <div className="w-full max-w-2xl mb-6 md:mb-8">
                 <div className="bg-surface border border-border rounded-xl focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30 transition-colors overflow-visible">
+                  {/* Active template pill */}
+                  {activeTemplate && (
+                    <div className="px-4 md:px-6 pt-3">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-300 text-sm font-medium">
+                        <span>{activeTemplate.icon}</span>
+                        <span>{activeTemplate.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTemplate(null)}
+                          className="ml-1 hover:text-white transition-colors"
+                          title="Remove template"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    </div>
+                  )}
                   <textarea
                     value={idea}
                     onChange={(e) => setIdea(e.target.value)}
-                    placeholder="Describe your idea in one sentence..."
-                    className="w-full bg-transparent px-4 md:px-6 pt-3 md:pt-4 pb-2 text-white text-base md:text-lg placeholder:text-text-muted focus:outline-none resize-none h-20 md:h-24"
+                    placeholder={activeTemplate
+                      ? 'Add any additional idea detail (optional)...'
+                      : 'Describe your idea in one sentence...'}
+                    className={`w-full bg-transparent px-4 md:px-6 pb-2 text-white text-base md:text-lg placeholder:text-text-muted focus:outline-none resize-none h-20 md:h-24 ${
+                      activeTemplate ? 'pt-2' : 'pt-3 md:pt-4'
+                    }`}
                   />
                   <div className="flex flex-wrap gap-1.5 px-3 md:px-5 pb-3">
                     {creationFields.map(field => (
@@ -341,7 +377,7 @@ export function Home() {
 
               {/* Submit */}
               <PulseBeacon id="home:start">
-                <Button size="lg" onClick={handleSubmit} disabled={!idea.trim() || loading}>
+                <Button size="lg" onClick={handleSubmit} disabled={(!idea.trim() && !activeTemplate) || loading}>
                   {detecting ? 'Analyzing idea...' : loading ? 'Creating...' : 'Start Discovery \u2192'}
                 </Button>
               </PulseBeacon>
@@ -404,7 +440,12 @@ export function Home() {
         </AnimatePresence>
 
         {/* Template grid — shown below the main creation form */}
-        {!showConfirmation && <TemplateGrid />}
+        {!showConfirmation && (
+          <TemplateGrid
+            onSelect={(t) => setActiveTemplate(prev => prev?.id === t.id ? null : t)}
+            selectedId={activeTemplate?.id}
+          />
+        )}
 
       </main>
     </div>

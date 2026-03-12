@@ -126,7 +126,7 @@ export function Settings() {
         <TopBar title="Settings" subtitle="Manage your profile and preferences" />
 
         <div className="flex-1 p-4 md:p-6 overflow-y-auto pb-20 md:pb-6">
-          <div className="max-w-2xl space-y-6">
+          <div className="max-w-2xl mx-auto space-y-6">
             {loading ? (
               <div className="text-center py-12 text-text-muted text-sm">Loading profile...</div>
             ) : (
