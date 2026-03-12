@@ -1,11 +1,14 @@
 """
 auth.py — Authentication router. Handles user registration, login, OAuth flows,
-and profile retrieval/update.  Provides get_current_user dependency for protecting
-other routes.
+email verification, and profile retrieval/update.  Provides get_current_user
+dependency for protecting other routes.
 """
+import base64
+import random
 import uuid
+from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +17,7 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.core.oauth import exchange_code, get_auth_url, get_user_info
 from app.core.security import create_access_token, decode_token, hash_password, verify_password
+from app.models.email_verification import EmailVerification
 from app.models.user import User
 from app.schemas.user import (
     OAuthCodePayload,
@@ -23,7 +27,9 @@ from app.schemas.user import (
     UserProfile,
     UserProfileUpdate,
     UserRead,
+    VerifyEmailRequest,
 )
+from app.services.email_service import send_verification_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -55,17 +61,44 @@ async def get_current_user(
     return user
 
 
+# ---------- Helpers ----------
+
+def _generate_code() -> str:
+    """Generate a random 6-digit verification code."""
+    return f"{random.randint(100000, 999999)}"
+
+
+async def _create_and_send_code(user: User, db: AsyncSession) -> None:
+    """Create a verification code and send it to the user's email."""
+    code = _generate_code()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+
+    verification = EmailVerification(
+        user_id=user.id,
+        code=code,
+        expires_at=expires_at,
+    )
+    db.add(verification)
+    await db.flush()
+
+    await send_verification_email(user.email, code)
+
+
 # ---------- Email / password auth ----------
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
-    """Register a new user account and return a JWT token."""
+    """Register a new user account, send verification email, and return a JWT token."""
     existing = await db.execute(select(User).where(User.email == payload.email))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
     user = User(email=payload.email, hashed_password=hash_password(payload.password), name=payload.name)
     db.add(user)
     await db.flush()
+
+    # Send verification email
+    await _create_and_send_code(user, db)
+
     token = create_access_token(data={"sub": str(user.id)})
     return Token(access_token=token)
 
@@ -79,6 +112,73 @@ async def login(payload: UserCreate, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
     token = create_access_token(data={"sub": str(user.id)})
     return Token(access_token=token)
+
+
+# ---------- Email verification ----------
+
+@router.post("/verify-email", response_model=UserProfile)
+async def verify_email(
+    payload: VerifyEmailRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Verify email with a 6-digit code."""
+    if current_user.email_verified:
+        return current_user
+
+    now = datetime.now(timezone.utc)
+    result = await db.execute(
+        select(EmailVerification)
+        .where(
+            EmailVerification.user_id == current_user.id,
+            EmailVerification.code == payload.code,
+            EmailVerification.expires_at > now,
+        )
+        .order_by(EmailVerification.created_at.desc())
+        .limit(1)
+    )
+    verification = result.scalar_one_or_none()
+
+    if not verification:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification code",
+        )
+
+    current_user.email_verified = True
+    await db.flush()
+    await db.refresh(current_user)
+    return current_user
+
+
+@router.post("/resend-verification", status_code=status.HTTP_204_NO_CONTENT)
+async def resend_verification(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Resend the verification email with a new code."""
+    if current_user.email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is already verified",
+        )
+
+    # Rate limit: check if a code was sent in the last 60 seconds
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=60)
+    result = await db.execute(
+        select(EmailVerification)
+        .where(
+            EmailVerification.user_id == current_user.id,
+            EmailVerification.created_at > cutoff,
+        )
+    )
+    if result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Please wait 60 seconds before requesting a new code",
+        )
+
+    await _create_and_send_code(current_user, db)
 
 
 # ---------- Profile ----------
@@ -100,6 +200,38 @@ async def update_me(
     for field, value in update_data.items():
         setattr(current_user, field, value)
     await db.flush()
+    return current_user
+
+
+@router.post("/me/avatar", response_model=UserProfile)
+async def upload_avatar(
+    file: UploadFile,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Upload an avatar image (jpg/png/webp, max 2MB). Stored as base64 data URI."""
+    ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+    MAX_SIZE = 2 * 1024 * 1024  # 2MB
+
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Avatar must be JPEG, PNG, or WebP",
+        )
+
+    content = await file.read()
+    if len(content) > MAX_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Avatar must be under 2MB",
+        )
+
+    b64 = base64.b64encode(content).decode("utf-8")
+    data_uri = f"data:{file.content_type};base64,{b64}"
+
+    current_user.avatar_url = data_uri
+    await db.flush()
+    await db.refresh(current_user)
     return current_user
 
 
@@ -184,8 +316,10 @@ async def oauth_callback(
             user.avatar_url = avatar_url
         if name and not user.name:
             user.name = name
+        # OAuth users are auto-verified
+        user.email_verified = True
     else:
-        # New user — create without password
+        # New user — create without password, auto-verified
         user = User(
             email=email,
             name=name,
@@ -193,6 +327,7 @@ async def oauth_callback(
             avatar_url=avatar_url,
             oauth_provider=provider,
             oauth_id=oauth_id,
+            email_verified=True,
             preferences={},
         )
         db.add(user)

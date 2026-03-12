@@ -9,9 +9,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { usePathwayStore } from '../../stores/pathwayStore'
+import { useAuthStore } from '../../stores/authStore'
 
 const NAV_ITEMS = [
   { path: '/', label: 'Home', icon: '\u2726' },
+  { path: '/inbox', label: 'Inbox', icon: '\u{1F4EC}' },
   { path: '/library', label: 'Library', icon: '\u{1F4DA}' },
   { path: '/settings', label: 'Settings', icon: '\u2699' },
 ]
@@ -38,9 +40,11 @@ export function Sidebar({ projectId }: { projectId?: string }) {
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null)
   const [savedPath, setSavedPath] = useState<string | null>(null)
 
+  const { user, fetchUser, initials } = useAuthStore()
   const { active: activePathway, fetchPathways } = usePathwayStore()
 
-  // Fetch pathways on mount (deduped inside the store)
+  // Fetch user + pathways on mount (deduped inside stores)
+  useEffect(() => { fetchUser() }, [fetchUser])
   useEffect(() => { fetchPathways() }, [fetchPathways])
 
   // Build project items from active pathway's modules (or fallback)
@@ -156,6 +160,30 @@ export function Sidebar({ projectId }: { projectId?: string }) {
             </>
           )}
         </nav>
+
+        {/* Profile container */}
+        {user && (
+          <Link
+            to="/profile"
+            className="mx-2 mb-3 px-3 py-2.5 rounded-lg border border-border hover:border-accent/30 hover:bg-white/5 transition-colors flex items-center gap-3"
+          >
+            <div className="w-8 h-8 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center text-xs text-accent font-bold shrink-0 overflow-hidden">
+              {user.avatar_url ? (
+                <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                initials()
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-white font-medium truncate">
+                {user.display_name || user.name || user.email}
+              </p>
+              <p className="text-[10px] text-text-muted truncate capitalize">
+                {user.account_type || 'free'} plan
+              </p>
+            </div>
+          </Link>
+        )}
       </aside>
 
       {/* ── Mobile bottom nav ── */}

@@ -3,16 +3,20 @@ sharing.py — Project sharing endpoints for public/private link generation.
 """
 import uuid
 from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
-from pydantic import BaseModel
-from sqlalchemy import select
+from pydantic import BaseModel, Field
+from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
 from app.models.project import Project
+from app.models.project_share import ProjectShare
+from app.models.share_comment import ShareComment
+from app.models.share_rating import ShareRating
 from app.models.user import User
 from app.routers.auth import get_current_user
 from app.services import sharing_service
@@ -178,3 +182,104 @@ async def export_shared_csv(
         media_type="text/csv",
         headers={"Content-Disposition": f'attachment; filename="{project_name}-linear-export.csv"'},
     )
+
+
+# --- Comments & Ratings (public, no auth) ---
+
+class CommentCreate(BaseModel):
+    author_name: str = Field(min_length=1, max_length=100)
+    author_email: Optional[str] = Field(None, max_length=255)
+    content: str = Field(min_length=1, max_length=2000)
+
+class RatingCreate(BaseModel):
+    author_name: str = Field(min_length=1, max_length=100)
+    author_email: Optional[str] = Field(None, max_length=255)
+    score: float = Field(ge=0, le=5)
+
+
+@router.get("/public/{token}/comments")
+async def get_comments(token: str, db: AsyncSession = Depends(get_db)):
+    """Get all comments on a shared project."""
+    share = await sharing_service.get_share_by_token(db, token)
+    if not share:
+        raise HTTPException(status_code=404, detail="Share not found")
+    result = await db.execute(
+        select(ShareComment)
+        .where(ShareComment.share_id == share.id)
+        .order_by(ShareComment.created_at.desc())
+    )
+    comments = result.scalars().all()
+    return [
+        {
+            "id": str(c.id),
+            "author_name": c.author_name,
+            "content": c.content,
+            "created_at": c.created_at.isoformat(),
+        }
+        for c in comments
+    ]
+
+
+@router.post("/public/{token}/comments", status_code=status.HTTP_201_CREATED)
+async def add_comment(token: str, payload: CommentCreate, db: AsyncSession = Depends(get_db)):
+    """Add a comment to a shared project."""
+    share = await sharing_service.get_share_by_token(db, token)
+    if not share:
+        raise HTTPException(status_code=404, detail="Share not found")
+    if not share.allow_feedback:
+        raise HTTPException(status_code=403, detail="Comments are disabled for this share")
+
+    comment = ShareComment(
+        share_id=share.id,
+        author_name=payload.author_name,
+        author_email=payload.author_email,
+        content=payload.content,
+    )
+    db.add(comment)
+    await db.flush()
+    return {
+        "id": str(comment.id),
+        "author_name": comment.author_name,
+        "content": comment.content,
+        "created_at": comment.created_at.isoformat(),
+    }
+
+
+@router.get("/public/{token}/ratings")
+async def get_ratings(token: str, db: AsyncSession = Depends(get_db)):
+    """Get rating summary for a shared project."""
+    share = await sharing_service.get_share_by_token(db, token)
+    if not share:
+        raise HTTPException(status_code=404, detail="Share not found")
+    result = await db.execute(
+        select(
+            sa_func.count(ShareRating.id).label("count"),
+            sa_func.avg(ShareRating.score).label("average"),
+        )
+        .where(ShareRating.share_id == share.id)
+    )
+    row = result.one()
+    return {
+        "count": row.count or 0,
+        "average": round(float(row.average), 1) if row.average else 0,
+    }
+
+
+@router.post("/public/{token}/ratings", status_code=status.HTTP_201_CREATED)
+async def add_rating(token: str, payload: RatingCreate, db: AsyncSession = Depends(get_db)):
+    """Rate a shared project (0-5 stars)."""
+    share = await sharing_service.get_share_by_token(db, token)
+    if not share:
+        raise HTTPException(status_code=404, detail="Share not found")
+    if not share.allow_ratings:
+        raise HTTPException(status_code=403, detail="Ratings are disabled for this share")
+
+    rating = ShareRating(
+        share_id=share.id,
+        author_name=payload.author_name,
+        author_email=payload.author_email,
+        score=payload.score,
+    )
+    db.add(rating)
+    await db.flush()
+    return {"score": rating.score, "created_at": rating.created_at.isoformat()}

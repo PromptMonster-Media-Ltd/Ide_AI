@@ -18,6 +18,7 @@ import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
 import { IdeaNebulaCanvas } from '../components/nebula/IdeaNebulaCanvas'
 import { PresetCard } from '../components/home/PresetCard'
+import { TemplateGrid } from '../components/home/TemplateGrid'
 import { usePathwayStore } from '../stores/pathwayStore'
 import type { PathwayDefinition, CreationPreset, CreationField } from '../types/pathway'
 import type { PartnerStyleMeta } from '../types/project'
@@ -401,6 +402,9 @@ export function Home() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Template grid — shown below the main creation form */}
+        {!showConfirmation && <TemplateGrid />}
 
       </main>
     </div>

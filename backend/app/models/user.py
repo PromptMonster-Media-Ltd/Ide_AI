@@ -5,7 +5,7 @@ Supports both email/password and OAuth-based authentication.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, String, func
+from sqlalchemy import Boolean, DateTime, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -25,6 +25,10 @@ class User(Base):
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     oauth_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
     oauth_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    account_type: Mapped[str] = mapped_column(String(20), default="free", server_default="free")
+    bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    inbox_email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     preferences: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

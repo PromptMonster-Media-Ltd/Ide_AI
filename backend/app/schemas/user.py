@@ -23,6 +23,9 @@ class UserRead(BaseModel):
     display_name: Optional[str] = None
     avatar_url: Optional[str] = None
     oauth_provider: Optional[str] = None
+    email_verified: bool = False
+    account_type: str = "free"
+    bio: Optional[str] = None
     preferences: Optional[dict] = None
     created_at: datetime
 
@@ -37,10 +40,18 @@ class UserProfile(BaseModel):
     display_name: Optional[str] = None
     avatar_url: Optional[str] = None
     oauth_provider: Optional[str] = None
+    email_verified: bool = False
+    account_type: str = "free"
+    bio: Optional[str] = None
     preferences: Optional[dict] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class VerifyEmailRequest(BaseModel):
+    """Body for POST /auth/verify-email."""
+    code: str = Field(min_length=6, max_length=6)
 
 
 class UserProfileUpdate(BaseModel):
@@ -48,6 +59,7 @@ class UserProfileUpdate(BaseModel):
     name: Optional[str] = Field(None, max_length=100)
     display_name: Optional[str] = Field(None, max_length=100)
     avatar_url: Optional[str] = Field(None, max_length=500)
+    bio: Optional[str] = Field(None, max_length=500)
     preferences: Optional[dict] = None
 
 

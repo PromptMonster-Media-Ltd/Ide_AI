@@ -8,10 +8,13 @@ import { Routes, Route, useParams } from 'react-router-dom'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
+import { VerifyEmail } from './pages/VerifyEmail'
 import { OAuthCallback } from './pages/OAuthCallback'
 import { Home } from './pages/Home'
 import { Settings } from './pages/Settings'
+import { Profile } from './pages/Profile'
 import { Library } from './pages/Library'
+import { Inbox } from './pages/Inbox'
 import { SharedProject } from './pages/SharedProject'
 
 /* ── Lazy-loaded module components ─────────────────────────────── */
@@ -108,6 +111,9 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
 
+      {/* Email verification (protected but exempt from verification check) */}
+      <Route path="/verify-email" element={<ProtectedRoute><VerifyEmail /></ProtectedRoute>} />
+
       {/* Public shared project view (no auth required) */}
       <Route path="/shared/:token" element={<SharedProject />} />
 
@@ -115,6 +121,8 @@ export default function App() {
       <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
       <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
 
       {/* Modular pathway routes */}
       <Route

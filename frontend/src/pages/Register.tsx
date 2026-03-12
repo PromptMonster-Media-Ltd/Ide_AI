@@ -77,7 +77,7 @@ export function Register() {
         ...(name.trim() ? { name: name.trim() } : {}),
       })
       localStorage.setItem('token', data.access_token)
-      navigate('/')
+      navigate('/verify-email')
     } catch (err: unknown) {
       setError(extractError(err, 'Registration failed. Please try again.'))
     } finally {

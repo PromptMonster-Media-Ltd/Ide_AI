@@ -1,0 +1,118 @@
+[
+  {
+    "name": "SaaS MVP",
+    "description": "Launch a software-as-a-service product with subscription billing, user auth, and a landing page.",
+    "icon": "🚀",
+    "category": "saas",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tech_constraints": "React, Node.js, Stripe integration",
+      "success_metric": "First 100 paying users in 90 days"
+    }
+  },
+  {
+    "name": "Mobile App",
+    "description": "Build a cross-platform mobile application with native feel and app store deployment.",
+    "icon": "📱",
+    "category": "mobile",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "mobile (iOS + Android)",
+      "tech_constraints": "React Native or Flutter",
+      "success_metric": "1000 downloads in first month"
+    }
+  },
+  {
+    "name": "E-Commerce Store",
+    "description": "Set up an online store with product catalog, cart, checkout, and order management.",
+    "icon": "🛒",
+    "category": "ecommerce",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tech_constraints": "Shopify or custom, payment processing",
+      "success_metric": "First $10K in monthly revenue"
+    }
+  },
+  {
+    "name": "Content Platform",
+    "description": "Create a blog, newsletter, or media site with content management and audience growth tools.",
+    "icon": "📝",
+    "category": "content",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tech_constraints": "CMS, SEO optimization, email capture",
+      "success_metric": "10K monthly visitors"
+    }
+  },
+  {
+    "name": "AI-Powered Tool",
+    "description": "Build an application leveraging AI/ML for intelligent features, automation, or content generation.",
+    "icon": "🤖",
+    "category": "ai_ml",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tech_constraints": "LLM API integration, vector database",
+      "success_metric": "Product-market fit validated with 50 beta users"
+    }
+  },
+  {
+    "name": "Community Platform",
+    "description": "Build a community hub with forums, groups, events, and member profiles.",
+    "icon": "👥",
+    "category": "social",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web + mobile",
+      "tech_constraints": "Real-time messaging, user-generated content moderation",
+      "success_metric": "500 active community members"
+    }
+  },
+  {
+    "name": "Creative Portfolio",
+    "description": "Showcase creative work with a stunning portfolio site, project galleries, and contact form.",
+    "icon": "🎨",
+    "category": "creative",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tech_constraints": "Image optimization, responsive design, minimal CMS",
+      "success_metric": "Portfolio leads to 5 client inquiries per month"
+    }
+  },
+  {
+    "name": "API / Developer Tool",
+    "description": "Build a developer-focused API, SDK, or CLI tool with documentation and developer portal.",
+    "icon": "⚡",
+    "category": "developer",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "API / CLI",
+      "tech_constraints": "OpenAPI spec, rate limiting, API key management",
+      "success_metric": "100 API consumers within 3 months"
+    }
+  },
+  {
+    "name": "Marketplace",
+    "description": "Two-sided marketplace connecting buyers and sellers with listings, search, and transactions.",
+    "icon": "🏪",
+    "category": "marketplace",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tech_constraints": "Search, payments, escrow, reviews system",
+      "success_metric": "100 listings and 50 transactions in first quarter"
+    }
+  },
+  {
+    "name": "Blank Canvas",
+    "description": "Start from scratch with a completely blank project. Define everything yourself.",
+    "icon": "✨",
+    "category": "general",
+    "is_system": true,
+    "concept_sheet": {}
+  }
+]

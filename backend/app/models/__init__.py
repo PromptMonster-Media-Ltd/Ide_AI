@@ -15,6 +15,13 @@ from app.models.sprint_plan import SprintPlan
 from app.models.module_artifact import ModuleArtifact
 from app.models.module_pathway import ModulePathway
 from app.models.module_response import ModuleResponse
+from app.models.email_verification import EmailVerification
+from app.models.idea_inbox import IdeaInbox
+from app.models.share_comment import ShareComment
+from app.models.share_rating import ShareRating
+from app.models.project_template import ProjectTemplate
+from app.models.concept_branch import ConceptBranch
+from app.models.external_integration import ExternalIntegration
 
 __all__ = [
     "User", "Project", "DiscoverySession", "DesignSheet",
@@ -22,4 +29,7 @@ __all__ = [
     "MarketAnalysis", "ProjectSnapshot",
     "UserMemory", "ProjectShare", "SprintPlan",
     "ModuleArtifact", "ModulePathway", "ModuleResponse",
+    "EmailVerification", "IdeaInbox",
+    "ShareComment", "ShareRating", "ProjectTemplate",
+    "ConceptBranch", "ExternalIntegration",
 ]

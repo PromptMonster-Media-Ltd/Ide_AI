@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_SECRET: str = ""
     FRONTEND_URL: str = "http://localhost:5173"
 
+    # Email — Resend
+    RESEND_API_KEY: str = ""
+    FROM_EMAIL: str = "noreply@ideaforge.dev"
+    INBOX_DOMAIN: str = "inbox.ideaforge.dev"
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     @property
