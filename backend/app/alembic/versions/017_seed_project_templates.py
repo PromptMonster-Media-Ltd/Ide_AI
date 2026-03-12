@@ -33,14 +33,14 @@ def upgrade() -> None:
         op.execute(
             sa.text(
                 "INSERT INTO project_templates (id, name, description, icon, category, concept_sheet, is_system, created_at) "
-                "VALUES (gen_random_uuid(), :name, :description, :icon, :category, :concept_sheet::jsonb, true, now()) "
+                "VALUES (gen_random_uuid(), :name, :description, :icon, :category, CAST(:cs AS jsonb), true, now()) "
                 "ON CONFLICT DO NOTHING"
             ).bindparams(
                 name=name,
                 description=description,
                 icon=icon,
                 category=category,
-                concept_sheet=concept_sheet,
+                cs=concept_sheet,
             )
         )
 
