@@ -220,7 +220,29 @@ D:\Development\Ide_AI\
 - Platform-specific Jinja2 templates
 - Endpoint: `GET /projects/{id}/export?format=md|pdf|docx|zip`
 
-### 14. Project Folder System
+### 14. Modular Dynamic Design Kit Pathway
+- AI categorizes projects into 16 concept categories (software, food, film, fashion, etc.)
+- Each category has a unique default module set drawn from a library of 47 modules
+- Categorization uses project name + description + concept sheet fields for accurate classification
+- Pathway assembly: base stack (from category) → enrichment pass (signals from concept sheet) → user review
+- Users can reorder, add/remove modules, toggle Lite (2–3 questions) / Deep (6–10 questions) per module
+- Cross-module intelligence: 7 field mapping rules pre-populate answers from earlier modules
+- SSE-streamed AI conversations per module with `[MODULE_COMPLETE]` and `[CHIPS:]` markers
+- Seed data: `concept_categories.seed.json` (16 categories), `module_library.seed.json` (47 modules)
+- Backend: `categorization_service.py`, `modular_pathway_service.py`, `module_service.py`
+- Routers: `module_pathway.py` (categorize/assemble/review/lock), `modules.py` (start/respond/skip/summary)
+- Frontend: `PathwayReview.tsx`, `PathwayExecute.tsx`, `ModuleSession.tsx`, `modulePathwayStore.ts`
+- DB: `module_pathways` table, `module_responses` table (migrations 011, 012)
+
+### 15. Ambient Guidance Tutorial System
+- Three components: StageInterlude (phase transition cards), PulseBeacon (attention rings), Whisper (contextual tips)
+- Integrated into 7 pages: Home, Discovery, PathwayReview, PathwayExecute, ModuleSession, Exports, Settings
+- Dismissals persisted via Zustand + localStorage (`ideaforge-tutorial` key)
+- Reset button in Settings page clears all tutorial state
+- Components: `frontend/src/components/tutorial/` (StageInterlude, PulseBeacon, Whisper)
+- Store: `frontend/src/stores/tutorialStore.ts`
+
+### 16. Project Folder System
 - Persistent sidebar folder tree
 - Sections per project: Discovery Notes, Design Sheet, Prompt Kit, Pipeline Map, Exports, Versions
 - Version timeline dots, click to restore any snapshot
@@ -233,7 +255,7 @@ D:\Development\Ide_AI\
 - **Theme:** Dark glassmorphism — `#0d0d12` background, `bg-white/5` cards, `backdrop-blur`, `border: 1px solid rgba(255,255,255,0.08)`
 - **Accent:** Electric cyan `#00E5FF` — `text-accent`, `border-accent`, `bg-accent/10`
 - **Selected state:** `bg-accent/5 border-accent shadow-[0_0_16px_rgba(0,229,255,0.1)]`
-- **Typography:** Inter (UI), JetBrains Mono (code/prompts)
+- **Typography:** Arial (Regular for body, Bold for emphasis, Black for headings), JetBrains Mono (code/prompts)
 - **Cards:** 12px radius, glass border, hover `border-white/15` + `scale-[1.02]`
 - **Animations:** Framer Motion — page transitions, IdeaNebulaCanvas, skeleton loaders
 - **State:** Zustand stores + React Query for server state
@@ -257,6 +279,8 @@ D:\Development\Ide_AI\
 | 008 | Sprint error message patch |
 | 009 | Pathway infrastructure (pathway_id on projects, stages on sessions) |
 | 010 | AI partner style (ai_partner_style on projects + sessions) |
+| 011 | Module pathway tables (module_pathways, module_responses) |
+| 012 | Concept category columns on projects (primary_category, secondary_category, pathway_locked) |
 
 ---
 
@@ -319,6 +343,6 @@ D:\Development\Ide_AI\
 
 ## Last Completed Task
 
-**Task:** Removed unicode `\u21A9` (↩) symbol from "Back to Project" link in `frontend/src/components/layout/Sidebar.tsx` (both desktop and mobile views).
-**Status:** Change made but NOT YET COMMITTED.
-**Commit:** `ec228e3 refactor: replace partner pill/modal with inline 5×2 preset grid on Home page` is the last pushed commit.
+**Task:** Fixed dynamic module categorization — `categorize_project()` now receives project name + description for accurate category assignment across all 16 concept types. Previously only used concept sheet fields (often sparse), causing fallback to `software_tech` every time.
+**Tag:** `RC6v2`
+**Commit:** `9f525b0 fix: pass project name/description to categorization for dynamic module selection`
