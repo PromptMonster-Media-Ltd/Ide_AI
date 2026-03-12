@@ -19,7 +19,7 @@ async def send_email(to: str, subject: str, html: str) -> dict | None:
         return None
     try:
         params: resend.Emails.SendParams = {
-            "from_": f"ideaFORGE <{settings.FROM_EMAIL}>",
+            "from": f"ideaFORGE <{settings.FROM_EMAIL}>",
             "to": [to],
             "subject": subject,
             "html": html,
