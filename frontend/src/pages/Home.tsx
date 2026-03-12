@@ -12,7 +12,7 @@
  * @module pages/Home
  */
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
@@ -23,7 +23,11 @@ import { usePathwayStore } from '../stores/pathwayStore'
 import type { PathwayDefinition, CreationPreset, CreationField } from '../types/pathway'
 import type { PartnerStyleMeta } from '../types/project'
 import apiClient from '../lib/apiClient'
+import { useAuthStore } from '../stores/authStore'
 import { PulseBeacon, Whisper } from '../components/tutorial'
+
+/* ── Module-level cache for partner styles (never changes per session) ── */
+let _partnerCache: PartnerStyleMeta[] | null = null
 
 /* ── Helpers ──────────────────────────────────────────────────── */
 
@@ -39,11 +43,11 @@ function resolvePresetValue(_fieldId: string, rawValue: string, options: string[
 export function Home() {
   const navigate = useNavigate()
   const { pathways, active: activePathway, fetchPathways, setActive } = usePathwayStore()
+  const { user, initials } = useAuthStore()
 
   const [idea, setIdea] = useState('')
   const [loading, setLoading] = useState(false)
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
-  const [displayName, setDisplayName] = useState<string | null>(null)
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({})
 
   // Template state
@@ -51,7 +55,7 @@ export function Home() {
 
   // AI Partner state
   const [partnerStyle, setPartnerStyle] = useState('strategist')
-  const [allPartners, setAllPartners] = useState<PartnerStyleMeta[]>([])
+  const [allPartners, setAllPartners] = useState<PartnerStyleMeta[]>(_partnerCache ?? [])
 
   // Pathway confirmation state (hybrid detection UX)
   const [showConfirmation, setShowConfirmation] = useState(false)
@@ -59,18 +63,15 @@ export function Home() {
   const [detectionReasoning, setDetectionReasoning] = useState('')
   const [detecting, setDetecting] = useState(false)
 
-  // Fetch pathways + user profile + partner styles on mount
+  // Display name from auth store (already fetched by Sidebar)
+  const displayName = user?.display_name || user?.name || user?.email?.split('@')[0] || null
+
+  // Fetch pathways + partner styles on mount
   useEffect(() => { fetchPathways() }, [fetchPathways])
   useEffect(() => {
+    if (_partnerCache) { setAllPartners(_partnerCache); return }
     apiClient.get('/meta/partner-styles')
-      .then(({ data }) => setAllPartners(data))
-      .catch(() => {})
-  }, [])
-  useEffect(() => {
-    apiClient.get('/auth/me')
-      .then(({ data }) => {
-        setDisplayName(data.display_name || data.name || data.email?.split('@')[0] || null)
-      })
+      .then(({ data }) => { _partnerCache = data; setAllPartners(data) })
       .catch(() => {})
   }, [])
 
@@ -193,6 +194,22 @@ export function Home() {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
+
+      {/* Mobile-only profile badge (top-right) */}
+      {user && (
+        <Link
+          to="/profile"
+          className="md:hidden fixed top-3 right-3 z-40 w-9 h-9 rounded-full bg-surface/80 backdrop-blur-sm border border-border flex items-center justify-center text-xs text-accent font-bold overflow-hidden shadow-lg"
+          aria-label="Profile"
+        >
+          {user.avatar_url ? (
+            <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            initials()
+          )}
+        </Link>
+      )}
+
       <main className="ml-0 md:ml-[232px] flex flex-col items-center justify-center min-h-screen px-4 md:px-6 pb-14 md:pb-0">
         <IdeaNebulaCanvas />
 

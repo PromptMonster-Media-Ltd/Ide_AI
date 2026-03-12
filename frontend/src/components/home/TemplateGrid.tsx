@@ -33,15 +33,20 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const DEFAULT_CATEGORY = 'software'
 
+/** Module-level cache so templates survive component remounts */
+let _templateCache: Template[] | null = null
+
 export function TemplateGrid({ onSelect, selectedId }: Props) {
-  const [templates, setTemplates] = useState<Template[]>([])
-  const [loading, setLoading] = useState(true)
+  const [templates, setTemplates] = useState<Template[]>(_templateCache ?? [])
+  const [loading, setLoading] = useState(!_templateCache)
   const [activeCategory, setActiveCategory] = useState(DEFAULT_CATEGORY)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (_templateCache) { setTemplates(_templateCache); setLoading(false); return }
     apiClient.get('/templates').then(({ data }) => {
+      _templateCache = data
       setTemplates(data)
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
