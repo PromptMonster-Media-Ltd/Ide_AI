@@ -15,18 +15,23 @@ async def send_email(to: str, subject: str, html: str) -> dict | None:
     """Send a transactional email via Resend. Returns the Resend response or None on failure."""
     if not settings.RESEND_API_KEY:
         # Silently skip in dev when no key is configured
+        print("[email_service] No RESEND_API_KEY configured — skipping email send")
         return None
     try:
         params: resend.Emails.SendParams = {
-            "from": settings.FROM_EMAIL,
+            "from_": f"ideaFORGE <{settings.FROM_EMAIL}>",
             "to": [to],
             "subject": subject,
             "html": html,
         }
-        return resend.Emails.send(params)
+        result = resend.Emails.send(params)
+        print(f"[email_service] Sent email to {to} — id: {result.get('id', 'unknown')}")
+        return result
     except Exception as exc:
-        # Log but don't crash the caller
+        # Log the full error so it shows in Railway logs
+        import traceback
         print(f"[email_service] Failed to send email to {to}: {exc}")
+        traceback.print_exc()
         return None
 
 
