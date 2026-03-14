@@ -231,7 +231,7 @@ export function Landing() {
       <nav className="fixed top-0 inset-x-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="max-w-6xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Ide/AI" className="h-8 md:h-9" />
+            <img src="/logo-landing.png" alt="Ide/AI" className="h-16 md:h-[72px]" />
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm text-text-muted">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
@@ -269,7 +269,7 @@ export function Landing() {
             variants={fadeUp}
             custom={0}
           >
-            <img src="/logo.png" alt="Ide/AI" className="w-[320px] md:w-[400px] mx-auto -mb-3" />
+            <img src="/logo-landing.png" alt="Ide/AI" className="w-[320px] md:w-[400px] mx-auto -mb-3" />
           </motion.div>
 
           <motion.h1
@@ -685,7 +685,7 @@ export function Landing() {
       <footer className="py-10 px-4 border-t border-white/10">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Ide/AI" className="h-6" />
+            <img src="/logo-landing.png" alt="Ide/AI" className="h-6" />
             <span className="text-xs text-text-muted">&copy; {new Date().getFullYear()} Ide/AI. All rights reserved.</span>
           </div>
           <div className="flex items-center gap-6 text-xs text-text-muted">
