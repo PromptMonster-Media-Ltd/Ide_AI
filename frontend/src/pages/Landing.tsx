@@ -1,5 +1,5 @@
 /**
- * Landing — Public marketing page for ideaFORGE.
+ * Landing — Public marketing page for Ide/AI.
  * Hero, features, how-it-works, pricing, FAQ, and footer.
  * @module pages/Landing
  */
@@ -29,7 +29,7 @@ const PLANS: Plan[] = [
   {
     id: 'free',
     name: 'Free',
-    tagline: 'Get a feel for the forge',
+    tagline: 'Get a feel for the platform',
     monthly: 0,
     yearly: 0,
     features: [
@@ -73,7 +73,7 @@ const PLANS: Plan[] = [
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'The full forge experience',
+    tagline: 'The full Ide/AI experience',
     monthly: 17,
     yearly: 14,
     features: [
@@ -162,8 +162,8 @@ const STEPS = [
 /* ── FAQ ──────────────────────────────────────────────────────── */
 const FAQ = [
   {
-    q: 'What makes ideaFORGE different from other AI tools?',
-    a: 'Most AI tools generate a one-shot response. ideaFORGE is a structured concept development platform — it guides you through discovery, builds a tailored module pathway, and produces a complete design kit. It\'s not a chatbot; it\'s a co-architect.',
+    q: 'What makes Ide/AI different from other AI tools?',
+    a: 'Most AI tools generate a one-shot response. Ide/AI is a structured concept development platform — it guides you through discovery, builds a tailored module pathway, and produces a complete design kit. It\'s not a chatbot; it\'s a co-architect.',
   },
   {
     q: 'Can I try it before paying?',
@@ -231,7 +231,7 @@ export function Landing() {
       <nav className="fixed top-0 inset-x-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="max-w-6xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="ideaFORGE" className="h-8 md:h-9" />
+            <img src="/logo.png" alt="Ide/AI" className="h-8 md:h-9" />
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm text-text-muted">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
@@ -261,6 +261,14 @@ export function Landing() {
         {/* Glow effects */}
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
+
+        {/* Large background logo */}
+        <img
+          src="/logo.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] md:w-[700px] lg:w-[800px] opacity-[0.35] pointer-events-none select-none"
+        />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <motion.div
@@ -292,7 +300,7 @@ export function Landing() {
             variants={fadeUp}
             custom={2}
           >
-            ideaFORGE is the first AI platform that doesn't just answer — it discovers.
+            Ide/AI is the first AI platform that doesn't just answer — it discovers.
             Through guided conversation, it builds concept sheets, design blocks,
             market analysis, and action plans tailored to whatever you're creating.
           </motion.p>
@@ -338,7 +346,7 @@ export function Landing() {
       <section className="py-12 border-y border-border bg-surface/30">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <p className="text-sm md:text-base text-text-muted">
-            Other tools give you a chatbot. <span className="text-white font-semibold">ideaFORGE gives you a co-architect.</span>{' '}
+            Other tools give you a chatbot. <span className="text-white font-semibold">Ide/AI gives you a co-architect.</span>{' '}
             There's nothing else out there that dynamically assembles custom AI modules,
             adapts its collaboration style to your needs, and produces structured, actionable design kits
             — all from a single sentence.
@@ -687,8 +695,8 @@ export function Landing() {
       <footer className="py-10 px-4 border-t border-border">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="ideaFORGE" className="h-6" />
-            <span className="text-xs text-text-muted">&copy; {new Date().getFullYear()} ideaFORGE. All rights reserved.</span>
+            <img src="/logo.png" alt="Ide/AI" className="h-6" />
+            <span className="text-xs text-text-muted">&copy; {new Date().getFullYear()} Ide/AI. All rights reserved.</span>
           </div>
           <div className="flex items-center gap-6 text-xs text-text-muted">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
