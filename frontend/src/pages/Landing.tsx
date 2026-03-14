@@ -262,14 +262,6 @@ export function Landing() {
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-        {/* Large background logo */}
-        <img
-          src="/logo.png"
-          alt=""
-          aria-hidden="true"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] md:w-[700px] lg:w-[800px] opacity-[0.35] pointer-events-none select-none"
-        />
-
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <motion.div
             initial="hidden"
@@ -277,9 +269,7 @@ export function Landing() {
             variants={fadeUp}
             custom={0}
           >
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent border border-accent/20 mb-6">
-              AI-Powered Concept Development
-            </span>
+            <img src="/logo.png" alt="Ide/AI" className="w-[160px] md:w-[200px] mx-auto mb-6" />
           </motion.div>
 
           <motion.h1
