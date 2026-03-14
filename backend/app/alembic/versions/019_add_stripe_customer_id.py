@@ -1,0 +1,23 @@
+"""Add stripe_customer_id to users.
+
+Revision ID: 019
+Revises: 018
+Create Date: 2026-03-14
+"""
+from typing import Sequence, Union
+
+from alembic import op
+import sqlalchemy as sa
+
+revision: str = "019"
+down_revision: Union[str, None] = "018"
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+
+def upgrade() -> None:
+    op.add_column("users", sa.Column("stripe_customer_id", sa.String(255), unique=True, nullable=True))
+
+
+def downgrade() -> None:
+    op.drop_column("users", "stripe_customer_id")

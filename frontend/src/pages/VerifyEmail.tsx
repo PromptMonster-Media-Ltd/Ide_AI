@@ -53,7 +53,7 @@ export function VerifyEmail() {
     setError('')
     try {
       await apiClient.post('/auth/verify-email', { code: finalCode })
-      navigate('/')
+      navigate('/home')
     } catch (err: unknown) {
       setError(extractError(err, 'Invalid or expired code. Please try again.'))
       setDigits([...EMPTY_CODE])

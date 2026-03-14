@@ -32,6 +32,14 @@ class Settings(BaseSettings):
     FROM_EMAIL: str = "noreply@ideaforge.dev"
     INBOX_DOMAIN: str = "inbox.ideaforge.dev"
 
+    # Stripe billing
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_BASIC_MONTHLY: str = ""
+    STRIPE_PRICE_BASIC_YEARLY: str = ""
+    STRIPE_PRICE_PRO_MONTHLY: str = ""
+    STRIPE_PRICE_PRO_YEARLY: str = ""
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     @property

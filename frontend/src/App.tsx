@@ -11,6 +11,7 @@ import { Register } from './pages/Register'
 import { VerifyEmail } from './pages/VerifyEmail'
 import { OAuthCallback } from './pages/OAuthCallback'
 import { Home } from './pages/Home'
+import { Landing } from './pages/Landing'
 import { Settings } from './pages/Settings'
 import { Profile } from './pages/Profile'
 import { Library } from './pages/Library'
@@ -103,9 +104,23 @@ function ModuleRouter() {
   )
 }
 
+/**
+ * RootRoute — Shows Landing for visitors, redirects authenticated users to /home.
+ */
+function RootRoute() {
+  const token = localStorage.getItem('token')
+  if (token) {
+    return <ProtectedRoute><Home /></ProtectedRoute>
+  }
+  return <Landing />
+}
+
 export default function App() {
   return (
     <Routes>
+      {/* Public landing page (visitors) / protected Home (authenticated) */}
+      <Route path="/" element={<RootRoute />} />
+
       {/* Public auth routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -118,7 +133,7 @@ export default function App() {
       <Route path="/shared/:token" element={<SharedProject />} />
 
       {/* Protected non-project routes */}
-      <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+      <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
       <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

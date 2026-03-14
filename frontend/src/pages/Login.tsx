@@ -62,7 +62,7 @@ export function Login() {
     try {
       const { data } = await apiClient.post('/auth/login', { email, password })
       localStorage.setItem('token', data.access_token)
-      navigate('/')
+      navigate('/home')
     } catch (err: unknown) {
       setError(extractError(err, 'Login failed. Please check your credentials.'))
     } finally {

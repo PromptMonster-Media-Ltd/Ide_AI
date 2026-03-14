@@ -12,7 +12,7 @@ import { usePathwayStore } from '../../stores/pathwayStore'
 import { useAuthStore } from '../../stores/authStore'
 
 const NAV_ITEMS = [
-  { path: '/', label: 'Home', icon: '\u2726' },
+  { path: '/home', label: 'Home', icon: '\u2726' },
   { path: '/inbox', label: 'Inbox', icon: '\u{1F4EC}' },
   { path: '/library', label: 'Library', icon: '\u{1F4DA}' },
   { path: '/settings', label: 'Settings', icon: '\u2699' },
@@ -83,7 +83,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
   }, [])
 
   // Show "Back to Project" only on Home or Settings when user just left a project
-  const isOnHomePage = location.pathname === '/' || location.pathname === '/settings'
+  const isOnHomePage = location.pathname === '/home' || location.pathname === '/settings'
   const showBackToProject = isOnHomePage && savedProjectId && !projectId
 
   const allItems = projectId
@@ -94,8 +94,8 @@ export function Sidebar({ projectId }: { projectId?: string }) {
   const mobileOverflowItems = allItems.slice(4)
 
   const isActive = (item: { path: string }) =>
-    item.path === '/'
-      ? location.pathname === '/'
+    item.path === '/home'
+      ? location.pathname === '/home'
       : location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path
 
   const buildTo = (item: { path: string }) =>
@@ -107,7 +107,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
     <>
       {/* ── Desktop sidebar ── */}
       <aside className="hidden md:flex fixed left-0 top-0 h-screen w-[232px] bg-surface border-r border-border z-50 flex-col overflow-hidden">
-        <Link to="/" className="px-4 py-3 flex items-center border-b border-border">
+        <Link to="/home" className="px-4 py-3 flex items-center border-b border-border">
           <img src="/logo.png" alt="Ide/AI — Home" className="w-[200px] object-contain" />
         </Link>
 

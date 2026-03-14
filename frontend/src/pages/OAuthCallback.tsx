@@ -38,7 +38,7 @@ export function OAuthCallback() {
         const { data } = await apiClient.post(`/auth/${provider}/callback`, { code })
         if (data.access_token) {
           localStorage.setItem('token', data.access_token)
-          navigate('/', { replace: true })
+          navigate('/home', { replace: true })
         } else {
           setError('Authentication failed. No token received.')
         }
