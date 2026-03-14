@@ -64,8 +64,8 @@ async def get_current_user(
 # ---------- Helpers ----------
 
 def _generate_code() -> str:
-    """Generate a random 6-digit verification code."""
-    return f"{random.randint(100000, 999999)}"
+    """Generate a random 6-digit verification code (always exactly 6 digits, zero-padded)."""
+    return f"{random.randint(0, 999999):06d}"
 
 
 async def _create_and_send_code(user: User, db: AsyncSession) -> None:

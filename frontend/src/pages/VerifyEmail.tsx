@@ -1,9 +1,12 @@
 /**
  * VerifyEmail — 6-digit code input page for email verification.
  * Shown after registration for email/password users.
+ *
+ * Auto-submit is driven by a useEffect on `digits` state to avoid race
+ * conditions with React 18 batching and mobile keyboard/autofill events.
  * @module pages/VerifyEmail
  */
-import { useState, useRef, useEffect, type KeyboardEvent, type ClipboardEvent } from 'react'
+import { useState, useRef, useEffect, useCallback, type KeyboardEvent, type ClipboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '../components/ui/Button'
@@ -11,13 +14,17 @@ import { Card } from '../components/ui/Card'
 import apiClient from '../lib/apiClient'
 import { extractError } from '../lib/extractError'
 
+const CODE_LENGTH = 6
+const EMPTY_CODE = Array<string>(CODE_LENGTH).fill('')
+
 export function VerifyEmail() {
   const navigate = useNavigate()
-  const [digits, setDigits] = useState<string[]>(['', '', '', '', '', ''])
+  const [digits, setDigits] = useState<string[]>([...EMPTY_CODE])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const submittingRef = useRef(false) // guard against double-submit
 
   // Start with a 60s cooldown (code was just sent on register)
   useEffect(() => {
@@ -33,58 +40,15 @@ export function VerifyEmail() {
     return () => clearInterval(timer)
   }, [resendCooldown])
 
-  const handleChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return // digits only
-    const next = [...digits]
-    next[index] = value.slice(-1) // only last char
-    setDigits(next)
-    setError('')
-
-    // Auto-advance to next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus()
-    }
-
-    // Auto-submit when all 6 digits entered
-    if (value && index === 5 && next.every(d => d !== '')) {
-      handleSubmit(next.join(''))
-    }
-  }
-
-  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !digits[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
-    }
-  }
-
-  const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault()
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
-    if (pasted.length === 0) return
-    const next = [...digits]
-    for (let i = 0; i < pasted.length; i++) {
-      next[i] = pasted[i]
-    }
-    setDigits(next)
-    setError('')
-
-    // Focus last filled or next empty
-    const focusIndex = Math.min(pasted.length, 5)
-    inputRefs.current[focusIndex]?.focus()
-
-    // Auto-submit if all 6 digits
-    if (pasted.length === 6) {
-      handleSubmit(pasted)
-    }
-  }
-
-  const handleSubmit = async (code?: string) => {
+  // ── Submit handler ──
+  const handleSubmit = useCallback(async (code?: string) => {
     const finalCode = code ?? digits.join('')
-    if (finalCode.length !== 6) {
+    if (finalCode.length !== CODE_LENGTH || /\D/.test(finalCode)) {
       setError('Please enter all 6 digits.')
       return
     }
-
+    if (submittingRef.current) return
+    submittingRef.current = true
     setLoading(true)
     setError('')
     try {
@@ -92,11 +56,88 @@ export function VerifyEmail() {
       navigate('/')
     } catch (err: unknown) {
       setError(extractError(err, 'Invalid or expired code. Please try again.'))
-      setDigits(['', '', '', '', '', ''])
+      setDigits([...EMPTY_CODE])
       inputRefs.current[0]?.focus()
     } finally {
       setLoading(false)
+      submittingRef.current = false
     }
+  }, [digits, navigate])
+
+  // ── Auto-submit when all 6 digits are filled (driven by state, not events) ──
+  useEffect(() => {
+    if (loading || submittingRef.current) return
+    const code = digits.join('')
+    if (code.length === CODE_LENGTH && digits.every(d => /^\d$/.test(d))) {
+      handleSubmit(code)
+    }
+  }, [digits]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Digit input handler ──
+  const handleChange = (index: number, value: string) => {
+    // Strip non-digits
+    const cleaned = value.replace(/\D/g, '')
+    if (cleaned.length === 0) {
+      // User cleared the field
+      const next = [...digits]
+      next[index] = ''
+      setDigits(next)
+      setError('')
+      return
+    }
+
+    // If the browser dumped the entire code into one field (mobile autofill),
+    // distribute across all inputs
+    if (cleaned.length > 1) {
+      const chars = cleaned.slice(0, CODE_LENGTH).split('')
+      const next = [...EMPTY_CODE]
+      chars.forEach((ch, i) => { next[i] = ch })
+      setDigits(next)
+      setError('')
+      const focusIdx = Math.min(chars.length, CODE_LENGTH - 1)
+      inputRefs.current[focusIdx]?.focus()
+      return
+    }
+
+    // Normal single-digit entry
+    const next = [...digits]
+    next[index] = cleaned
+    setDigits(next)
+    setError('')
+
+    // Auto-advance to next input
+    if (index < CODE_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus()
+    }
+  }
+
+  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !digits[index] && index > 0) {
+      // Clear previous digit and move focus back
+      const next = [...digits]
+      next[index - 1] = ''
+      setDigits(next)
+      inputRefs.current[index - 1]?.focus()
+      e.preventDefault()
+    }
+  }
+
+  const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, CODE_LENGTH)
+    if (pasted.length === 0) return
+
+    const next = [...EMPTY_CODE]
+    for (let i = 0; i < pasted.length; i++) {
+      next[i] = pasted[i]
+    }
+    setDigits(next)
+    setError('')
+
+    // Focus last filled or next empty
+    const focusIndex = Math.min(pasted.length, CODE_LENGTH - 1)
+    inputRefs.current[focusIndex]?.focus()
+    // Auto-submit is handled by the useEffect on digits
   }
 
   const handleResend = async () => {
@@ -151,12 +192,13 @@ export function VerifyEmail() {
                 ref={el => { inputRefs.current[i] = el }}
                 type="text"
                 inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={1}
+                pattern="[0-9]*"
+                autoComplete={i === 0 ? 'one-time-code' : 'off'}
+                maxLength={CODE_LENGTH}
                 value={digit}
                 onChange={e => handleChange(i, e.target.value)}
                 onKeyDown={e => handleKeyDown(i, e)}
-                onPaste={i === 0 ? handlePaste : undefined}
+                onPaste={handlePaste}
                 autoFocus={i === 0}
                 className="w-11 h-13 text-center text-xl font-bold bg-background border border-border rounded-lg text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 transition-colors"
               />

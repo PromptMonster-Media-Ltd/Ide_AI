@@ -57,7 +57,7 @@ async def use_template(
     project = Project(
         name=f"{template.name} Project",
         description=template.description,
-        owner_id=current_user.id,
+        user_id=current_user.id,
     )
     db.add(project)
     await db.flush()

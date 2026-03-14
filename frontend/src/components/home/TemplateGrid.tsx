@@ -121,13 +121,15 @@ export function TemplateGrid({ onSelect, selectedId }: Props) {
             <button
               type="button"
               onClick={() => onSelect(t)}
-              className="w-full text-left group"
+              className={`w-full text-left group rounded-xl transition-all ${
+                selectedId === t.id
+                  ? 'ring-1 ring-accent/40'
+                  : ''
+              }`}
             >
               <Card>
-                <div className={`text-center py-1 rounded-lg transition-all ${
-                  selectedId === t.id
-                    ? 'ring-1 ring-accent/40 bg-accent/5'
-                    : ''
+                <div className={`text-center py-1 transition-all ${
+                  selectedId === t.id ? 'bg-accent/5' : ''
                 }`}>
                   <span className="text-2xl block mb-1">{t.icon}</span>
                   <p className={`text-xs font-medium transition-colors truncate ${
