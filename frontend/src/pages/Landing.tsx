@@ -259,8 +259,8 @@ export function Landing() {
       {/* ─── Hero ────────────────────────────────────────────────── */}
       <section className="relative pt-32 pb-20 md:pt-44 md:pb-32 px-4">
         {/* Glow effects */}
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-purple-500/8 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <motion.div
@@ -269,7 +269,7 @@ export function Landing() {
             variants={fadeUp}
             custom={0}
           >
-            <img src="/logo.png" alt="Ide/AI" className="w-[320px] md:w-[400px] mx-auto mb-6" />
+            <img src="/logo.png" alt="Ide/AI" className="w-[320px] md:w-[400px] mx-auto mb-1" />
           </motion.div>
 
           <motion.h1
@@ -313,7 +313,7 @@ export function Landing() {
             </Link>
             <a
               href="#how-it-works"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg text-base font-medium text-text-muted hover:text-white border border-border hover:border-white/20 transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg text-base font-medium text-white/70 hover:text-white border border-white/15 hover:border-white/30 transition-all"
             >
               See How It Works
             </a>
@@ -333,7 +333,7 @@ export function Landing() {
       </section>
 
       {/* ─── "Nothing else like it" banner ───────────────────────── */}
-      <section className="py-12 border-y border-border bg-surface/30">
+      <section className="py-12 border-y border-white/10 bg-white/[0.04]">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <p className="text-sm md:text-base text-text-muted">
             Other tools give you a chatbot. <span className="text-white font-semibold">Ide/AI gives you a co-architect.</span>{' '}
@@ -366,7 +366,7 @@ export function Landing() {
             {FEATURES.map((f, i) => (
               <motion.div
                 key={f.title}
-                className="group p-6 rounded-xl border border-border bg-surface/40 hover:bg-surface/70 hover:border-white/10 transition-all"
+                className="group p-6 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/15 transition-all"
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: '-40px' }}
@@ -383,7 +383,7 @@ export function Landing() {
       </section>
 
       {/* ─── Cost & Time Savings ─────────────────────────────────── */}
-      <section className="py-16 bg-surface/30 border-y border-border px-4">
+      <section className="py-16 bg-white/[0.04] border-y border-white/10 px-4">
         <div className="max-w-5xl mx-auto">
           <motion.div
             className="text-center mb-12"
@@ -409,7 +409,7 @@ export function Landing() {
             ].map((item, i) => (
               <motion.div
                 key={item.stat}
-                className="text-center p-6 rounded-xl border border-border bg-background/50"
+                className="text-center p-6 rounded-xl border border-white/[0.08] bg-background/80"
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
@@ -447,7 +447,7 @@ export function Landing() {
             {STEPS.map((step, i) => (
               <motion.div
                 key={step.num}
-                className="flex gap-5 md:gap-8 items-start p-5 md:p-6 rounded-xl border border-border bg-surface/40"
+                className="flex gap-5 md:gap-8 items-start p-5 md:p-6 rounded-xl border border-white/[0.08] bg-white/[0.03]"
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: '-40px' }}
@@ -468,7 +468,7 @@ export function Landing() {
       </section>
 
       {/* ─── Pricing ─────────────────────────────────────────────── */}
-      <section id="pricing" className="py-20 md:py-28 px-4 bg-surface/20">
+      <section id="pricing" className="py-20 md:py-28 px-4 bg-white/[0.02]">
         <div className="max-w-5xl mx-auto">
           <motion.div
             className="text-center mb-10"
@@ -516,8 +516,8 @@ export function Landing() {
                 key={plan.id}
                 className={`relative flex flex-col rounded-xl border p-6 md:p-7 transition-all ${
                   plan.popular
-                    ? 'border-accent/40 bg-accent/[0.03] shadow-[0_0_40px_rgba(0,229,255,0.06)]'
-                    : 'border-border bg-surface/40'
+                    ? 'border-accent/50 bg-accent/[0.05] shadow-[0_0_50px_rgba(0,229,255,0.08)]'
+                    : 'border-white/[0.08] bg-white/[0.03]'
                 }`}
                 initial="hidden"
                 whileInView="visible"
@@ -584,7 +584,7 @@ export function Landing() {
                   className={`w-full py-3 rounded-lg text-sm font-semibold transition-all ${
                     plan.popular
                       ? 'bg-accent text-background hover:bg-accent/90 shadow-[0_0_20px_rgba(0,229,255,0.15)]'
-                      : 'bg-white/5 text-white border border-border hover:bg-white/10'
+                      : 'bg-white/[0.06] text-white border border-white/15 hover:bg-white/10'
                   } disabled:opacity-50`}
                 >
                   {checkoutLoading === plan.id ? 'Redirecting...' : plan.cta}
@@ -618,7 +618,7 @@ export function Landing() {
             {FAQ.map((item, i) => (
               <motion.div
                 key={i}
-                className="border border-border rounded-xl overflow-hidden"
+                className="border border-white/[0.08] rounded-xl overflow-hidden"
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
@@ -654,7 +654,7 @@ export function Landing() {
       </section>
 
       {/* ─── Final CTA ───────────────────────────────────────────── */}
-      <section className="py-20 md:py-28 px-4 bg-surface/30 border-t border-border">
+      <section className="py-20 md:py-28 px-4 bg-white/[0.04] border-t border-white/10">
         <div className="max-w-3xl mx-auto text-center">
           <motion.div
             initial="hidden"
@@ -682,7 +682,7 @@ export function Landing() {
       </section>
 
       {/* ─── Footer ──────────────────────────────────────────────── */}
-      <footer className="py-10 px-4 border-t border-border">
+      <footer className="py-10 px-4 border-t border-white/10">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="Ide/AI" className="h-6" />
