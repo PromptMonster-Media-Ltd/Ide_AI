@@ -231,7 +231,7 @@ export function Landing() {
       <nav className="fixed top-0 inset-x-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="max-w-6xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo-landing.png" alt="Ide/AI" className="h-16 md:h-[72px]" />
+            <img src="/logo-landing.png" alt="Ide/AI" className="h-11 md:h-[50px]" />
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm text-text-muted">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
@@ -269,7 +269,7 @@ export function Landing() {
             variants={fadeUp}
             custom={0}
           >
-            <img src="/logo-landing.png" alt="Ide/AI" className="w-[320px] md:w-[400px] mx-auto -mb-3 relative -left-[25px]" />
+            <img src="/logo-landing.png" alt="Ide/AI" className="w-[320px] md:w-[400px] mx-auto mb-[18px] relative -left-[25px]" />
           </motion.div>
 
           <motion.h1
