@@ -279,7 +279,7 @@ export function Landing() {
             variants={fadeUp}
             custom={1}
           >
-            Turn a spark of an idea into a{' '}
+            Turn a <span className="text-orange-400">spark</span> of an idea into a{' '}
             <span className="text-accent">complete design kit</span>
           </motion.h1>
 
@@ -393,7 +393,7 @@ export function Landing() {
             variants={fadeUp}
           >
             <h2 className="text-3xl md:text-4xl font-black mb-4">
-              Save weeks of work. Save thousands of dollars.
+              Save <span className="text-accent">weeks</span> of work. Save <span className="text-accent">thousands</span> of dollars.
             </h2>
             <p className="text-text-muted max-w-2xl mx-auto">
               What used to require a team of consultants, designers, and researchers
