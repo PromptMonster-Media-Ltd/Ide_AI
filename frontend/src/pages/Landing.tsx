@@ -269,7 +269,7 @@ export function Landing() {
             variants={fadeUp}
             custom={0}
           >
-            <img src="/logo-landing.png" alt="Ide/AI" className="w-[320px] md:w-[400px] mx-auto -mb-3" />
+            <img src="/logo-landing.png" alt="Ide/AI" className="w-[320px] md:w-[400px] mx-auto -mb-3 relative -left-[25px]" />
           </motion.div>
 
           <motion.h1
