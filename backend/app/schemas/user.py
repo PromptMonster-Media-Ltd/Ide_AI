@@ -83,3 +83,14 @@ class TokenData(BaseModel):
 class OAuthCodePayload(BaseModel):
     """Body sent by the frontend after OAuth redirect."""
     code: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Body for POST /auth/forgot-password."""
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Body for POST /auth/reset-password."""
+    token: str
+    new_password: str = Field(min_length=8, max_length=128)

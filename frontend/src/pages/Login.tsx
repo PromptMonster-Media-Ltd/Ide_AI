@@ -162,6 +162,12 @@ export function Login() {
             <Button type="submit" className="w-full" disabled={loading || oauthLoading !== null}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
+
+            <div className="text-center">
+              <Link to="/forgot-password" className="text-xs text-text-muted hover:text-accent transition-colors">
+                Forgot your password?
+              </Link>
+            </div>
           </form>
         </Card>
 

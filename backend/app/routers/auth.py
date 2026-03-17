@@ -5,6 +5,7 @@ dependency for protecting other routes.
 """
 import base64
 import random
+import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -18,10 +19,13 @@ from app.core.database import get_db
 from app.core.oauth import exchange_code, get_auth_url, get_user_info
 from app.core.security import create_access_token, decode_token, hash_password, verify_password
 from app.models.email_verification import EmailVerification
+from app.models.password_reset import PasswordReset
 from app.models.user import User
 from app.schemas.user import (
+    ForgotPasswordRequest,
     OAuthCodePayload,
     PasswordChange,
+    ResetPasswordRequest,
     Token,
     UserCreate,
     UserProfile,
@@ -29,7 +33,7 @@ from app.schemas.user import (
     UserRead,
     VerifyEmailRequest,
 )
-from app.services.email_service import send_verification_email
+from app.services.email_service import send_password_reset_email, send_verification_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -255,6 +259,74 @@ async def change_password(
     if not verify_password(payload.current_password, current_user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Current password is incorrect")
     current_user.hashed_password = hash_password(payload.new_password)
+    await db.flush()
+
+
+# ---------- Forgot / reset password ----------
+
+@router.post("/forgot-password", status_code=status.HTTP_204_NO_CONTENT)
+async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    """Send a password reset link if the email exists. Always returns 204 to prevent email enumeration."""
+    result = await db.execute(select(User).where(User.email == payload.email))
+    user = result.scalar_one_or_none()
+
+    if not user or not user.hashed_password:
+        # Don't reveal whether email exists or is OAuth-only
+        return
+
+    # Rate limit: one reset email per 60 seconds
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=60)
+    recent = await db.execute(
+        select(PasswordReset).where(
+            PasswordReset.user_id == user.id,
+            PasswordReset.created_at > cutoff,
+        )
+    )
+    if recent.scalar_one_or_none():
+        return  # Silently ignore to prevent timing attacks
+
+    token = secrets.token_urlsafe(48)
+    reset = PasswordReset(
+        user_id=user.id,
+        token=token,
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=15),
+    )
+    db.add(reset)
+    await db.flush()
+
+    reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+    await send_password_reset_email(user.email, reset_url)
+
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    """Reset password using a valid token from the forgot-password email."""
+    now = datetime.now(timezone.utc)
+    result = await db.execute(
+        select(PasswordReset).where(
+            PasswordReset.token == payload.token,
+            PasswordReset.expires_at > now,
+        )
+    )
+    reset = result.scalar_one_or_none()
+
+    if not reset:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset link. Please request a new one.",
+        )
+
+    # Update the user's password
+    user_result = await db.execute(select(User).where(User.id == reset.user_id))
+    user = user_result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
+
+    user.hashed_password = hash_password(payload.new_password)
+
+    # Invalidate all reset tokens for this user
+    from sqlalchemy import delete
+    await db.execute(delete(PasswordReset).where(PasswordReset.user_id == user.id))
     await db.flush()
 
 
