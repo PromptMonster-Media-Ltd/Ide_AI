@@ -1,17 +1,14 @@
 /**
- * App.tsx — Root router. Public auth routes + protected application routes.
+ * App.tsx — Root router. Clerk-managed auth routes + protected application routes.
  * Uses a dynamic ModuleRouter for project-scoped pages resolved from the
  * concept pathway's module registry.
  */
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, useParams } from 'react-router-dom'
+import { useAuth, useClerk } from '@clerk/clerk-react'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
-import { Login } from './pages/Login'
-import { Register } from './pages/Register'
-import { ForgotPassword } from './pages/ForgotPassword'
-import { ResetPassword } from './pages/ResetPassword'
-import { VerifyEmail } from './pages/VerifyEmail'
-import { OAuthCallback } from './pages/OAuthCallback'
+import { SignInPage } from './pages/SignInPage'
+import { SignUpPage } from './pages/SignUpPage'
 import { Home } from './pages/Home'
 import { Landing } from './pages/Landing'
 import { Settings } from './pages/Settings'
@@ -19,6 +16,7 @@ import { Profile } from './pages/Profile'
 import { Library } from './pages/Library'
 import { Inbox } from './pages/Inbox'
 import { SharedProject } from './pages/SharedProject'
+import { setClerkInstance } from './lib/apiClient'
 
 /* ── Lazy-loaded module components ─────────────────────────────── */
 const Discovery = lazy(() => import('./pages/Discovery').then(m => ({ default: m.Discovery })))
@@ -64,13 +62,6 @@ function ModuleLoading() {
 /**
  * ModuleRouter — Resolves the current route's moduleSlug to a component
  * from the MODULE_COMPONENTS registry via the pathway's route_suffix → component_key mapping.
- *
- * Route pattern: /:moduleSlug/:projectId
- *
- * Resolution order:
- * 1. Look up moduleSlug directly as a component_key (covers most cases)
- * 2. Check the ROUTE_SUFFIX_MAP for known suffix → component_key mappings
- * 3. Fallback to Discovery for unknown modules
  */
 const ROUTE_SUFFIX_MAP: Record<string, string> = {
   discovery: 'Discovery',
@@ -110,28 +101,38 @@ function ModuleRouter() {
  * RootRoute — Shows Landing for visitors, redirects authenticated users to /home.
  */
 function RootRoute() {
-  const token = localStorage.getItem('token')
-  if (token) {
+  const { isSignedIn, isLoaded } = useAuth()
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (isSignedIn) {
     return <ProtectedRoute><Home /></ProtectedRoute>
   }
   return <Landing />
 }
 
 export default function App() {
+  const clerk = useClerk()
+
+  // Provide Clerk instance to apiClient for token injection
+  useEffect(() => {
+    setClerkInstance(clerk)
+  }, [clerk])
+
   return (
     <Routes>
       {/* Public landing page (visitors) / protected Home (authenticated) */}
       <Route path="/" element={<RootRoute />} />
 
-      {/* Public auth routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
-
-      {/* Email verification (protected but exempt from verification check) */}
-      <Route path="/verify-email" element={<ProtectedRoute><VerifyEmail /></ProtectedRoute>} />
+      {/* Clerk auth routes */}
+      <Route path="/sign-in/*" element={<SignInPage />} />
+      <Route path="/sign-up/*" element={<SignUpPage />} />
 
       {/* Public shared project view (no auth required) */}
       <Route path="/shared/:token" element={<SharedProject />} />

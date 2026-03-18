@@ -18,7 +18,12 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
     APP_NAME: str = "Ide/AI"
 
-    # OAuth — leave empty to disable a provider
+    # Clerk authentication
+    CLERK_SECRET_KEY: str = ""
+    CLERK_WEBHOOK_SECRET: str = ""
+    CLERK_JWKS_URL: str = ""
+
+    # Legacy OAuth — kept for reference, now handled by Clerk
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     MICROSOFT_CLIENT_ID: str = ""

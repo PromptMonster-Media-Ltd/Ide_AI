@@ -3,6 +3,7 @@
  * @module pages/Profile
  */
 import { useEffect, useState, useRef } from 'react'
+import { useClerk } from '@clerk/clerk-react'
 import { Sidebar } from '../components/layout/Sidebar'
 import { TopBar } from '../components/layout/TopBar'
 import { Button } from '../components/ui/Button'
@@ -26,14 +27,6 @@ export function Profile() {
   // Avatar
   const fileRef = useRef<HTMLInputElement>(null)
   const [avatarUploading, setAvatarUploading] = useState(false)
-
-  // Password
-  const [currentPw, setCurrentPw] = useState('')
-  const [newPw, setNewPw] = useState('')
-  const [confirmPw, setConfirmPw] = useState('')
-  const [pwSaving, setPwSaving] = useState(false)
-  const [pwError, setPwError] = useState('')
-  const [pwSuccess, setPwSuccess] = useState(false)
 
   // Stats
   const [projectCount, setProjectCount] = useState(0)
@@ -95,38 +88,11 @@ export function Profile() {
     }
   }
 
-  const handleChangePassword = async () => {
-    setPwError('')
-    setPwSuccess(false)
-    if (newPw.length < 8) { setPwError('New password must be at least 8 characters.'); return }
-    if (newPw !== confirmPw) { setPwError('New passwords do not match.'); return }
-    setPwSaving(true)
-    try {
-      await apiClient.post('/auth/me/password', {
-        current_password: currentPw,
-        new_password: newPw,
-      })
-      setPwSuccess(true)
-      setCurrentPw('')
-      setNewPw('')
-      setConfirmPw('')
-      setTimeout(() => setPwSuccess(false), 3000)
-    } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        'Failed to change password.'
-      setPwError(msg)
-    } finally {
-      setPwSaving(false)
-    }
-  }
+  const { signOut } = useClerk()
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    window.location.href = '/'
+    signOut({ redirectUrl: '/' })
   }
-
-  const isOAuth = !!user?.oauth_provider
   const memberSince = user?.created_at
     ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : '...'
@@ -179,11 +145,6 @@ export function Profile() {
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-accent capitalize">
                           {user?.account_type || 'free'} plan
                         </span>
-                        {isOAuth && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-border text-text-muted capitalize">
-                            {user?.oauth_provider}
-                          </span>
-                        )}
                         {user?.email_verified && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400">
                             Verified
@@ -238,41 +199,6 @@ export function Profile() {
                     {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
                   </Button>
                 </Card>
-
-                {/* ── Password (email/password users only) ── */}
-                {!isOAuth && (
-                  <Card>
-                    <h3 className="text-sm font-semibold text-white mb-4">Change Password</h3>
-                    {pwError && (
-                      <div className="text-red-400 text-xs bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2 mb-4">{pwError}</div>
-                    )}
-                    {pwSuccess && (
-                      <div className="text-green-400 text-xs bg-green-400/10 border border-green-400/20 rounded-lg px-3 py-2 mb-4">Password updated successfully.</div>
-                    )}
-                    <div className="space-y-3 mb-4">
-                      <div>
-                        <label className="block text-xs text-text-muted font-medium mb-1.5">Current Password</label>
-                        <input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)}
-                          className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent transition-colors" />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs text-text-muted font-medium mb-1.5">New Password</label>
-                          <input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="Min. 8 characters"
-                            className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors" />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-text-muted font-medium mb-1.5">Confirm New Password</label>
-                          <input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)}
-                            className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent transition-colors" />
-                        </div>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="secondary" onClick={handleChangePassword} disabled={pwSaving || !currentPw || !newPw}>
-                      {pwSaving ? 'Updating...' : 'Update Password'}
-                    </Button>
-                  </Card>
-                )}
 
                 {/* ── Account ── */}
                 <Card>

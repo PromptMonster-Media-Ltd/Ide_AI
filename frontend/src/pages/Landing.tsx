@@ -205,7 +205,7 @@ export function Landing() {
 
   const handleCheckout = async (plan: Plan) => {
     if (plan.id === 'free') {
-      window.location.href = '/register'
+      window.location.href = '/sign-up'
       return
     }
     const priceId = cycle === 'yearly' ? plan.stripePriceYearly : plan.stripePriceMonthly
@@ -219,7 +219,7 @@ export function Landing() {
       window.location.href = data.checkout_url
     } catch {
       // If not authenticated, redirect to register
-      window.location.href = '/register'
+      window.location.href = '/sign-up'
     } finally {
       setCheckoutLoading(null)
     }
@@ -241,13 +241,13 @@ export function Landing() {
           </div>
           <div className="flex items-center gap-3">
             <Link
-              to="/login"
+              to="/sign-in"
               className="text-sm text-text-muted hover:text-white transition-colors hidden sm:inline"
             >
               Sign In
             </Link>
             <Link
-              to="/register"
+              to="/sign-up"
               className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-accent text-background hover:bg-accent/90 transition-colors shadow-[0_0_20px_rgba(0,229,255,0.15)]"
             >
               Get Started Free
@@ -303,7 +303,7 @@ export function Landing() {
             custom={3}
           >
             <Link
-              to="/register"
+              to="/sign-up"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg text-base font-semibold bg-accent text-background hover:bg-accent/90 transition-all shadow-[0_0_30px_rgba(0,229,255,0.2)] hover:shadow-[0_0_40px_rgba(0,229,255,0.3)]"
             >
               Start Building — It's Free
@@ -669,7 +669,7 @@ export function Landing() {
               Join creators, founders, and teams who are using AI to think bigger, move faster, and build smarter.
             </p>
             <Link
-              to="/register"
+              to="/sign-up"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg text-base font-semibold bg-accent text-background hover:bg-accent/90 transition-all shadow-[0_0_30px_rgba(0,229,255,0.2)]"
             >
               Start Building — It's Free
@@ -692,7 +692,7 @@ export function Landing() {
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
-            <Link to="/login" className="hover:text-white transition-colors">Sign In</Link>
+            <Link to="/sign-in" className="hover:text-white transition-colors">Sign In</Link>
           </div>
         </div>
       </footer>

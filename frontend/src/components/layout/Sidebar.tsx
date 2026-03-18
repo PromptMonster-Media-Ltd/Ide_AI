@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { usePathwayStore } from '../../stores/pathwayStore'
+import { UserButton } from '@clerk/clerk-react'
 import { useAuthStore } from '../../stores/authStore'
 
 const NAV_ITEMS = [
@@ -162,28 +163,19 @@ export function Sidebar({ projectId }: { projectId?: string }) {
         </nav>
 
         {/* Profile container */}
-        {user && (
-          <Link
-            to="/profile"
-            className="mx-2 mb-3 px-3 py-2.5 rounded-lg border border-border hover:border-accent/30 hover:bg-white/5 transition-colors flex items-center gap-3"
-          >
-            <div className="w-8 h-8 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center text-xs text-accent font-bold shrink-0 overflow-hidden">
-              {user.avatar_url ? (
-                <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                initials()
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
+        <div className="mx-2 mb-3 px-3 py-2.5 rounded-lg border border-border flex items-center gap-3">
+          <UserButton afterSignOutUrl="/" />
+          {user && (
+            <Link to="/profile" className="min-w-0 flex-1 hover:opacity-80 transition-opacity">
               <p className="text-xs text-white font-medium truncate">
                 {user.display_name || user.name || user.email}
               </p>
               <p className="text-[10px] text-text-muted truncate capitalize">
                 {user.account_type || 'free'} plan
               </p>
-            </div>
-          </Link>
-        )}
+            </Link>
+          )}
+        </div>
       </aside>
 
       {/* ── Mobile bottom nav ── */}
