@@ -16,6 +16,7 @@ class DetectRequest(BaseModel):
     description: str
 
 
+@router.get("")
 @router.get("/")
 async def list_pathways():
     """Return all available pathway definitions."""
