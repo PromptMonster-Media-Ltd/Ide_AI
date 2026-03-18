@@ -294,7 +294,6 @@ export function Home() {
                         options={field.options}
                         onChange={(v) => {
                           setFieldValues(prev => ({ ...prev, [field.id]: v }))
-                          setSelectedPreset(null)
                         }}
                       />
                     ))}
