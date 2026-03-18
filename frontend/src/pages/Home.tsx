@@ -11,8 +11,8 @@
  * When only one pathway exists, step 3-4 are skipped.
  * @module pages/Home
  */
-import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
@@ -42,10 +42,22 @@ function resolvePresetValue(_fieldId: string, rawValue: string, options: string[
 /* ── Page ─────────────────────────────────────────────────────── */
 export function Home() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { pathways, active: activePathway, fetchPathways, setActive } = usePathwayStore()
-  const { user, initials } = useAuthStore()
+  const { user, initials, fetchUser } = useAuthStore()
 
   const [idea, setIdea] = useState('')
+  const [billingSuccess, setBillingSuccess] = useState(false)
+
+  // Handle billing=success query param
+  useEffect(() => {
+    if (searchParams.get('billing') === 'success') {
+      setBillingSuccess(true)
+      fetchUser() // Refresh user to get updated account_type
+      setSearchParams({}, { replace: true }) // Clean URL
+      setTimeout(() => setBillingSuccess(false), 5000)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [loading, setLoading] = useState(false)
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({})
@@ -209,6 +221,20 @@ export function Home() {
           )}
         </Link>
       )}
+
+      {/* Billing success toast */}
+      <AnimatePresence>
+        {billingSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-green-500/20 border border-green-500/30 text-green-400 text-sm font-medium px-6 py-3 rounded-xl backdrop-blur-lg shadow-lg"
+          >
+            🎉 Subscription activated! Welcome to your new plan.
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="ml-0 md:ml-[232px] flex flex-col items-center justify-center min-h-screen px-4 md:px-6 pb-14 md:pb-0">
         <IdeaNebulaCanvas />

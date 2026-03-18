@@ -9,6 +9,7 @@ import { useAuth, useClerk } from '@clerk/clerk-react'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { SignInPage } from './pages/SignInPage'
 import { SignUpPage } from './pages/SignUpPage'
+import { CheckoutRedirect } from './pages/CheckoutRedirect'
 import { Home } from './pages/Home'
 import { Landing } from './pages/Landing'
 import { Settings } from './pages/Settings'
@@ -133,6 +134,9 @@ export default function App() {
       {/* Clerk auth routes */}
       <Route path="/sign-in/*" element={<SignInPage />} />
       <Route path="/sign-up/*" element={<SignUpPage />} />
+
+      {/* Post-signup checkout redirect */}
+      <Route path="/checkout-redirect" element={<ProtectedRoute><CheckoutRedirect /></ProtectedRoute>} />
 
       {/* Public shared project view (no auth required) */}
       <Route path="/shared/:token" element={<SharedProject />} />

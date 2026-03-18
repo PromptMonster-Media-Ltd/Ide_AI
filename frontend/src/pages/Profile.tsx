@@ -28,6 +28,9 @@ export function Profile() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [avatarUploading, setAvatarUploading] = useState(false)
 
+  // Billing
+  const [billingLoading, setBillingLoading] = useState(false)
+
   // Stats
   const [projectCount, setProjectCount] = useState(0)
 
@@ -85,6 +88,20 @@ export function Profile() {
     } finally {
       setAvatarUploading(false)
       if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  const handleManageBilling = async () => {
+    setBillingLoading(true)
+    try {
+      const { data } = await apiClient.post('/billing/portal', {
+        return_url: window.location.href,
+      })
+      window.location.href = data.portal_url
+    } catch (err: unknown) {
+      setError(extractError(err, 'Failed to open billing portal.'))
+    } finally {
+      setBillingLoading(false)
     }
   }
 
@@ -168,6 +185,30 @@ export function Profile() {
                     </Card>
                   ))}
                 </div>
+
+                {/* ── Subscription & Billing ── */}
+                <Card>
+                  <h3 className="text-sm font-semibold text-white mb-3">Subscription & Billing</h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-white capitalize">{user?.account_type || 'free'} Plan</p>
+                      <p className="text-xs text-text-muted mt-0.5">
+                        {user?.account_type === 'free'
+                          ? 'Upgrade to unlock more features'
+                          : 'Manage your subscription, payment method, and invoices'}
+                      </p>
+                    </div>
+                    {user?.account_type === 'free' ? (
+                      <Button size="sm" onClick={() => window.location.href = '/#pricing'}>
+                        Upgrade
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={handleManageBilling} disabled={billingLoading}>
+                        {billingLoading ? 'Opening...' : 'Manage Billing'}
+                      </Button>
+                    )}
+                  </div>
+                </Card>
 
                 {/* ── Edit Profile ── */}
                 <Card>

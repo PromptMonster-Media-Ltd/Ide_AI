@@ -218,7 +218,8 @@ export function Landing() {
       })
       window.location.href = data.checkout_url
     } catch {
-      // If not authenticated, redirect to register
+      // Not authenticated — save plan choice and redirect to sign-up
+      sessionStorage.setItem('pending_plan', JSON.stringify({ priceId, cycle }))
       window.location.href = '/sign-up'
     } finally {
       setCheckoutLoading(null)
