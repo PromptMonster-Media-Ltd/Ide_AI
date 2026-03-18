@@ -41,7 +41,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null)
   const [savedPath, setSavedPath] = useState<string | null>(null)
 
-  const { user, fetchUser, initials } = useAuthStore()
+  const { user, fetchUser } = useAuthStore()
   const { active: activePathway, fetchPathways } = usePathwayStore()
 
   // Fetch user + pathways on mount (deduped inside stores)
