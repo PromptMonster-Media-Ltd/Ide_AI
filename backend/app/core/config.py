@@ -9,28 +9,17 @@ class Settings(BaseSettings):
     """Application configuration. Reads from .env file and environment variables."""
 
     DATABASE_URL: str
-    SECRET_KEY: str
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080
     ANTHROPIC_KEY: str = ""
     CLAUDE_MODEL: str = "claude-sonnet-4-6"
     ENVIRONMENT: str = "development"
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
     APP_NAME: str = "Ide/AI"
+    FRONTEND_URL: str = "http://localhost:5173"
 
     # Clerk authentication
     CLERK_SECRET_KEY: str = ""
     CLERK_WEBHOOK_SECRET: str = ""
     CLERK_JWKS_URL: str = ""
-
-    # Legacy OAuth — kept for reference, now handled by Clerk
-    GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
-    MICROSOFT_CLIENT_ID: str = ""
-    MICROSOFT_CLIENT_SECRET: str = ""
-    GITHUB_CLIENT_ID: str = ""
-    GITHUB_CLIENT_SECRET: str = ""
-    FRONTEND_URL: str = "http://localhost:5173"
 
     # Email — Resend
     RESEND_API_KEY: str = ""

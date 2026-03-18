@@ -1,4 +1,4 @@
-# CLAUDE.md — ideaFORGE (Ide/AI)
+# CLAUDE.md — Ide/AI
 
 > This file is the single source of truth for Claude Code sessions working on this project.
 > Read this file first on every session start.
@@ -7,7 +7,7 @@
 
 ## Project Identity
 
-- **Name:** ideaFORGE (codebase directory: `Ide_AI`)
+- **Name:** Ide/AI (codebase directory: `Ide_AI`, formerly known as ideaFORGE)
 - **Repo:** `github.com/PromptMonster-Media-Ltd/Ide_AI`
 - **Working directory:** `D:\Development\Ide_AI\` — this is the ONLY working directory. Do not use `D:\Development\ideaFORGE\` (that is a separate, unrelated repo).
 - **Branch:** `main`
@@ -17,7 +17,7 @@
 
 ## What This Software Does
 
-ideaFORGE takes a rough idea and turns it into a structured, export-ready design kit before the user ever opens a builder tool. The core problem it solves: people waste credits, time, and money figuring out what to build inside metered platforms (Bubble, Cursor, Claude Code, Bolt, etc.) when that planning should happen beforehand in a purpose-built environment.
+Ide/AI takes a rough idea and turns it into a structured, export-ready design kit before the user ever opens a builder tool. The core problem it solves: people waste credits, time, and money figuring out what to build inside metered platforms (Bubble, Cursor, Claude Code, Bolt, etc.) when that planning should happen beforehand in a purpose-built environment.
 
 The full process takes 15–30 minutes: describe an idea, configure options, go through an AI-guided discovery conversation, and walk away with a prioritized feature breakdown, tech stack recommendation, platform-specific prompts, and exportable documentation.
 
@@ -29,8 +29,9 @@ The full process takes 15–30 minutes: describe an idea, configure options, go 
 |-------|-------|
 | Backend | Python 3.12, FastAPI, SQLAlchemy 2.0 (async), Alembic, PostgreSQL, Anthropic Claude API (claude-sonnet-4-6) |
 | Frontend | React 18, TypeScript, Vite 7, Tailwind CSS v4 (CSS-based config, no tailwind.config.js), Framer Motion, Zustand |
-| Auth | Google/Microsoft/GitHub OAuth + email/password, JWT tokens, 6-digit email verification (Resend) |
-| Email | Resend API — verification codes, inbound email webhooks for Idea Inbox |
+| Auth | **Clerk** (Google/Microsoft/GitHub OAuth + email/password) — migrated from custom JWT |
+| Billing | **Stripe** — checkout sessions, billing portal, webhook sync |
+| Email | Resend API — inbound email webhooks for Idea Inbox |
 | Deployment | Railway (2 services — backend + frontend exposed publicly), Docker |
 | AI Streaming | Server-Sent Events (SSE) for discovery chat + market analysis |
 | Export | fpdf2 (PDF), python-docx (DOCX), Jinja2 templates, ZIP bundling |
@@ -46,9 +47,8 @@ D:\Development\Ide_AI\
 │   │   ├── main.py                    # FastAPI app, CORS, router registration
 │   │   ├── core/
 │   │   │   ├── config.py              # Settings from env vars (pydantic-settings)
-│   │   │   ├── security.py            # JWT helpers
-│   │   │   ├── database.py            # Async SQLAlchemy engine + session
-│   │   │   └── oauth.py               # OAuth provider helpers (Google, Microsoft, GitHub)
+│   │   │   ├── clerk.py               # Clerk JWT verification (JWKS/RS256)
+│   │   │   └── database.py            # Async SQLAlchemy engine + session
 │   │   ├── models/                    # SQLAlchemy ORM models (all UUID PKs)
 │   │   │   ├── user.py                # User account (email/password + OAuth, email_verified, account_type, bio, inbox_email)
 │   │   │   ├── project.py, session.py, design_sheet.py
@@ -66,7 +66,9 @@ D:\Development\Ide_AI\
 │   │   │   └── project_snapshot.py, user_memory.py
 │   │   ├── schemas/                   # Pydantic v2 request/response schemas
 │   │   ├── routers/                   # FastAPI route handlers
-│   │   │   ├── auth.py                # Register, login, OAuth, /me, avatar upload, password change, email verification
+│   │   │   ├── auth.py                # Clerk-based /me, avatar upload, profile updates
+│   │   │   ├── billing.py             # Stripe checkout, billing portal, webhook
+│   │   │   ├── clerk_webhook.py       # Clerk user sync (create/update/delete)
 │   │   │   ├── projects.py            # Project CRUD
 │   │   │   ├── discovery.py           # SSE chat, greeting, partner switching
 │   │   │   ├── meta.py                # GET /meta/partner-styles
@@ -84,7 +86,7 @@ D:\Development\Ide_AI\
 │   │   │   ├── partner_style_service.py  # 10 AI partner styles, metadata, prompt fragments
 │   │   │   ├── discovery_service.py   # Session management, stage progression, concept-sheet extraction
 │   │   │   ├── pathway_service.py     # Concept Pathway registry (4 pathways)
-│   │   │   ├── email_service.py       # Resend API: verification emails, generic send
+│   │   │   ├── email_service.py       # Resend API: generic send helper
 │   │   │   ├── sheet_service.py       # Design sheet CRUD + block generation
 │   │   │   ├── pipeline_service.py    # Stack recommendation, cost estimation, compatibility
 │   │   │   ├── export_service.py      # MD/PDF/DOCX/ZIP generation
@@ -98,19 +100,22 @@ D:\Development\Ide_AI\
 ├── frontend/
 │   ├── src/
 │   │   ├── pages/
-│   │   │   ├── Home.tsx               # Idea input, pathway picker, partner grid, template grid, project creation
+│   │   │   ├── Landing.tsx            # Public landing page with hero, features, pricing
+│   │   │   ├── SignInPage.tsx         # Clerk sign-in
+│   │   │   ├── SignUpPage.tsx         # Clerk sign-up
+│   │   │   ├── CheckoutRedirect.tsx   # Stripe checkout redirect
+│   │   │   ├── Home.tsx               # Idea input, partner grid, template grid, project creation
 │   │   │   ├── Discovery.tsx          # SSE chat UI, partner badge, mid-session switching
 │   │   │   ├── Pipeline.tsx, Exports.tsx, MarketAnalysis.tsx, SprintPlanner.tsx
-│   │   │   ├── VerifyEmail.tsx        # 6-digit code input with auto-advance + resend cooldown
-│   │   │   ├── Profile.tsx            # Avatar upload, bio, stats, account type badge
+│   │   │   ├── Profile.tsx            # Avatar upload, bio, stats, billing portal link
 │   │   │   ├── Inbox.tsx              # Idea inbox list, partner picker, build-to-project
 │   │   │   ├── Library.tsx            # Project library with branch indicators
 │   │   │   ├── Settings.tsx           # App settings, tutorial reset, profile link
 │   │   │   ├── SharedProject.tsx      # Public shared view with comments + ratings
 │   │   │   ├── PathwayReview.tsx, PathwayExecute.tsx, ModuleSession.tsx
-│   │   │   └── Login.tsx, Register.tsx, OAuthCallback.tsx, PitchMode.tsx
+│   │   │   └── PitchMode.tsx
 │   │   ├── components/
-│   │   │   ├── auth/ProtectedRoute.tsx # JWT + email verification gate
+│   │   │   ├── auth/ProtectedRoute.tsx # Clerk auth gate
 │   │   │   ├── layout/Sidebar.tsx     # Desktop sidebar + mobile bottom nav, profile container, inbox badge
 │   │   │   ├── partner/               # PartnerCard, PartnerSelector, ActivePartnerBadge
 │   │   │   ├── home/                  # PresetCard, TemplateGrid
@@ -145,17 +150,26 @@ D:\Development\Ide_AI\
 
 ## Features
 
-### 1. Authentication & User Management
-- Email/password registration + login
-- Google, Microsoft, GitHub OAuth
-- JWT tokens with configurable expiry (default 7 days)
-- 6-digit email verification (Resend API) — required before accessing protected routes
-- OAuth users are auto-verified on first login
+### 1. Authentication & User Management (Clerk)
+- **Clerk-managed** sign-in/sign-up (email/password + Google, Microsoft, GitHub OAuth)
+- Clerk webhook syncs users to local DB (`clerk_webhook.py`)
+- Backend verifies Clerk session JWTs via JWKS (`core/clerk.py`)
+- Frontend uses `@clerk/clerk-react` — `SignInPage.tsx`, `SignUpPage.tsx`
+- `ProtectedRoute` uses Clerk's `useAuth()` hook
+- `apiClient.ts` attaches Clerk session token via `getToken()`
 - Avatar upload (JPEG/PNG/WebP, max 2MB, stored as base64 data URI)
-- Generated initials as default avatar fallback
-- Password change for email/password users
 - Per-user persistent memory injected into AI context
-- Endpoints: `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `PATCH /auth/me`, `POST /auth/me/avatar`, `POST /auth/me/password`, `POST /auth/verify-email`, `POST /auth/resend-verification`, OAuth callbacks
+- Endpoints: `GET /auth/me`, `PATCH /auth/me`, `POST /auth/me/avatar`
+
+### 1b. Stripe Billing
+- Checkout sessions for subscription plans (Basic Monthly/Yearly, Pro Monthly/Yearly)
+- Billing portal for managing subscriptions
+- Stripe webhook syncs customer ID and subscription status
+- `CheckoutRedirect.tsx` handles post-checkout flow
+- `Profile.tsx` has "Manage Billing" button
+- `Landing.tsx` has pricing section with Upgrade buttons
+- Endpoints: `POST /billing/checkout`, `POST /billing/portal`, `POST /billing/webhook`
+- DB: `stripe_customer_id` on users (migration 019)
 
 ### 2. Project System
 - Single text input for idea description
@@ -290,15 +304,11 @@ D:\Development\Ide_AI\
 - Version timeline dots, click to restore any snapshot
 - Actions: New Project, Duplicate, Archive
 
-### 17. Email Verification
-- 6-digit code sent via Resend API on registration
-- Codes expire after 10 minutes, rate-limited to one per 60 seconds
-- ProtectedRoute gates unverified users — redirects to `/verify-email`
-- Exempt routes: `/verify-email`, `/settings`
-- OAuth users auto-verified (no code required)
-- Frontend: auto-advancing 6-digit input, paste support, auto-submit, resend cooldown timer
-- Backend: `EmailVerification` model, `email_service.py`, auth router endpoints
-- DB: `email_verifications` table (migration 012)
+### 17. Email Verification (Legacy — now handled by Clerk)
+- Previously used custom 6-digit codes via Resend API
+- Now handled entirely by Clerk's built-in email verification
+- DB tables (`email_verifications`, `password_resets`) still exist but are unused
+- Migrations 012, 020 created these tables — kept for migration chain integrity
 
 ### 18. User Profiles
 - Dedicated profile page (`/profile`) with avatar upload, bio editor, project stats
@@ -394,6 +404,13 @@ D:\Development\Ide_AI\
 | 014 | Idea inbox (idea_inbox_items table, inbox_email on users) |
 | 015 | Sharing feedback + templates (allow_feedback/allow_ratings on project_shares, share_comments, block_ratings) |
 | 016 | Concept branches + external integrations (concept_branches, user_integrations tables) |
+| 017 | Seed project templates |
+| 018 | Seed category templates |
+| 019 | Add stripe_customer_id to users |
+| 020 | Add password_resets table (legacy — now handled by Clerk) |
+| 021 | Add clerk_user_id to users |
+| 022 | Widen avatar_url column to TEXT |
+| 023 | Deduplicate user rows (webhook cleanup) |
 
 ---
 
@@ -401,7 +418,9 @@ D:\Development\Ide_AI\
 
 | Domain | Key Routes |
 |--------|------------|
-| Auth | `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `PATCH /auth/me`, `POST /auth/me/avatar`, `POST /auth/me/password`, `POST /auth/verify-email`, `POST /auth/resend-verification`, OAuth |
+| Auth | `GET /auth/me`, `PATCH /auth/me`, `POST /auth/me/avatar` (Clerk handles sign-in/sign-up) |
+| Billing | `POST /billing/checkout`, `POST /billing/portal`, `POST /billing/webhook` |
+| Clerk Webhook | `POST /webhooks/clerk` (user sync) |
 | Projects | `POST /projects`, `GET /projects/{id}`, `PATCH /projects/{id}` |
 | Pathways | `GET /pathways`, `POST /pathways/detect` |
 | Meta | `GET /meta/partner-styles` |
@@ -461,5 +480,5 @@ D:\Development\Ide_AI\
 
 ## Last Completed Task
 
-**Task:** Implemented all 5 release candidate phases — email verification (Resend), user profiles + sidebar redesign, idea inbox, sharing feedback/ratings + project templates, voice discovery + concept branching + external integrations. 41 files changed, 2,634 lines added. Migrations 012–016.
-**Commit:** `8c17636 feat: implement all 5 phases — email verification, profiles, inbox, sharing, branching & integrations`
+**Task:** Release cleanup — removed legacy auth pages (Login, Register, VerifyEmail, OAuthCallback, ForgotPassword, ResetPassword), dead backend code (security.py, oauth.py), unused JWT/OAuth config, stale email functions, python-jose dependency. Updated CLAUDE.md and CONTEXT_HANDOFF.md to reflect Clerk auth, Stripe billing, Ide/AI rebrand, and migrations 017–023.
+**Date:** 2026-03-18

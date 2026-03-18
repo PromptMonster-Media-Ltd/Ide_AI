@@ -13,6 +13,11 @@ build/
 .env.local
 .env.production
 
+# Secrets / credentials
+client_secret_*.json
+*.pem
+*.key
+
 # IDE
 .vscode/
 .idea/

@@ -1,14 +1,17 @@
-# ideaFORGE — Context Handoff Document
+# Ide/AI (formerly ideaFORGE) — Context Handoff Document
 
-> Use this file to get caught up on the current state of the ideaFORGE project. It covers architecture, recent work, key files, and known issues.
+> Use this file to get caught up on the current state of the project.
+> Last updated: 2026-03-18
 
 ---
 
-## What is ideaFORGE?
+## What is Ide/AI?
 
-ideaFORGE is a full-stack AI-powered product design kit generator. A user describes an idea, selects configuration options, and enters a **Discovery** chat session where an AI partner collaborates to extract structured design sheets (features, user personas, UX flows, color palettes, etc.). The extracted data feeds into downstream tools: exports, market analysis, sprint planning, and pitch mode.
+Ide/AI takes a rough idea and turns it into a structured, export-ready design kit before the user opens a builder tool. The core problem: people waste credits, time, and money figuring out what to build inside metered platforms (Bubble, Cursor, Claude Code, Bolt, etc.) when that planning should happen beforehand.
 
-**Live deployment:** Railway (backend + frontend as separate services)
+The full process: describe an idea → configure options → AI-guided discovery conversation → walk away with a prioritized feature breakdown, tech stack recommendation, platform-specific prompts, and exportable docs.
+
+**Live deployment:** Railway (backend + frontend as separate public services)
 
 ---
 
@@ -16,221 +19,179 @@ ideaFORGE is a full-stack AI-powered product design kit generator. A user descri
 
 | Layer | Stack |
 |-------|-------|
-| **Backend** | Python 3.12, FastAPI, SQLAlchemy (async), Alembic, PostgreSQL, Anthropic Claude API (claude-sonnet-4-6) |
+| **Backend** | Python 3.12, FastAPI, SQLAlchemy 2.0 (async), Alembic, PostgreSQL, Anthropic Claude API (claude-sonnet-4-6) |
 | **Frontend** | React 18, TypeScript, Vite 7, Tailwind CSS v4, Framer Motion, Zustand |
-| **Auth** | Google OAuth + email/password, JWT tokens |
+| **Auth** | **Clerk** (Google/Microsoft/GitHub OAuth + email/password) — migrated from custom JWT |
+| **Billing** | Stripe (checkout sessions, billing portal, webhook sync) |
+| **Email** | Resend API — verification codes, password resets, inbound email webhooks for Idea Inbox |
 | **Deployment** | Railway (2 services), Docker, Caddy (frontend static) |
 | **AI Streaming** | Server-Sent Events (SSE) for discovery chat + market analysis |
+| **Export** | fpdf2 (PDF), python-docx (DOCX), Jinja2 templates, ZIP bundling |
 
 ---
 
-## Repository Structure
+## Major Architecture Changes (since Mar 11)
 
-```
-D:\Development\Ide_AI\
-├── backend/
-│   ├── app/
-│   │   ├── main.py                    # FastAPI app, router registration
-│   │   ├── models/                    # SQLAlchemy ORM models
-│   │   │   ├── project.py             # Project model (has ai_partner_style, pathway_id)
-│   │   │   ├── session.py             # DiscoverySession (has ai_partner_style, stage)
-│   │   │   ├── user.py, block.py, design_sheet.py, market_analysis.py,
-│   │   │   │   sprint_plan.py, pipeline_node.py, prompt_kit.py, etc.
-│   │   ├── schemas/                   # Pydantic request/response schemas
-│   │   │   ├── project.py             # ProjectCreate/Read/Update + PartnerUpdatePayload (in session.py)
-│   │   │   ├── session.py             # SessionRead, PartnerUpdatePayload
-│   │   ├── routers/                   # FastAPI route handlers
-│   │   │   ├── discovery.py           # SSE chat, greeting, partner switching
-│   │   │   ├── projects.py, exports.py, market.py, sprints.py, pipeline.py
-│   │   │   ├── meta.py                # GET /meta/partner-styles
-│   │   │   ├── pathways.py            # GET /pathways, POST /pathways/detect
-│   │   │   ├── auth.py, sharing.py, library.py, blocks.py, prompts.py
-│   │   ├── services/                  # Business logic layer
-│   │   │   ├── ai_service.py          # build_system_prompt(), build_greeting_prompt(), stream_chat()
-│   │   │   ├── partner_style_service.py  # 10 AI partner styles, metadata, prompt fragments
-│   │   │   ├── discovery_service.py   # Session management, concept-sheet extraction
-│   │   │   ├── sheet_service.py       # Design sheet CRUD
-│   │   │   ├── pipeline_service.py, export_service.py, market_service.py, sprint_service.py, etc.
-│   │   │   ├── pathway_service.py     # Concept Pathway registry
-│   │   ├── alembic/versions/          # Database migrations (001–010)
-│   │   ├── config.py                  # Settings from env vars
-│   ├── pyproject.toml                 # Poetry dependencies
-│   ├── Dockerfile, railway.toml
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── Home.tsx               # Idea input, pathway picker, partner style grid, project creation
-│   │   │   ├── Discovery.tsx          # SSE chat UI, active partner badge, mid-session switching
-│   │   │   ├── Pipeline.tsx, Exports.tsx, MarketAnalysis.tsx, SprintPlanner.tsx, etc.
-│   │   ├── components/
-│   │   │   ├── partner/               # PartnerCard.tsx, PartnerSelector.tsx, ActivePartnerBadge.tsx
-│   │   │   ├── home/PresetCard.tsx    # Glassmorphism preset card component
-│   │   │   ├── discovery/             # ChatBubble, TopBar, SheetSidebar, etc.
-│   │   │   ├── framework/             # DesignSheetPanel, SheetCard
-│   │   │   ├── layout/Sidebar.tsx     # Navigation sidebar
-│   │   │   ├── nebula/                # Animated background canvas
-│   │   │   ├── ui/                    # Button, Modal, etc.
-│   │   ├── stores/pathwayStore.ts     # Zustand store for pathway state
-│   │   ├── types/                     # TypeScript interfaces
-│   │   │   ├── project.ts             # Project, ProjectCreate, PartnerStyleMeta
-│   │   │   ├── discovery.ts           # Session (has ai_partner_style)
-│   │   │   ├── pathway.ts             # PathwayDefinition, CreationField, CreationPreset
-│   │   ├── lib/apiClient.ts           # Axios instance with auth interceptors
-│   │   ├── styles/                    # Tailwind v4 CSS
-│   ├── vite.config.ts, tsconfig.json
-│   ├── Dockerfile, Caddyfile, railway.toml
-├── docker-compose.yml
-├── AI_PARTNER_SELECTOR_SPEC.md        # Full spec for the partner feature
-├── ARCHITECTURE.md, PRD.md, FEATURE_SPEC.md, SYSTEM_PROMPT.md
-```
+### 1. Auth: Custom JWT → Clerk (migration 021)
+- Ripped out custom JWT token flow, replaced with Clerk SDKs
+- Backend: `clerk_webhook.py` syncs Clerk users to local DB via webhooks
+- Backend: `core/clerk.py` verifies Clerk session tokens
+- Frontend: `@clerk/clerk-react` wraps app, `SignInPage.tsx` / `SignUpPage.tsx` use Clerk components
+- `ProtectedRoute.tsx` now uses Clerk's `useAuth()` instead of custom JWT checks
+- `apiClient.ts` attaches Clerk session token via `getToken()`
+- `authStore.ts` simplified — fetches user from `/auth/me` after Clerk auth
+- Old `Login.tsx` / `Register.tsx` / `VerifyEmail.tsx` / `OAuthCallback.tsx` are legacy (may need cleanup)
+
+### 2. Stripe Billing (migration 019)
+- `stripe_customer_id` column on users table
+- `backend/app/routers/billing.py` — checkout session creation, billing portal, webhook
+- `frontend/src/pages/CheckoutRedirect.tsx` — redirect flow for Stripe checkout
+- `Profile.tsx` has "Manage Billing" button linking to Stripe portal
+- Landing page has pricing section with "Upgrade" buttons
+
+### 3. Rebrand: ideaFORGE → Ide/AI
+- Landing page completely redesigned with new logo (`logo-landing.png`)
+- Email templates updated to use "Ide/AI" branding
+- New `Landing.tsx` with hero section, keyword highlights, pricing
+
+### 4. Forgot/Reset Password (migration 020)
+- `ForgotPassword.tsx` + `ResetPassword.tsx` pages
+- Backend: password reset tokens via `password_reset` model
+- Email: Resend-powered reset link delivery
+
+### 5. Home Page Cleanup (most recent work)
+- Removed old pathway picker dropdown
+- Removed preset cards (Quick Start)
+- Removed pill dropdowns from project creation form
+- Skip AI categorization when project already has a category
+- Cleaned up unused imports (useRef, useCallback, setSelectedPreset)
 
 ---
 
-## Concept Pathways System (Phases 1–6)
-
-The app supports multiple **Concept Pathways** — different project types that customize the entire discovery experience:
-
-| Pathway | ID | Description |
-|---------|----|-------------|
-| Software Product | `software_product` | Apps, SaaS, tools — the original/default pathway |
-| Marketing Campaign | `marketing_campaign` | Campaign briefs, audience targeting, channel strategy |
-| Brand Identity | `brand_identity` | Logo systems, brand guidelines, visual identity |
-| Creative Writing | `creative_writing` | Stories, scripts, world-building |
-
-Each pathway defines:
-- `base_persona` — system prompt personality
-- `discovery_stages` — divergent/convergent thinking stages with specific questions
-- `sheet_schema` — structured output fields extracted from chat
-- `creation_fields` — Home page configuration options (platform, audience, etc.)
-- `creation_presets` — Quick Start preset cards
-
-Pathway configs live in `backend/app/services/pathway_service.py` and are served via `GET /api/v1/pathways`.
-
----
-
-## AI Partner Selector (Latest Feature)
-
-**Spec:** `AI_PARTNER_SELECTOR_SPEC.md`
-
-10 collaboration styles that genuinely change AI behavior (not cosmetic):
-
-| Partner | Icon | Behavior |
-|---------|------|----------|
-| Creative | 🎨 | Wild ideas, lateral thinking, "yes-and" |
-| Intellectual | 📚 | Deep analysis, frameworks, first principles |
-| Trailblazer | 🚀 | Speed, MVPs, bold moves |
-| Strategist | ♟️ | Chess-like planning, competitive positioning (DEFAULT) |
-| Architect | 🏗️ | Systems thinking, scalability, technical depth |
-| Coach | 🧭 | Empowerment, guided questioning, growth |
-| Skeptic | 🔍 | Stress-testing, devil's advocate, risk analysis |
-| Visionary | 🔮 | 10x moonshots, paradigm shifts |
-| Editor | ✂️ | Ruthless clarity, cutting bloat, polish |
-| Scientist | 🧪 | Hypothesis-driven, data, experiments |
-
-### Architecture: 3-Layer Prompt Composition
-
-```
-Layer 1: Base Persona (from pathway config)
-Layer 2: Partner Style Fragment (from partner_style_service.py)
-Layer 3: Session Context (user name, memories, platform, stage, sheet schema)
-```
-
-### Key Files
-- `backend/app/services/partner_style_service.py` — All partner metadata, prompt fragments, validation
-- `backend/app/services/ai_service.py` — `build_system_prompt()` and `build_greeting_prompt()` compose the 3 layers
-- `backend/app/routers/meta.py` — `GET /api/v1/meta/partner-styles`
-- `backend/app/routers/discovery.py` — `PATCH /api/v1/discovery/{session_id}/partner` for mid-session switching
-- `backend/app/alembic/versions/010_add_ai_partner_style.py` — Migration adding column to projects + sessions
-- `frontend/src/pages/Home.tsx` — Inline 5×2 grid of partner preset boxes (NOT a modal)
-- `frontend/src/pages/Discovery.tsx` — ActivePartnerBadge in header, PartnerSelector modal for mid-session switch
-- `frontend/src/components/partner/` — PartnerCard, PartnerSelector, ActivePartnerBadge
-
-### Home Page Partner UI
-The partner selector on the Home page is an **inline grid** (not a pill/modal). It shows "Choose a partner style:" label followed by 10 compact preset boxes in a 5-column grid (2 rows), matching the glassmorphism style of the Quick Start preset cards. Selected partner gets cyan border + glow.
-
----
-
-## API Endpoints (prefix: `/api/v1`)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/projects` | Create project (accepts `ai_partner_style`, `pathway_id`) |
-| GET | `/projects/{id}` | Get project |
-| GET | `/pathways` | List all pathway definitions |
-| POST | `/pathways/detect` | AI-detect pathway from description |
-| GET | `/meta/partner-styles` | List all 10 partner style metadata objects |
-| POST | `/discovery/{project_id}/start` | Start discovery session (inherits partner from project) |
-| POST | `/discovery/{session_id}/greeting` | Get AI greeting (SSE) |
-| POST | `/discovery/{session_id}/message` | Send chat message (SSE) |
-| PATCH | `/discovery/{session_id}/partner` | Switch partner mid-session |
-| GET | `/discovery/{session_id}` | Get session with messages |
-| GET/POST | `/exports/...` | Export design sheets |
-| POST | `/market/{project_id}/analyze` | Market analysis (SSE) |
-| POST | `/sprints/{project_id}/generate` | Sprint plan generation |
-| GET/POST | `/pipeline/...` | Pipeline nodes |
-| GET/POST | `/auth/...` | Auth (login, register, OAuth, me) |
-
----
-
-## Design System
-
-- **Theme:** Dark glassmorphism — `bg-surface/60`, `backdrop-blur`, semi-transparent borders
-- **Accent:** Cyan `#00E5FF` (`text-accent`, `border-accent`, `bg-accent/10`)
-- **Text:** `text-white`, `text-text-muted` for secondary
-- **Cards:** `bg-white/5 border border-border rounded-xl` with hover `hover:border-white/15 hover:scale-[1.02]`
-- **Selected state:** `bg-accent/5 border-accent shadow-[0_0_16px_rgba(0,229,255,0.1)]`
-- **Tailwind v4** with CSS-based config (no `tailwind.config.js`)
-
----
-
-## Database Migrations
-
-Linear chain: `001` → `002` → ... → `010`
+## Database Migrations (linear chain: 001–023)
 
 | # | Description |
 |---|-------------|
-| 001 | Initial schema (users, projects, sessions, design_sheets, blocks) |
-| 002 | Market analyses table |
-| 003 | Project snapshots |
-| 004 | OAuth + profile fields |
-| 005 | User memory |
-| 006 | Project shares |
-| 007 | Sprint plans |
-| 008 | Sprint error message patch |
-| 009 | Pathway infrastructure (pathway_id on projects, stages on sessions) |
-| 010 | AI partner style (ai_partner_style on projects + sessions) |
+| 001–010 | Original schema through AI partner styles |
+| 011 | Modular pathway system (categories, module_pathways, module_responses) |
+| 012 | Email verification |
+| 013 | User profile fields (account_type, bio) |
+| 014 | Idea inbox |
+| 015 | Sharing feedback + templates |
+| 016 | Concept branches + external integrations |
+| 017 | Seed project templates |
+| 018 | Seed category templates |
+| 019 | **Add stripe_customer_id to users** |
+| 020 | **Add password_resets table** |
+| 021 | **Add clerk_user_id to users** |
+| 022 | **Widen avatar_url column to TEXT** |
+| 023 | **Deduplicate user rows** (cleanup from webhook issues) |
 
 ---
 
-## Recent Commit History
+## Backend Routers
+
+| Router | Purpose |
+|--------|---------|
+| `auth.py` | Register, login, /me, avatar upload, password change/reset, email verification |
+| `billing.py` | **NEW** — Stripe checkout, billing portal, webhook |
+| `clerk_webhook.py` | **NEW** — Clerk user sync (create/update/delete) |
+| `discovery.py` | SSE chat, greeting, partner switching |
+| `module_pathway.py` | Categorize, assemble, review, lock pathways |
+| `modules.py` | Module start/respond/skip/summary |
+| `projects.py` | Project CRUD |
+| `pathways.py` | GET /pathways, POST /pathways/detect |
+| `meta.py` | GET /meta/partner-styles |
+| `blocks.py` | Feature blocks CRUD + generate |
+| `pipeline.py` | Stack recommendation, UI skeleton |
+| `exports.py` | MD/PDF/DOCX/ZIP export |
+| `market.py` | Market analysis (SSE) |
+| `sprints.py` | Sprint plan generation |
+| `sharing.py` | Project sharing with comments + ratings |
+| `inbox.py` | Idea inbox CRUD + build-to-project |
+| `templates.py` | Seed templates |
+| `branching.py` | Concept branching (fork/compare/merge) |
+| `integrations.py` | External tool OAuth + push |
+| `webhooks.py` | Inbound email webhook (Resend) |
+
+---
+
+## Frontend Pages
+
+| Page | Purpose |
+|------|---------|
+| `Landing.tsx` | Public landing page with hero, features, pricing |
+| `SignInPage.tsx` | **Clerk sign-in** |
+| `SignUpPage.tsx` | **Clerk sign-up** |
+| `CheckoutRedirect.tsx` | **Stripe checkout redirect** |
+| `ForgotPassword.tsx` | **Password reset request** |
+| `ResetPassword.tsx` | **Password reset form** |
+| `Home.tsx` | Idea input, partner grid, template grid, project creation (recently cleaned up) |
+| `Discovery.tsx` | SSE chat with AI partner |
+| `PathwayReview.tsx` | Module pathway review/reorder |
+| `PathwayExecute.tsx` | Module pathway execution |
+| `ModuleSession.tsx` | Per-module AI conversation |
+| `Pipeline.tsx` | Stack recommendation canvas |
+| `Exports.tsx` | Export generation |
+| `MarketAnalysis.tsx` | Competitive analysis |
+| `SprintPlanner.tsx` | Sprint plan generation |
+| `Profile.tsx` | Avatar, bio, stats, billing portal link |
+| `Inbox.tsx` | Idea inbox |
+| `Library.tsx` | Project library with branches |
+| `Settings.tsx` | App settings, tutorial reset |
+| `SharedProject.tsx` | Public shared view |
+| `PitchMode.tsx` | Shareable one-page brief |
+| `Login.tsx` / `Register.tsx` | **Legacy** — pre-Clerk auth pages |
+| `VerifyEmail.tsx` | **Legacy** — pre-Clerk verification |
+| `OAuthCallback.tsx` | **Legacy** — pre-Clerk OAuth |
+
+---
+
+## What Still Needs Attention (Release Readiness)
+
+1. **Legacy auth pages** — `Login.tsx`, `Register.tsx`, `VerifyEmail.tsx`, `OAuthCallback.tsx` may need removal or redirect since Clerk handles auth now
+2. **CLAUDE.md is outdated** — doesn't mention Clerk, Stripe, rebrand, or migrations 017–023
+3. **Untracked file** — `client_secret_641870004801-...json` in git status (Google OAuth secret — should NOT be committed)
+4. **Dead code audit** — old JWT helpers in `core/security.py`, old auth routes, unused stores
+5. **Frontend build verification** — `tsc -b` and `vite build` should pass cleanly
+6. **Backend startup verification** — all routers register, no import errors
+7. **Environment variables** — Clerk + Stripe keys need to be documented
+
+---
+
+## Key Files for New Sessions
+
+| Purpose | File |
+|---------|------|
+| Project instructions | `CLAUDE.md` |
+| This handoff | `CONTEXT_HANDOFF.md` |
+| AI partner spec | `AI_PARTNER_SELECTOR_SPEC.md` |
+| Modular pathway spec | `MODULAR_PATHWAY_SPEC.md` |
+| Seed data (categories) | `backend/app/data/concept_categories.seed.json` |
+| Seed data (modules) | `backend/app/data/module_library.seed.json` |
+| Seed data (templates) | `project_templates.seed.json` |
+| Clerk auth | `backend/app/core/clerk.py`, `backend/app/routers/clerk_webhook.py` |
+| Stripe billing | `backend/app/routers/billing.py` |
+| Landing page | `frontend/src/pages/Landing.tsx` |
+
+---
+
+## Recent Commit History (newest first)
 
 ```
-ec228e3 refactor: replace partner pill/modal with inline 5×2 preset grid on Home page
-eff0454 feat: AI Partner Selector — 10 collaboration styles with namesake-aligned behaviour
-3a82ea0 fix: Alembic multiple heads + DesignSheetPanel TS cast error
-ecf4c4d feat: Phase 6 — Marketing Campaign, Brand Identity, Creative Writing pathways
-d56c9d2 feat: Phase 5 — Divergent-convergent thinking stages in discovery
-781b992 feat: Phase 4 — AI pathway detection + hybrid selection UX
-7eeb1bd feat: Phase 3 — Dynamic frontend driven by pathway config
-4f9a805 feat: Phase 2 — Parameterize all services by PathwayConfig
-5e7ba18 feat: Phase 1 — Concept Pathway registry infrastructure
+382a56b Remove unused useRef import from Home.tsx
+14dde5c Remove pill dropdowns from project creation form
+9d4c7ab Skip AI categorization when project already has a category
+66d3c9f Remove leftover setSelectedPreset reference in Home
+6275d2e Remove old pathway picker and preset cards from Home page
+e36e082 Fix dynamic module selection by moving seed files into Docker build context
+ef5f8ea Fix pathways 404 by adding route without trailing slash
+59b17f3 Fix Upgrade button to use /pricing route with auto-scroll
+b2d5468 Add checkout flow persistence, billing portal, and success toast
+97ee7bf Fix webhook robustness and deduplicate user rows
+7ad2e19 Fix webhook duplicate user crash and avatar column truncation
+6b60203 Migrate authentication from custom JWT to Clerk
+ddf52e5 Add forgot/reset password flow and rebrand emails to Ide/AI
+c7ee6d4 Rebrand landing page from ideaFORGE to Ide/AI and add hero background logo
+921d72f chore: regenerate poetry.lock for stripe dependency
 ```
-
----
-
-## Known Issues / Notes
-
-1. **Node.js v24 + Vite 7 ESM:** The local preview tool can't run Vite dev server due to ESM/require() incompatibility. Builds verified via `tsc -b` and `vite build` directly.
-2. **C: drive space:** Vite builds may fail if C: is full. Use `TMPDIR=D:/tmp` when building locally.
-3. **Integration tests:** 4 tests in `backend/tests/test_partner_style.py` require the `anthropic` module (only on Railway). The 24 unit tests run locally with just pytest.
-4. **PartnerSelector component** (`frontend/src/components/partner/PartnerSelector.tsx`) is still used in `Discovery.tsx` for mid-session switching. It was removed from `Home.tsx` in favor of the inline grid.
-5. **Partner style default** is `"strategist"` everywhere (model defaults, schema defaults, frontend state init).
-
----
-
-## Critical Rules
-
-- **Each AI Partner must genuinely live up to its namesake in behavior. This must not be cosmetic.** Every partner fragment in `partner_style_service.py` contains detailed behavioral instructions with Core Behaviour, Questioning Style, and Guardrails sections.
-- **Structured output schema is never altered by partner choice.** Partners change *how* the AI collaborates, not *what* gets extracted.
-- **All API routes are prefixed with `/api/v1`.**
-- **Railway deployment** — both services auto-deploy on push to `main`.
