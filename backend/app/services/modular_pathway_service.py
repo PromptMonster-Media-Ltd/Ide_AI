@@ -10,12 +10,15 @@ Flow:
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 
 from app.services.categorization_service import get_category, _load_categories
 
+logger = logging.getLogger(__name__)
+
 # Load module library from seed file
-_MODULE_SEED_PATH = Path(__file__).resolve().parents[3] / "module_library.seed.json"
+_MODULE_SEED_PATH = Path(__file__).resolve().parent.parent / "data" / "module_library.seed.json"
 _module_library: list[dict] | None = None
 
 # Existing modules that map to existing pages (not AI-guided conversations)
@@ -44,8 +47,13 @@ _EXISTING_NAME_TO_ID = {
 def _load_modules() -> list[dict]:
     global _module_library
     if _module_library is None:
-        with open(_MODULE_SEED_PATH, "r", encoding="utf-8") as f:
-            _module_library = json.load(f)
+        try:
+            with open(_MODULE_SEED_PATH, "r", encoding="utf-8") as f:
+                _module_library = json.load(f)
+            logger.info("Loaded %d modules from %s", len(_module_library), _MODULE_SEED_PATH)
+        except FileNotFoundError:
+            logger.error("Module library seed file not found: %s", _MODULE_SEED_PATH)
+            _module_library = []
     return _module_library
 
 

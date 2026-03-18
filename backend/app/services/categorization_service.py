@@ -6,24 +6,32 @@ Falls back to keyword-based matching if AI confidence is low.
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 
 import anthropic
 
 from app.core.config import settings
 
+logger = logging.getLogger(__name__)
+
 client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_KEY)
 
 # Load categories from seed file
-_SEED_PATH = Path(__file__).resolve().parents[3] / "concept_categories.seed.json"
+_SEED_PATH = Path(__file__).resolve().parent.parent / "data" / "concept_categories.seed.json"
 _categories: list[dict] | None = None
 
 
 def _load_categories() -> list[dict]:
     global _categories
     if _categories is None:
-        with open(_SEED_PATH, "r", encoding="utf-8") as f:
-            _categories = json.load(f)
+        try:
+            with open(_SEED_PATH, "r", encoding="utf-8") as f:
+                _categories = json.load(f)
+            logger.info("Loaded %d categories from %s", len(_categories), _SEED_PATH)
+        except FileNotFoundError:
+            logger.error("Category seed file not found: %s", _SEED_PATH)
+            _categories = [{"id": "software_tech", "label": "Software & Tech", "examples": [], "default_modules": []}]
     return _categories
 
 
