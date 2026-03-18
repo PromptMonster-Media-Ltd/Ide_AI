@@ -69,7 +69,7 @@ async def _handle_user_created(user_data: dict, db: AsyncSession) -> None:
             (User.clerk_user_id == clerk_id) | (User.email == email)
         )
     )
-    existing = result.scalar_one_or_none()
+    existing = result.scalars().first()
 
     if existing:
         # Link existing user to Clerk
