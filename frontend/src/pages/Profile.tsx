@@ -199,7 +199,7 @@ export function Profile() {
                       </p>
                     </div>
                     {user?.account_type === 'free' ? (
-                      <Button size="sm" onClick={() => window.location.href = '/#pricing'}>
+                      <Button size="sm" onClick={() => window.location.href = '/pricing'}>
                         Upgrade
                       </Button>
                     ) : (

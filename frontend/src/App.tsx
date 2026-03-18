@@ -131,6 +131,9 @@ export default function App() {
       {/* Public landing page (visitors) / protected Home (authenticated) */}
       <Route path="/" element={<RootRoute />} />
 
+      {/* Public pricing page (accessible even when logged in) */}
+      <Route path="/pricing" element={<Landing />} />
+
       {/* Clerk auth routes */}
       <Route path="/sign-in/*" element={<SignInPage />} />
       <Route path="/sign-up/*" element={<SignUpPage />} />

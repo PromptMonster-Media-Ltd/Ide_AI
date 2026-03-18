@@ -3,8 +3,8 @@
  * Hero, features, how-it-works, pricing, FAQ, and footer.
  * @module pages/Landing
  */
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import apiClient from '../lib/apiClient'
 
@@ -199,9 +199,19 @@ const fadeUp = {
 
 /* ── Component ────────────────────────────────────────────────── */
 export function Landing() {
+  const location = useLocation()
   const [cycle, setCycle] = useState<Cycle>('yearly')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+
+  // Auto-scroll to pricing when accessed via /pricing
+  useEffect(() => {
+    if (location.pathname === '/pricing') {
+      setTimeout(() => {
+        document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })
+      }, 300)
+    }
+  }, [location.pathname])
 
   const handleCheckout = async (plan: Plan) => {
     if (plan.id === 'free') {
