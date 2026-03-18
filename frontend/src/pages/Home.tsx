@@ -20,7 +20,7 @@ import { IdeaNebulaCanvas } from '../components/nebula/IdeaNebulaCanvas'
 // PresetCard removed — AI auto-categorizes projects
 import { TemplateGrid, type Template } from '../components/home/TemplateGrid'
 import { usePathwayStore } from '../stores/pathwayStore'
-import type { PathwayDefinition, CreationField } from '../types/pathway'
+import type { PathwayDefinition } from '../types/pathway'
 import type { PartnerStyleMeta } from '../types/project'
 import apiClient from '../lib/apiClient'
 import { useAuthStore } from '../stores/authStore'
@@ -53,7 +53,6 @@ export function Home() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [loading, setLoading] = useState(false)
-  const [fieldValues, setFieldValues] = useState<Record<string, string>>({})
 
   // Template state
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null)
@@ -80,19 +79,6 @@ export function Home() {
       .catch(() => {})
   }, [])
 
-  // Initialize field defaults when pathway changes
-  const creationFields: CreationField[] = activePathway?.creation_fields ?? []
-  useEffect(() => {
-    if (creationFields.length === 0) return
-    setFieldValues(prev => {
-      const next: Record<string, string> = {}
-      for (const f of creationFields) {
-        next[f.id] = prev[f.id] ?? f.options[0] ?? ''
-      }
-      return next
-    })
-  }, [activePathway?.id]) // eslint-disable-line react-hooks/exhaustive-deps
-
   /** Create the project and navigate to discovery. */
   const createProject = async (pathwayId: string) => {
     // If a template is active, use the template endpoint
@@ -105,16 +91,11 @@ export function Home() {
       return
     }
 
-    const normalized: Record<string, string> = {}
-    for (const [key, val] of Object.entries(fieldValues)) {
-      normalized[key] = val.split(' ')[0].toLowerCase().replace(/\s+/g, '-')
-    }
     const { data } = await apiClient.post('/projects', {
       name: idea.slice(0, 100),
       description: idea,
       pathway_id: pathwayId,
       ai_partner_style: partnerStyle,
-      ...normalized,
     })
     navigate(`/discovery/${data.id}`)
   }
@@ -285,19 +266,7 @@ export function Home() {
                       activeTemplate ? 'pt-2' : 'pt-3 md:pt-4'
                     }`}
                   />
-                  <div className="flex flex-wrap gap-1.5 px-3 md:px-5 pb-3">
-                    {creationFields.map(field => (
-                      <PillDropdown
-                        key={field.id}
-                        label={field.label}
-                        value={fieldValues[field.id] ?? field.options[0] ?? ''}
-                        options={field.options}
-                        onChange={(v) => {
-                          setFieldValues(prev => ({ ...prev, [field.id]: v }))
-                        }}
-                      />
-                    ))}
-                  </div>
+                  <div className="h-3" />
                 </div>
               </div>
               </Whisper>
@@ -422,62 +391,3 @@ export function Home() {
   )
 }
 
-/* ── PillDropdown — inline pill with floating option list ───────── */
-function PillDropdown({ label, value, options, onChange }: {
-  label: string
-  value: string
-  options: string[]
-  onChange: (v: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [open])
-
-  const display = value.length > 14 ? value.split(' ')[0] : value
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((p) => !p)}
-        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all border ${
-          open
-            ? 'border-accent bg-accent/15 text-accent'
-            : 'border-border bg-white/5 text-text-muted hover:text-white hover:bg-white/10'
-        }`}
-      >
-        <span className="opacity-50 mr-0.5">{label}:</span>
-        {display}
-        <svg className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {open && (
-        <div className="absolute bottom-full left-0 mb-1.5 z-50 bg-surface border border-border rounded-lg shadow-xl py-1 min-w-[160px] max-h-52 overflow-y-auto">
-          {options.map((opt) => (
-            <button
-              key={opt}
-              onClick={() => { onChange(opt); setOpen(false) }}
-              className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
-                value === opt
-                  ? 'bg-accent/15 text-accent font-medium'
-                  : 'text-text-muted hover:text-white hover:bg-white/5'
-              }`}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
