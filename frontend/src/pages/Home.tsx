@@ -11,7 +11,7 @@
  * When only one pathway exists, step 3-4 are skipped.
  * @module pages/Home
  */
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '../components/ui/Button'
