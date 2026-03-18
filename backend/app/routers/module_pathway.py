@@ -78,8 +78,22 @@ async def categorize_project_endpoint(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """AI-categorize a project based on its completed concept sheet."""
+    """AI-categorize a project based on its completed concept sheet.
+
+    If the project already has a primary_category (e.g. set by a template),
+    skip AI categorization and return the existing category immediately.
+    """
     project = await _get_project(project_id, current_user, db)
+
+    # If category already set (from template or prior categorization), skip AI
+    if project.primary_category:
+        return {
+            "primary_category": project.primary_category,
+            "secondary_category": project.secondary_category,
+            "confidence": 1.0,
+            "reasoning": "Category already set from template or prior classification.",
+        }
+
     concept_sheet = await _get_concept_sheet(project_id, db)
 
     result = await categorize_project(
