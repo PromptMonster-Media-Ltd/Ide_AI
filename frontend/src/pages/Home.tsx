@@ -17,10 +17,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
 import { IdeaNebulaCanvas } from '../components/nebula/IdeaNebulaCanvas'
-import { PresetCard } from '../components/home/PresetCard'
+// PresetCard removed — AI auto-categorizes projects
 import { TemplateGrid, type Template } from '../components/home/TemplateGrid'
 import { usePathwayStore } from '../stores/pathwayStore'
-import type { PathwayDefinition, CreationPreset, CreationField } from '../types/pathway'
+import type { PathwayDefinition, CreationField } from '../types/pathway'
 import type { PartnerStyleMeta } from '../types/project'
 import apiClient from '../lib/apiClient'
 import { useAuthStore } from '../stores/authStore'
@@ -31,13 +31,7 @@ let _partnerCache: PartnerStyleMeta[] | null = null
 
 /* ── Helpers ──────────────────────────────────────────────────── */
 
-function resolvePresetValue(_fieldId: string, rawValue: string, options: string[]): string {
-  const exact = options.find(o => o.toLowerCase() === rawValue.toLowerCase())
-  if (exact) return exact
-  const partial = options.find(o => o.toLowerCase().startsWith(rawValue.toLowerCase()))
-  if (partial) return partial
-  return rawValue
-}
+/* resolvePresetValue removed — old preset system replaced by AI categorization */
 
 /* ── Page ─────────────────────────────────────────────────────── */
 export function Home() {
@@ -59,7 +53,6 @@ export function Home() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [loading, setLoading] = useState(false)
-  const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({})
 
   // Template state
@@ -89,8 +82,6 @@ export function Home() {
 
   // Initialize field defaults when pathway changes
   const creationFields: CreationField[] = activePathway?.creation_fields ?? []
-  const creationPresets: CreationPreset[] = activePathway?.creation_presets ?? []
-
   useEffect(() => {
     if (creationFields.length === 0) return
     setFieldValues(prev => {
@@ -101,26 +92,6 @@ export function Home() {
       return next
     })
   }, [activePathway?.id]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handlePresetSelect = (presetId: string) => {
-    if (selectedPreset === presetId) { setSelectedPreset(null); return }
-    const preset = creationPresets.find(p => p.id === presetId)
-    if (!preset) return
-    const newValues: Record<string, string> = {}
-    for (const field of creationFields) {
-      const raw = preset.defaults[field.id]
-      newValues[field.id] = raw
-        ? resolvePresetValue(field.id, raw, field.options)
-        : fieldValues[field.id] ?? field.options[0] ?? ''
-    }
-    setFieldValues(newValues)
-    setSelectedPreset(presetId)
-  }
-
-  const handlePathwaySelect = (pw: PathwayDefinition) => {
-    setActive(pw.id)
-    setSelectedPreset(null)
-  }
 
   /** Create the project and navigate to discovery. */
   const createProject = async (pathwayId: string) => {
@@ -201,7 +172,7 @@ export function Home() {
     setDetectedPathwayId(pw.id)
   }
 
-  const showPathwayPicker = pathways.length > 1
+  // Old pathway picker removed — AI auto-categorizes at PathwayReview
 
   return (
     <div className="min-h-screen bg-background">
@@ -279,31 +250,7 @@ export function Home() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Pathway Picker — shown when multiple pathways exist */}
-              {showPathwayPicker && (
-                <div className="w-full max-w-2xl mb-4 md:mb-6">
-                  <label className="text-xs text-text-muted font-medium mb-3 block">
-                    Project Type
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {pathways.map(pw => (
-                      <button
-                        key={pw.id}
-                        type="button"
-                        onClick={() => handlePathwaySelect(pw)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all border ${
-                          activePathway?.id === pw.id
-                            ? 'border-accent bg-accent/10 text-accent shadow-[0_0_12px_rgba(0,229,255,0.08)]'
-                            : 'border-border bg-white/5 text-text-muted hover:text-white hover:bg-white/10'
-                        }`}
-                      >
-                        <span className="text-lg">{pw.icon}</span>
-                        <span className="font-medium">{pw.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Pathway picker removed — AI auto-categorizes projects during PathwayReview */}
 
               {/* Idea textarea with inline pill dropdowns */}
               <Whisper id="home:idea" text="Describe your concept in a few sentences — the AI will take it from there">
@@ -356,26 +303,7 @@ export function Home() {
               </div>
               </Whisper>
 
-              {/* Quick Start Presets */}
-              {creationPresets.length > 0 && (
-                <div className="w-full max-w-2xl mb-4 md:mb-6">
-                  <label className="text-xs text-text-muted font-medium mb-3 block">
-                    Quick Start
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {creationPresets.map((preset) => (
-                      <PresetCard
-                        key={preset.id}
-                        icon={preset.icon}
-                        name={preset.name}
-                        description=""
-                        selected={selectedPreset === preset.id}
-                        onClick={() => handlePresetSelect(preset.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Quick Start presets removed — AI auto-categorizes projects */}
 
               {/* AI Partner Style Selector */}
               {allPartners.length > 0 && (
