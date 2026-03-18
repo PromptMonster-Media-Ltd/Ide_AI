@@ -2,16 +2,17 @@
 clerk_webhook.py — Handles Clerk webhook events for user sync.
 Verifies webhook signatures using svix and syncs user data to the local database.
 """
-import json
+import logging
 
-from fastapi import APIRouter, HTTPException, Request, status
-from sqlalchemy import select
+from fastapi import APIRouter, HTTPException, Request, status, Depends
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends
 
 from app.core.config import settings
 from app.core.database import get_db
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
@@ -23,7 +24,8 @@ def _verify_webhook(payload: bytes, headers: dict) -> dict:
     wh = Webhook(settings.CLERK_WEBHOOK_SECRET)
     try:
         data = wh.verify(payload, headers)
-    except Exception:
+    except Exception as e:
+        logger.error("Webhook signature verification failed: %s", e)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid webhook signature",
@@ -45,12 +47,18 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     event_type = data.get("type", "")
     user_data = data.get("data", {})
 
-    if event_type == "user.created":
-        await _handle_user_created(user_data, db)
-    elif event_type == "user.updated":
-        await _handle_user_updated(user_data, db)
-    elif event_type == "user.deleted":
-        await _handle_user_deleted(user_data, db)
+    logger.info("Clerk webhook received: %s", event_type)
+
+    try:
+        if event_type == "user.created":
+            await _handle_user_created(user_data, db)
+        elif event_type == "user.updated":
+            await _handle_user_updated(user_data, db)
+        elif event_type == "user.deleted":
+            await _handle_user_deleted(user_data, db)
+    except Exception as e:
+        logger.error("Error handling Clerk webhook %s: %s", event_type, e, exc_info=True)
+        raise
 
     return {"status": "ok"}
 
@@ -61,37 +69,57 @@ async def _handle_user_created(user_data: dict, db: AsyncSession) -> None:
     email = _extract_primary_email(user_data)
 
     if not email:
+        logger.warning("No email found in Clerk user data for %s", clerk_id)
         return
 
-    # Check if user already exists (by clerk_id or email)
+    # First check by clerk_id (most specific)
     result = await db.execute(
-        select(User).where(
-            (User.clerk_user_id == clerk_id) | (User.email == email)
-        )
+        select(User).where(User.clerk_user_id == clerk_id)
     )
     existing = result.scalars().first()
 
     if existing:
-        # Link existing user to Clerk
-        existing.clerk_user_id = clerk_id
-        if not existing.name and user_data.get("first_name"):
-            existing.name = _build_name(user_data)
-        if not existing.avatar_url and user_data.get("image_url"):
-            existing.avatar_url = user_data["image_url"]
+        # Already linked — just update fields
+        existing.name = _build_name(user_data) or existing.name
+        existing.display_name = _build_name(user_data) or existing.display_name
         existing.email_verified = True
-    else:
-        user = User(
-            email=email,
-            clerk_user_id=clerk_id,
-            name=_build_name(user_data),
-            display_name=_build_name(user_data),
-            avatar_url=user_data.get("image_url"),
-            email_verified=True,
-            preferences={},
-        )
-        db.add(user)
+        if user_data.get("image_url"):
+            existing.avatar_url = user_data["image_url"]
+        await db.flush()
+        logger.info("Updated existing Clerk-linked user: %s", email)
+        return
 
+    # Then check by email
+    result = await db.execute(
+        select(User).where(User.email == email)
+    )
+    existing_by_email = result.scalars().first()
+
+    if existing_by_email:
+        # Link existing email user to Clerk
+        existing_by_email.clerk_user_id = clerk_id
+        existing_by_email.name = _build_name(user_data) or existing_by_email.name
+        existing_by_email.display_name = _build_name(user_data) or existing_by_email.display_name
+        existing_by_email.email_verified = True
+        if user_data.get("image_url") and not existing_by_email.avatar_url:
+            existing_by_email.avatar_url = user_data["image_url"]
+        await db.flush()
+        logger.info("Linked existing user to Clerk: %s", email)
+        return
+
+    # No existing user — create new
+    user = User(
+        email=email,
+        clerk_user_id=clerk_id,
+        name=_build_name(user_data),
+        display_name=_build_name(user_data),
+        avatar_url=user_data.get("image_url"),
+        email_verified=True,
+        preferences={},
+    )
+    db.add(user)
     await db.flush()
+    logger.info("Created new user from Clerk: %s", email)
 
 
 async def _handle_user_updated(user_data: dict, db: AsyncSession) -> None:
@@ -100,7 +128,7 @@ async def _handle_user_updated(user_data: dict, db: AsyncSession) -> None:
     result = await db.execute(
         select(User).where(User.clerk_user_id == clerk_id)
     )
-    user = result.scalar_one_or_none()
+    user = result.scalars().first()
 
     if not user:
         # User doesn't exist locally yet — create them
@@ -114,11 +142,13 @@ async def _handle_user_updated(user_data: dict, db: AsyncSession) -> None:
     name = _build_name(user_data)
     if name:
         user.name = name
+        user.display_name = name
 
     if user_data.get("image_url"):
         user.avatar_url = user_data["image_url"]
 
     await db.flush()
+    logger.info("Updated user from Clerk: %s", email)
 
 
 async def _handle_user_deleted(user_data: dict, db: AsyncSession) -> None:
@@ -127,12 +157,12 @@ async def _handle_user_deleted(user_data: dict, db: AsyncSession) -> None:
     result = await db.execute(
         select(User).where(User.clerk_user_id == clerk_id)
     )
-    user = result.scalar_one_or_none()
+    user = result.scalars().first()
 
     if user:
-        # Soft-deactivate: clear clerk_id so they can't log in
         user.clerk_user_id = None
         await db.flush()
+        logger.info("Deactivated Clerk user: %s", clerk_id)
 
 
 def _extract_primary_email(user_data: dict) -> str:
@@ -144,7 +174,6 @@ def _extract_primary_email(user_data: dict) -> str:
         if ea.get("id") == primary_id:
             return ea.get("email_address", "")
 
-    # Fallback: first email
     if email_addresses:
         return email_addresses[0].get("email_address", "")
 
