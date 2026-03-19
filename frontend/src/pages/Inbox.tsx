@@ -12,6 +12,7 @@ import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import apiClient from '../lib/apiClient'
 import { extractError } from '../lib/extractError'
+import { useAuthStore } from '../stores/authStore'
 
 interface InboxItem {
   id: string
@@ -25,8 +26,10 @@ interface InboxItem {
 
 export function Inbox() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const [items, setItems] = useState<InboxItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
 
   // Quick-add form
@@ -104,6 +107,29 @@ export function Inbox() {
               <div className="text-red-400 text-xs bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
                 {error}
               </div>
+            )}
+
+            {/* Inbox email address */}
+            {user?.inbox_email && (
+              <Card>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-text-muted mb-1">Email your ideas to:</p>
+                    <p className="text-sm text-accent font-mono">{user.inbox_email}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      navigator.clipboard.writeText(user.inbox_email!)
+                      setCopied(true)
+                      setTimeout(() => setCopied(false), 2000)
+                    }}
+                  >
+                    {copied ? 'Copied!' : 'Copy'}
+                  </Button>
+                </div>
+              </Card>
             )}
 
             {/* Quick-add button / form */}

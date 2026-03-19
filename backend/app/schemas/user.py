@@ -26,6 +26,7 @@ class UserRead(BaseModel):
     email_verified: bool = False
     account_type: str = "free"
     bio: Optional[str] = None
+    inbox_email: Optional[str] = None
     preferences: Optional[dict] = None
     created_at: datetime
 
@@ -43,6 +44,7 @@ class UserProfile(BaseModel):
     email_verified: bool = False
     account_type: str = "free"
     bio: Optional[str] = None
+    inbox_email: Optional[str] = None
     preferences: Optional[dict] = None
     created_at: datetime
 

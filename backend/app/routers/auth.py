@@ -3,6 +3,7 @@ auth.py — Authentication router. Provides get_current_user dependency (Clerk J
 and profile management endpoints. Sign-in/sign-up/OAuth are handled by Clerk.
 """
 import base64
+import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, status
 from sqlalchemy import select
@@ -59,11 +60,17 @@ async def get_current_user(
             clerk_user_id=clerk_user_id,
             email=payload.get("email", f"{clerk_user_id}@clerk.placeholder"),
             email_verified=True,
+            inbox_email=f"{secrets.token_hex(4)}@{settings.INBOX_DOMAIN}",
             preferences={},
         )
         db.add(user)
         await db.flush()
         await db.refresh(user)
+
+    # Backfill inbox_email for users created before this feature
+    if not user.inbox_email:
+        user.inbox_email = f"{secrets.token_hex(4)}@{settings.INBOX_DOMAIN}"
+        await db.flush()
 
     return user
 

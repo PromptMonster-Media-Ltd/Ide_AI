@@ -1,14 +1,6 @@
 /**
- * Home -- Idea input landing page with nebula canvas background,
- * pathway picker, and AI-powered hybrid pathway detection.
- *
- * Flow (when multiple pathways exist):
- * 1. User types idea + optional field tweaks
- * 2. Clicks "Start Discovery"
- * 3. AI detects pathway → confirmation step shown
- * 4. User confirms or overrides → project created
- *
- * When only one pathway exists, step 3-4 are skipped.
+ * Home -- Idea input landing page. Users first pick a category (CategorySelect),
+ * then describe their idea, choose an AI partner, and start discovery.
  * @module pages/Home
  */
 import { useEffect, useState } from 'react'
@@ -17,10 +9,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { Sidebar } from '../components/layout/Sidebar'
 import { IdeaNebulaCanvas } from '../components/nebula/IdeaNebulaCanvas'
-// PresetCard removed — AI auto-categorizes projects
 import { TemplateGrid, type Template } from '../components/home/TemplateGrid'
-import { usePathwayStore } from '../stores/pathwayStore'
-import type { PathwayDefinition } from '../types/pathway'
+import { CategorySelect } from './CategorySelect'
 import type { PartnerStyleMeta } from '../types/project'
 import apiClient from '../lib/apiClient'
 import { useAuthStore } from '../stores/authStore'
@@ -29,16 +19,14 @@ import { PulseBeacon, Whisper } from '../components/tutorial'
 /* ── Module-level cache for partner styles (never changes per session) ── */
 let _partnerCache: PartnerStyleMeta[] | null = null
 
-/* ── Helpers ──────────────────────────────────────────────────── */
-
-/* resolvePresetValue removed — old preset system replaced by AI categorization */
-
 /* ── Page ─────────────────────────────────────────────────────── */
 export function Home() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { pathways, active: activePathway, fetchPathways, setActive } = usePathwayStore()
   const { user, initials, fetchUser } = useAuthStore()
+
+  // Category from URL param — if missing, show CategorySelect screen
+  const selectedCategory = searchParams.get('category')
 
   const [idea, setIdea] = useState('')
   const [billingSuccess, setBillingSuccess] = useState(false)
@@ -61,17 +49,10 @@ export function Home() {
   const [partnerStyle, setPartnerStyle] = useState('strategist')
   const [allPartners, setAllPartners] = useState<PartnerStyleMeta[]>(_partnerCache ?? [])
 
-  // Pathway confirmation state (hybrid detection UX)
-  const [showConfirmation, setShowConfirmation] = useState(false)
-  const [detectedPathwayId, setDetectedPathwayId] = useState<string | null>(null)
-  const [detectionReasoning, setDetectionReasoning] = useState('')
-  const [detecting, setDetecting] = useState(false)
-
   // Display name from auth store (already fetched by Sidebar)
   const displayName = user?.display_name || user?.name || user?.email?.split('@')[0] || null
 
-  // Fetch pathways + partner styles on mount
-  useEffect(() => { fetchPathways() }, [fetchPathways])
+  // Fetch partner styles on mount
   useEffect(() => {
     if (_partnerCache) { setAllPartners(_partnerCache); return }
     apiClient.get('/meta/partner-styles')
@@ -79,8 +60,13 @@ export function Home() {
       .catch(() => {})
   }, [])
 
+  /** Handle category selection from CategorySelect screen */
+  const handleCategorySelect = (categoryId: string) => {
+    setSearchParams({ category: categoryId }, { replace: true })
+  }
+
   /** Create the project and navigate to discovery. */
-  const createProject = async (pathwayId: string) => {
+  const createProject = async () => {
     // If a template is active, use the template endpoint
     if (activeTemplate) {
       const { data } = await apiClient.post(`/templates/${activeTemplate.id}/use`, {
@@ -94,66 +80,35 @@ export function Home() {
     const { data } = await apiClient.post('/projects', {
       name: idea.slice(0, 100),
       description: idea,
-      pathway_id: pathwayId,
+      pathway_id: 'software_product',
       ai_partner_style: partnerStyle,
+      primary_category: selectedCategory,
     })
     navigate(`/discovery/${data.id}`)
   }
 
-  /** Main submit handler — detect pathway first if multiple exist. */
+  /** Main submit handler — create project directly (category already chosen). */
   const handleSubmit = async () => {
     if (!idea.trim() && !activeTemplate) return
     setLoading(true)
-
     try {
-      // If only one pathway, skip detection
-      if (pathways.length <= 1) {
-        await createProject(activePathway?.id ?? 'software_product')
-        return
-      }
-
-      // AI-detect pathway
-      setDetecting(true)
-      const { data } = await apiClient.post('/pathways/detect', {
-        description: idea,
-      })
-      setDetecting(false)
-
-      const detectedId = data.pathway_id ?? 'software_product'
-      setDetectedPathwayId(detectedId)
-      setDetectionReasoning(data.reasoning ?? '')
-      setActive(detectedId)
-      setShowConfirmation(true)
-      setLoading(false)
-    } catch {
-      // On error, just create with current pathway
-      setDetecting(false)
-      try {
-        await createProject(activePathway?.id ?? 'software_product')
-      } catch {
-        setLoading(false)
-      }
-    }
-  }
-
-  /** Confirm the detected pathway and create project. */
-  const handleConfirm = async () => {
-    setLoading(true)
-    setShowConfirmation(false)
-    try {
-      await createProject(activePathway?.id ?? detectedPathwayId ?? 'software_product')
+      await createProject()
     } catch {
       setLoading(false)
     }
   }
 
-  /** Override with a different pathway in the confirmation step. */
-  const handleOverride = (pw: PathwayDefinition) => {
-    setActive(pw.id)
-    setDetectedPathwayId(pw.id)
+  // If no category selected, show the category picker
+  if (!selectedCategory) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Sidebar />
+        <div className="ml-0 md:ml-[232px]">
+          <CategorySelect onSelect={handleCategorySelect} />
+        </div>
+      </div>
+    )
   }
-
-  // Old pathway picker removed — AI auto-categorizes at PathwayReview
 
   return (
     <div className="min-h-screen bg-background">
@@ -183,7 +138,7 @@ export function Home() {
             exit={{ opacity: 0, y: -20 }}
             className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-green-500/20 border border-green-500/30 text-green-400 text-sm font-medium px-6 py-3 rounded-xl backdrop-blur-lg shadow-lg"
           >
-            🎉 Subscription activated! Welcome to your new plan.
+            Subscription activated! Welcome to your new plan.
           </motion.div>
         )}
       </AnimatePresence>
@@ -214,177 +169,122 @@ export function Home() {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-2xl md:text-4xl font-bold text-white mb-3">
-            What do you want to <span className="text-accent">create</span>?
+            Describe your <span className="text-accent">idea</span>
           </h1>
           <p className="text-text-muted text-sm md:text-lg">
-            Describe your idea and let AI forge it into a complete design kit.
+            Tell us what you're building and we'll forge it into a complete design kit.
           </p>
         </motion.div>
 
-        <AnimatePresence mode="wait">
-          {!showConfirmation ? (
-            <motion.div
-              key="input"
-              className="w-full flex flex-col items-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {/* Pathway picker removed — AI auto-categorizes projects during PathwayReview */}
-
-              {/* Idea textarea with inline pill dropdowns */}
-              <Whisper id="home:idea" text="Describe your concept in a few sentences — the AI will take it from there">
-              <div className="w-full max-w-2xl mb-6 md:mb-8">
-                <div className="bg-surface border border-border rounded-xl focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30 transition-colors overflow-visible">
-                  {/* Active template pill */}
-                  {activeTemplate && (
-                    <div className="px-4 md:px-6 pt-3">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-300 text-sm font-medium">
-                        <span>{activeTemplate.icon}</span>
-                        <span>{activeTemplate.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => setActiveTemplate(null)}
-                          className="ml-1 hover:text-white transition-colors"
-                          title="Remove template"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </span>
-                    </div>
-                  )}
-                  <textarea
-                    value={idea}
-                    onChange={(e) => setIdea(e.target.value)}
-                    placeholder={activeTemplate
-                      ? 'Add any additional idea detail (optional)...'
-                      : 'Describe your idea in one sentence...'}
-                    className={`w-full bg-transparent px-4 md:px-6 pb-2 text-white text-base md:text-lg placeholder:text-text-muted focus:outline-none resize-none h-20 md:h-24 ${
-                      activeTemplate ? 'pt-2' : 'pt-3 md:pt-4'
-                    }`}
-                  />
-                  <div className="h-3" />
-                </div>
-              </div>
-              </Whisper>
-
-              {/* Quick Start presets removed — AI auto-categorizes projects */}
-
-              {/* AI Partner Style Selector */}
-              {allPartners.length > 0 && (
-                <PulseBeacon id="home:partners" position="top-right" className="w-full max-w-2xl">
-                <div className="w-full max-w-2xl mb-4 md:mb-6">
-                  <label className="text-xs text-text-muted font-medium mb-3 block">
-                    Choose a partner style:
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                    {allPartners.map((p) => (
-                      <div key={p.id} className="relative group">
-                        <button
-                          type="button"
-                          onClick={() => setPartnerStyle(p.id)}
-                          className={`
-                            w-full flex flex-col items-center text-center rounded-lg px-2 py-2.5 cursor-pointer
-                            transition-all duration-200 ease-out
-                            ${
-                              partnerStyle === p.id
-                                ? 'bg-accent/5 border border-accent shadow-[0_0_16px_rgba(0,229,255,0.1)]'
-                                : 'bg-white/5 border border-border hover:border-white/15 hover:scale-[1.02]'
-                            }
-                          `}
-                        >
-                          <span className="text-xl leading-none">{p.icon}</span>
-                          <span className="text-[11px] font-semibold text-white mt-1.5">{p.name}</span>
-                        </button>
-                        {/* Tooltip */}
-                        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-surface border border-border shadow-xl text-[11px] text-text-muted leading-snug w-48 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 hidden sm:block">
-                          <span className="font-semibold text-white">{p.name}</span>
-                          <span className="block mt-0.5">{p.description}</span>
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-2 h-2 bg-surface border-r border-b border-border rotate-45" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                </PulseBeacon>
-              )}
-
-              <div className="mb-2" />
-
-              {/* Submit */}
-              <PulseBeacon id="home:start">
-                <Button size="lg" onClick={handleSubmit} disabled={(!idea.trim() && !activeTemplate) || loading}>
-                  {detecting ? 'Analyzing idea...' : loading ? 'Creating...' : 'Start Discovery \u2192'}
-                </Button>
-              </PulseBeacon>
-            </motion.div>
-          ) : (
-            /* ── Pathway Confirmation Step ── */
-            <motion.div
-              key="confirm"
-              className="w-full max-w-2xl flex flex-col items-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="bg-surface border border-border rounded-xl p-6 md:p-8 w-full mb-6">
-                <div className="text-center mb-6">
-                  <span className="text-4xl mb-3 block">{activePathway?.icon}</span>
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    I think this is a <span className="text-accent">{activePathway?.name}</span> project
-                  </h3>
-                  {detectionReasoning && (
-                    <p className="text-sm text-text-muted">{detectionReasoning}</p>
-                  )}
-                </div>
-
-                <p className="text-xs text-text-muted text-center mb-4">Is that right? Or pick a different type:</p>
-
-                <div className="flex flex-wrap justify-center gap-2 mb-6">
-                  {pathways.map(pw => (
+        <motion.div
+          className="w-full flex flex-col items-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {/* Idea textarea */}
+          <Whisper id="home:idea" text="Describe your concept in a few sentences — the AI will take it from there">
+          <div className="w-full max-w-2xl mb-6 md:mb-8">
+            <div className="bg-surface border border-border rounded-xl focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30 transition-colors overflow-visible">
+              {/* Active template pill */}
+              {activeTemplate && (
+                <div className="px-4 md:px-6 pt-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-300 text-sm font-medium">
+                    <span>{activeTemplate.icon}</span>
+                    <span>{activeTemplate.name}</span>
                     <button
-                      key={pw.id}
                       type="button"
-                      onClick={() => handleOverride(pw)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all border ${
-                        activePathway?.id === pw.id
-                          ? 'border-accent bg-accent/10 text-accent'
-                          : 'border-border bg-white/5 text-text-muted hover:text-white hover:bg-white/10'
-                      }`}
+                      onClick={() => setActiveTemplate(null)}
+                      className="ml-1 hover:text-white transition-colors"
+                      title="Remove template"
                     >
-                      <span>{pw.icon}</span>
-                      <span className="font-medium">{pw.name}</span>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
                     </button>
-                  ))}
+                  </span>
                 </div>
-
-                <div className="flex gap-3 justify-center">
-                  <Button
-                    variant="ghost"
-                    onClick={() => { setShowConfirmation(false); setLoading(false) }}
-                  >
-                    Back
-                  </Button>
-                  <Button size="lg" onClick={handleConfirm} disabled={loading}>
-                    {loading ? 'Creating...' : `Yes, let's go! \u2192`}
-                  </Button>
-                </div>
+              )}
+              <textarea
+                value={idea}
+                onChange={(e) => setIdea(e.target.value)}
+                placeholder={activeTemplate
+                  ? 'Add any additional idea detail (optional)...'
+                  : 'Describe your idea in one sentence...'}
+                className={`w-full bg-transparent px-4 md:px-6 pb-2 text-white text-base md:text-lg placeholder:text-text-muted focus:outline-none resize-none h-20 md:h-24 ${
+                  activeTemplate ? 'pt-2' : 'pt-3 md:pt-4'
+                }`}
+              />
+              {/* Category badge + change link */}
+              <div className="px-4 md:px-6 pb-3 flex items-center gap-2">
+                <span className="text-[10px] text-text-muted">Category:</span>
+                <button
+                  type="button"
+                  onClick={() => setSearchParams({}, { replace: true })}
+                  className="text-[10px] text-accent hover:text-accent/80 transition-colors"
+                >
+                  {selectedCategory.replace(/_/g, ' ')} &middot; change
+                </button>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </div>
+          </Whisper>
 
-        {/* Template grid — shown below the main creation form */}
-        {!showConfirmation && (
-          <TemplateGrid
-            onSelect={(t) => setActiveTemplate(prev => prev?.id === t.id ? null : t)}
-            selectedId={activeTemplate?.id}
-          />
-        )}
+          {/* AI Partner Style Selector */}
+          {allPartners.length > 0 && (
+            <PulseBeacon id="home:partners" position="top-right" className="w-full max-w-2xl">
+            <div className="w-full max-w-2xl mb-4 md:mb-6">
+              <label className="text-xs text-text-muted font-medium mb-3 block">
+                Choose a partner style:
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {allPartners.map((p) => (
+                  <div key={p.id} className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => setPartnerStyle(p.id)}
+                      className={`
+                        w-full flex flex-col items-center text-center rounded-lg px-2 py-2.5 cursor-pointer
+                        transition-all duration-200 ease-out
+                        ${
+                          partnerStyle === p.id
+                            ? 'bg-accent/5 border border-accent shadow-[0_0_16px_rgba(0,229,255,0.1)]'
+                            : 'bg-white/5 border border-border hover:border-white/15 hover:scale-[1.02]'
+                        }
+                      `}
+                    >
+                      <span className="text-xl leading-none">{p.icon}</span>
+                      <span className="text-[11px] font-semibold text-white mt-1.5">{p.name}</span>
+                    </button>
+                    {/* Tooltip */}
+                    <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-surface border border-border shadow-xl text-[11px] text-text-muted leading-snug w-48 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 hidden sm:block">
+                      <span className="font-semibold text-white">{p.name}</span>
+                      <span className="block mt-0.5">{p.description}</span>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-2 h-2 bg-surface border-r border-b border-border rotate-45" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            </PulseBeacon>
+          )}
+
+          <div className="mb-2" />
+
+          {/* Submit */}
+          <PulseBeacon id="home:start">
+            <Button size="lg" onClick={handleSubmit} disabled={(!idea.trim() && !activeTemplate) || loading}>
+              {loading ? 'Creating...' : 'Start Discovery \u2192'}
+            </Button>
+          </PulseBeacon>
+        </motion.div>
+
+        {/* Template grid — filtered to selected category */}
+        <TemplateGrid
+          onSelect={(t) => setActiveTemplate(prev => prev?.id === t.id ? null : t)}
+          selectedId={activeTemplate?.id}
+          category={selectedCategory}
+        />
 
       </main>
     </div>

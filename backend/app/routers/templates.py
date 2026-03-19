@@ -18,9 +18,28 @@ from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
-# Maps template category slugs → concept_categories.seed.json IDs
+# Maps template category slugs → concept_categories.seed.json IDs.
+# Templates now use concept IDs directly (migration 024), but legacy
+# slugs from migrations 017/018 are kept for backward compatibility.
 CATEGORY_TO_CONCEPT: dict[str, str] = {
-    # Software (migration 017)
+    # Identity mappings (concept category IDs used directly by new templates)
+    "software_tech": "software_tech",
+    "physical_product": "physical_product",
+    "built_environment": "built_environment",
+    "business_startup": "business_startup",
+    "creative_writing": "creative_writing",
+    "research_academic": "research_academic",
+    "art_visual": "art_visual",
+    "music_audio": "music_audio",
+    "film_video": "film_video",
+    "food_hospitality": "food_hospitality",
+    "fashion_apparel": "fashion_apparel",
+    "education_training": "education_training",
+    "event_experience": "event_experience",
+    "health_wellness": "health_wellness",
+    "social_impact": "social_impact",
+    "finance_investment": "finance_investment",
+    # Legacy slugs (migrations 017/018)
     "saas": "software_tech",
     "mobile": "software_tech",
     "ecommerce": "business_startup",
@@ -31,7 +50,6 @@ CATEGORY_TO_CONCEPT: dict[str, str] = {
     "developer": "software_tech",
     "marketplace": "business_startup",
     "general": "software_tech",
-    # Top-level categories (migration 018)
     "software": "software_tech",
     "business": "business_startup",
     "education": "education_training",

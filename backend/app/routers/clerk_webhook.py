@@ -3,6 +3,7 @@ clerk_webhook.py — Handles Clerk webhook events for user sync.
 Verifies webhook signatures using svix and syncs user data to the local database.
 """
 import logging
+import secrets
 
 from fastapi import APIRouter, HTTPException, Request, status, Depends
 from sqlalchemy import select, func
@@ -11,6 +12,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.database import get_db
 from app.models.user import User
+
+
+def _generate_inbox_email() -> str:
+    """Generate a unique inbox email address for a user."""
+    local_part = secrets.token_hex(4)  # 8 hex chars
+    return f"{local_part}@{settings.INBOX_DOMAIN}"
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +110,8 @@ async def _handle_user_created(user_data: dict, db: AsyncSession) -> None:
         existing_by_email.email_verified = True
         if user_data.get("image_url") and not existing_by_email.avatar_url:
             existing_by_email.avatar_url = user_data["image_url"]
+        if not existing_by_email.inbox_email:
+            existing_by_email.inbox_email = _generate_inbox_email()
         await db.flush()
         logger.info("Linked existing user to Clerk: %s", email)
         return
@@ -115,6 +124,7 @@ async def _handle_user_created(user_data: dict, db: AsyncSession) -> None:
         display_name=_build_name(user_data),
         avatar_url=user_data.get("image_url"),
         email_verified=True,
+        inbox_email=_generate_inbox_email(),
         preferences={},
     )
     db.add(user)

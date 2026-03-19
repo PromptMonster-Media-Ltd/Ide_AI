@@ -16,6 +16,7 @@ export interface AuthUser {
   email_verified: boolean
   account_type: string
   bio: string | null
+  inbox_email: string | null
   preferences: Record<string, unknown> | null
   created_at: string
 }

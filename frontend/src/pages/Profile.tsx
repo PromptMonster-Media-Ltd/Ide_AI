@@ -3,7 +3,7 @@
  * @module pages/Profile
  */
 import { useEffect, useState, useRef } from 'react'
-import { useClerk } from '@clerk/clerk-react'
+import { useClerk, useUser } from '@clerk/clerk-react'
 import { Sidebar } from '../components/layout/Sidebar'
 import { TopBar } from '../components/layout/TopBar'
 import { Button } from '../components/ui/Button'
@@ -15,6 +15,7 @@ import { extractError } from '../lib/extractError'
 
 export function Profile() {
   const { user, setUser, fetchUser, initials } = useAuthStore()
+  const { user: clerkUser } = useUser()
   const [loading, setLoading] = useState(!user)
 
   // Profile form
@@ -85,6 +86,8 @@ export function Profile() {
       form.append('file', file)
       const { data } = await apiClient.post('/auth/me/avatar', form)
       setUser(data as AuthUser)
+      // Sync to Clerk so <UserButton /> in sidebar updates immediately
+      try { await clerkUser?.setProfileImage({ file }) } catch { /* non-blocking */ }
     } catch (err: unknown) {
       setError(extractError(err, 'Failed to upload avatar.'))
     } finally {
