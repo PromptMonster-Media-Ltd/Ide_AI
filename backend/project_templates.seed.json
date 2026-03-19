@@ -1,0 +1,2097 @@
+[
+  {
+    "name": "SaaS MVP",
+    "description": "Launch a subscription-based software product with user auth, billing, and a polished landing page.",
+    "icon": "🚀",
+    "category": "software_tech",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "React, Node.js, Stripe integration, PostgreSQL",
+      "success_metric": "First 100 paying subscribers within 90 days"
+    }
+  },
+  {
+    "name": "Mobile App",
+    "description": "Build a cross-platform mobile application with native performance and app store deployment.",
+    "icon": "📱",
+    "category": "software_tech",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "mobile",
+      "tone": "casual",
+      "tech_constraints": "React Native or Flutter, push notifications, offline support",
+      "success_metric": "1,000 downloads in the first month"
+    }
+  },
+  {
+    "name": "Browser Extension",
+    "description": "Create a productivity browser extension that enhances an existing web workflow.",
+    "icon": "🧩",
+    "category": "software_tech",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "technical",
+      "tech_constraints": "Chrome Manifest V3, cross-browser compatibility, minimal permissions",
+      "success_metric": "5,000 active weekly users on Chrome Web Store"
+    }
+  },
+  {
+    "name": "CLI Developer Tool",
+    "description": "Design a command-line tool that automates repetitive developer tasks and integrates with CI/CD.",
+    "icon": "⌨️",
+    "category": "software_tech",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "technical",
+      "tech_constraints": "Go or Rust, cross-platform binaries, NPM/Homebrew distribution",
+      "success_metric": "500 GitHub stars and 50 weekly npm installs"
+    }
+  },
+  {
+    "name": "API Service",
+    "description": "Build a developer-facing REST or GraphQL API with documentation, rate limiting, and key management.",
+    "icon": "🔌",
+    "category": "software_tech",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "technical",
+      "tech_constraints": "FastAPI or Express, OpenAPI spec, Redis caching, API key auth",
+      "success_metric": "1 million API calls per month within 6 months"
+    }
+  },
+  {
+    "name": "Desktop Application",
+    "description": "Develop a native desktop app with system tray integration and automatic updates.",
+    "icon": "🖥️",
+    "category": "software_tech",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Electron or Tauri, auto-updater, local file system access",
+      "success_metric": "10,000 installs across Windows and macOS"
+    }
+  },
+  {
+    "name": "E-Commerce Store",
+    "description": "Set up an online store with product catalog, cart, checkout, and order management dashboard.",
+    "icon": "🛒",
+    "category": "software_tech",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Shopify or custom storefront, Stripe payments, inventory sync",
+      "success_metric": "First $10K in monthly revenue"
+    }
+  },
+  {
+    "name": "AI-Powered Tool",
+    "description": "Create an application that uses LLMs or ML models to solve a specific user problem.",
+    "icon": "🤖",
+    "category": "software_tech",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "OpenAI or Anthropic API, streaming responses, prompt engineering",
+      "success_metric": "500 daily active users with >60% retention"
+    }
+  },
+  {
+    "name": "Community Platform",
+    "description": "Build a social platform with user profiles, discussions, groups, and real-time notifications.",
+    "icon": "👥",
+    "category": "software_tech",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "WebSockets for real-time, content moderation, media uploads",
+      "success_metric": "1,000 monthly active members within 6 months"
+    }
+  },
+  {
+    "name": "Marketplace",
+    "description": "Launch a two-sided marketplace connecting buyers and sellers with listing management and payments.",
+    "icon": "🏪",
+    "category": "software_tech",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Stripe Connect for split payments, search/filter, review system",
+      "success_metric": "500 listings and $50K GMV in first quarter"
+    }
+  },
+
+  {
+    "name": "Consumer Gadget",
+    "description": "Design a smart consumer electronic device with companion app connectivity and retail packaging.",
+    "icon": "📟",
+    "category": "physical_product",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "professional",
+      "tech_constraints": "Bluetooth Low Energy, injection-molded housing, FCC certification",
+      "success_metric": "First 1,000 units sold through direct-to-consumer channel"
+    }
+  },
+  {
+    "name": "Kitchen Product",
+    "description": "Create an innovative kitchen tool or appliance that simplifies meal preparation for home cooks.",
+    "icon": "🍳",
+    "category": "physical_product",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "Food-safe materials, dishwasher-safe, compact storage design",
+      "success_metric": "4.5+ star average rating on Amazon with 200 reviews"
+    }
+  },
+  {
+    "name": "Wearable Device",
+    "description": "Build a wearable health or fitness tracker with sensor integration and mobile app sync.",
+    "icon": "⌚",
+    "category": "physical_product",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "technical",
+      "tech_constraints": "Heart rate sensor, accelerometer, 5-day battery life, IP67 waterproof",
+      "success_metric": "Pre-order campaign reaches $100K in crowdfunding"
+    }
+  },
+  {
+    "name": "Outdoor Gear",
+    "description": "Design durable outdoor equipment for hiking, camping, or adventure sports enthusiasts.",
+    "icon": "🏕️",
+    "category": "physical_product",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "Weather-resistant materials, lightweight under 2 lbs, packable design",
+      "success_metric": "Featured in 3 outdoor gear review publications"
+    }
+  },
+  {
+    "name": "Home Appliance",
+    "description": "Develop a connected home appliance with smart features, energy efficiency, and voice control.",
+    "icon": "🏠",
+    "category": "physical_product",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Wi-Fi enabled, Alexa/Google Home integration, Energy Star compliant",
+      "success_metric": "Retail partnership with one major home goods chain"
+    }
+  },
+  {
+    "name": "Fitness Equipment",
+    "description": "Create a piece of home fitness equipment with connected tracking and guided workout features.",
+    "icon": "🏋️",
+    "category": "physical_product",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "Compact footprint, Bluetooth metrics, companion app, 300 lb capacity",
+      "success_metric": "500 units sold in first 3 months via DTC website"
+    }
+  },
+  {
+    "name": "Kids Toy",
+    "description": "Design an educational toy that promotes STEM learning for children aged 5 to 12.",
+    "icon": "🧸",
+    "category": "physical_product",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "CPSIA/ASTM safety compliance, non-toxic materials, no small parts under age 3",
+      "success_metric": "Toy industry award nomination in first year"
+    }
+  },
+  {
+    "name": "Pet Product",
+    "description": "Build a smart pet care product that monitors health, feeding, or activity for dogs or cats.",
+    "icon": "🐾",
+    "category": "physical_product",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "Pet-safe materials, chew-resistant, mobile app for tracking",
+      "success_metric": "2,000 units sold and 4.5+ star reviews on Amazon"
+    }
+  },
+  {
+    "name": "Office Accessory",
+    "description": "Design an ergonomic desk accessory that improves comfort and productivity for remote workers.",
+    "icon": "💼",
+    "category": "physical_product",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "professional",
+      "tech_constraints": "Sustainable materials, adjustable sizing, ships flat for low cost",
+      "success_metric": "B2B bulk orders from 10 companies within 6 months"
+    }
+  },
+  {
+    "name": "Sustainable Product",
+    "description": "Create an eco-friendly consumer product that replaces a single-use item with a reusable alternative.",
+    "icon": "♻️",
+    "category": "physical_product",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "100% recyclable or compostable materials, B Corp alignment, minimal packaging",
+      "success_metric": "1 million single-use items displaced in first year"
+    }
+  },
+
+  {
+    "name": "Residential Home",
+    "description": "Plan a custom residential home with floor plans, material specs, and energy-efficient design.",
+    "icon": "🏡",
+    "category": "built_environment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "professional",
+      "tech_constraints": "Local building codes, energy modeling, 3-bedroom minimum, 2,000 sq ft",
+      "success_metric": "Building permit approved on first submission"
+    }
+  },
+  {
+    "name": "Coworking Space",
+    "description": "Design a flexible coworking space with hot desks, private offices, and community amenities.",
+    "icon": "🏢",
+    "category": "built_environment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "professional",
+      "tech_constraints": "ADA compliance, fiber internet, soundproofing, 50+ seat capacity",
+      "success_metric": "80% occupancy rate within 6 months of opening"
+    }
+  },
+  {
+    "name": "Restaurant Interior",
+    "description": "Create a restaurant interior that balances ambiance, flow, and operational efficiency for 80 covers.",
+    "icon": "🍽️",
+    "category": "built_environment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "Commercial kitchen requirements, fire safety, ventilation, POS wiring",
+      "success_metric": "Seats turn 2.5x per night on weekends"
+    }
+  },
+  {
+    "name": "Retail Store",
+    "description": "Design a retail store layout that maximizes product visibility, foot traffic flow, and conversion.",
+    "icon": "🏬",
+    "category": "built_environment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "professional",
+      "tech_constraints": "ADA accessible, security cameras, POS integration, fitting rooms",
+      "success_metric": "Revenue per square foot exceeds $500 annually"
+    }
+  },
+  {
+    "name": "Community Center",
+    "description": "Plan a multi-purpose community center with event spaces, classrooms, and recreational facilities.",
+    "icon": "🏛️",
+    "category": "built_environment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "professional",
+      "tech_constraints": "Accessibility compliance, multi-zone HVAC, 200-person event capacity",
+      "success_metric": "Facility booked 5 days per week within first year"
+    }
+  },
+  {
+    "name": "Tiny Home",
+    "description": "Design a compact tiny home under 400 sq ft with efficient storage and off-grid capability.",
+    "icon": "🛖",
+    "category": "built_environment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "Towable on flatbed, solar-ready, composting toilet, rainwater collection",
+      "success_metric": "Build cost under $60K with all systems functional"
+    }
+  },
+  {
+    "name": "Pop-up Shop",
+    "description": "Create a modular pop-up retail space that assembles in under 4 hours for events and markets.",
+    "icon": "🎪",
+    "category": "built_environment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "Portable structure, weather-resistant, brand-customizable panels, lighting",
+      "success_metric": "Deployed at 12 events in first year with positive vendor feedback"
+    }
+  },
+  {
+    "name": "Office Renovation",
+    "description": "Redesign an existing office to support hybrid work with collaboration zones and quiet areas.",
+    "icon": "🔨",
+    "category": "built_environment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "professional",
+      "tech_constraints": "Existing HVAC reuse, phased construction, 30-person capacity, AV systems",
+      "success_metric": "Employee satisfaction score improves 20% post-renovation"
+    }
+  },
+  {
+    "name": "Public Park",
+    "description": "Design an urban public park with green space, play areas, walking paths, and community gardens.",
+    "icon": "🌳",
+    "category": "built_environment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "Native plantings, stormwater management, ADA paths, solar lighting",
+      "success_metric": "500+ daily visitors during peak season"
+    }
+  },
+  {
+    "name": "Smart Building",
+    "description": "Plan a smart commercial building with IoT sensors, energy management, and occupancy analytics.",
+    "icon": "🏗️",
+    "category": "built_environment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "technical",
+      "tech_constraints": "BACnet/Modbus integration, LEED Gold target, occupancy sensors, BMS dashboard",
+      "success_metric": "30% energy reduction compared to baseline building"
+    }
+  },
+
+  {
+    "name": "Startup Pitch Deck",
+    "description": "Build a compelling 12-slide pitch deck that tells your startup story and secures investor meetings.",
+    "icon": "📊",
+    "category": "business_startup",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Keynote or Google Slides, data visualization, financial projections",
+      "success_metric": "Secure 10 investor meetings within 30 days of distribution"
+    }
+  },
+  {
+    "name": "Business Plan",
+    "description": "Write a comprehensive business plan with market analysis, financial projections, and operational strategy.",
+    "icon": "📋",
+    "category": "business_startup",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "3-year financial model, competitive analysis, go-to-market strategy",
+      "success_metric": "Secure funding or bank loan approval"
+    }
+  },
+  {
+    "name": "Lean Canvas",
+    "description": "Map your business idea onto a one-page Lean Canvas to validate problem-solution fit quickly.",
+    "icon": "📐",
+    "category": "business_startup",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Single-page format, testable hypotheses, cost structure breakdown",
+      "success_metric": "Complete 10 customer discovery interviews validating top 3 assumptions"
+    }
+  },
+  {
+    "name": "Franchise Model",
+    "description": "Design a franchise system with operations manuals, training programs, and territory mapping.",
+    "icon": "🔗",
+    "category": "business_startup",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "FDD compliance, standardized SOPs, territory analysis, POS system",
+      "success_metric": "Sign 5 franchise agreements in the first 18 months"
+    }
+  },
+  {
+    "name": "Consulting Practice",
+    "description": "Launch a professional consulting practice with service packages, pricing tiers, and client acquisition.",
+    "icon": "🎯",
+    "category": "business_startup",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "CRM system, proposal templates, time tracking, invoicing",
+      "success_metric": "Book $100K in consulting revenue within first year"
+    }
+  },
+  {
+    "name": "Subscription Box",
+    "description": "Create a curated subscription box service with sourcing, packaging, and recurring billing.",
+    "icon": "📦",
+    "category": "business_startup",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Fulfillment logistics, Shopify subscriptions, custom packaging design",
+      "success_metric": "500 active subscribers with <8% monthly churn"
+    }
+  },
+  {
+    "name": "Agency Launch",
+    "description": "Start a creative or digital agency with service offerings, team structure, and client pipeline.",
+    "icon": "🏢",
+    "category": "business_startup",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Project management tools, portfolio website, contract templates",
+      "success_metric": "Sign 3 retainer clients generating $15K+ MRR"
+    }
+  },
+  {
+    "name": "Food Truck Business",
+    "description": "Plan a food truck operation with menu design, route strategy, permits, and commissary kitchen setup.",
+    "icon": "🚚",
+    "category": "business_startup",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "Health department permits, commercial vehicle, mobile POS, commissary lease",
+      "success_metric": "Break even within 6 months with $3K+ weekly revenue"
+    }
+  },
+  {
+    "name": "Nonprofit Organization",
+    "description": "Establish a nonprofit with 501(c)(3) filing, board structure, fundraising plan, and program design.",
+    "icon": "💚",
+    "category": "business_startup",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "501(c)(3) application, donor management CRM, grant writing templates",
+      "success_metric": "Raise $50K in first year and serve 500 beneficiaries"
+    }
+  },
+  {
+    "name": "Local Service Business",
+    "description": "Launch a local service business like cleaning, landscaping, or repair with booking and scheduling.",
+    "icon": "🔧",
+    "category": "business_startup",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "Online booking system, Google Business profile, route optimization",
+      "success_metric": "50 recurring weekly clients within 6 months"
+    }
+  },
+
+  {
+    "name": "Novel Outline",
+    "description": "Structure a novel with character arcs, plot beats, chapter outlines, and worldbuilding details.",
+    "icon": "📖",
+    "category": "creative_writing",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "creative",
+      "tech_constraints": "Scrivener or Google Docs, 80K-100K word target, three-act structure",
+      "success_metric": "Complete first draft manuscript within 6 months"
+    }
+  },
+  {
+    "name": "Screenplay",
+    "description": "Write a feature-length screenplay with proper formatting, scene structure, and character development.",
+    "icon": "🎬",
+    "category": "creative_writing",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "creative",
+      "tech_constraints": "Final Draft or Fountain format, 90-120 pages, industry-standard formatting",
+      "success_metric": "Place as semifinalist in a recognized screenplay competition"
+    }
+  },
+  {
+    "name": "Short Story Collection",
+    "description": "Develop a themed collection of 10-15 short stories with consistent voice and thematic threads.",
+    "icon": "📚",
+    "category": "creative_writing",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "creative",
+      "tech_constraints": "3K-8K words per story, unified theme, submission-ready formatting",
+      "success_metric": "Publish 5 stories in literary magazines before compiling collection"
+    }
+  },
+  {
+    "name": "Children's Book",
+    "description": "Create an illustrated children's picture book with age-appropriate story, pacing, and illustration briefs.",
+    "icon": "🧒",
+    "category": "creative_writing",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "32-page standard format, ages 4-8, illustrator collaboration brief",
+      "success_metric": "Secure a literary agent or self-publish with 500 copies sold"
+    }
+  },
+  {
+    "name": "Graphic Novel",
+    "description": "Plan a graphic novel with panel layouts, script pages, character designs, and story arc mapping.",
+    "icon": "💥",
+    "category": "creative_writing",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "120-200 pages, panel scripting format, artist style guide, print specs",
+      "success_metric": "Complete script and first 20 illustrated pages for publisher pitch"
+    }
+  },
+  {
+    "name": "Blog / Newsletter",
+    "description": "Launch a niche blog or newsletter with content calendar, audience strategy, and monetization plan.",
+    "icon": "✍️",
+    "category": "creative_writing",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Substack or Ghost, SEO strategy, email capture, weekly publishing cadence",
+      "success_metric": "1,000 email subscribers within 6 months"
+    }
+  },
+  {
+    "name": "Memoir",
+    "description": "Outline a personal memoir with key life events, narrative arc, and emotional through-line.",
+    "icon": "📝",
+    "category": "creative_writing",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "60K-80K words, chronological or thematic structure, sensitivity review",
+      "success_metric": "Complete manuscript and query letter for 10 literary agents"
+    }
+  },
+  {
+    "name": "Poetry Collection",
+    "description": "Curate a poetry collection with thematic sections, consistent voice, and publication formatting.",
+    "icon": "🪶",
+    "category": "creative_writing",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "creative",
+      "tech_constraints": "40-80 poems, chapbook or full-length, submission guidelines adherence",
+      "success_metric": "Accepted by a poetry press or win a chapbook contest"
+    }
+  },
+  {
+    "name": "Web Serial",
+    "description": "Plan an episodic web serial with cliffhanger structure, release schedule, and reader engagement hooks.",
+    "icon": "📡",
+    "category": "creative_writing",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Royal Road or personal site, 2K-5K words per chapter, weekly updates",
+      "success_metric": "500 regular readers and Patreon supporters within 6 months"
+    }
+  },
+  {
+    "name": "Comedy Special Script",
+    "description": "Write a 60-minute stand-up comedy special with setlist structure, callbacks, and crowd work notes.",
+    "icon": "🎤",
+    "category": "creative_writing",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "60-minute runtime, 5-minute segment blocks, opening/closing bits, callbacks",
+      "success_metric": "Perform full set at 3 live venues with positive audience response"
+    }
+  },
+
+  {
+    "name": "Research Paper",
+    "description": "Structure an academic research paper with hypothesis, methodology, data analysis, and conclusions.",
+    "icon": "🔬",
+    "category": "research_academic",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "technical",
+      "tech_constraints": "LaTeX or Word, APA/IEEE formatting, peer-review ready, IRB if human subjects",
+      "success_metric": "Accepted for publication in a peer-reviewed journal"
+    }
+  },
+  {
+    "name": "Literature Review",
+    "description": "Conduct a comprehensive literature review synthesizing 50+ sources on a focused research question.",
+    "icon": "📑",
+    "category": "research_academic",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "technical",
+      "tech_constraints": "Zotero or Mendeley, systematic search strategy, PRISMA guidelines",
+      "success_metric": "Identify 3 clear research gaps publishable as a standalone review"
+    }
+  },
+  {
+    "name": "Grant Proposal",
+    "description": "Write a competitive grant proposal with project narrative, budget justification, and timeline.",
+    "icon": "💰",
+    "category": "research_academic",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "NSF/NIH format guidelines, budget template, biosketch, data management plan",
+      "success_metric": "Score in the fundable range on first submission"
+    }
+  },
+  {
+    "name": "Lab Experiment",
+    "description": "Design a controlled lab experiment with variables, protocols, safety procedures, and data collection.",
+    "icon": "🧪",
+    "category": "research_academic",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "technical",
+      "tech_constraints": "Lab equipment inventory, safety protocols, statistical power analysis",
+      "success_metric": "Achieve statistically significant results (p < 0.05) with replicable protocol"
+    }
+  },
+  {
+    "name": "Survey Study",
+    "description": "Build a validated survey instrument with sampling strategy, distribution plan, and analysis framework.",
+    "icon": "📊",
+    "category": "research_academic",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "technical",
+      "tech_constraints": "Qualtrics or Google Forms, Likert scales, IRB approval, 300+ respondents",
+      "success_metric": "Achieve 30%+ response rate with Cronbach's alpha > 0.7"
+    }
+  },
+  {
+    "name": "Case Study",
+    "description": "Develop an in-depth case study analyzing a real-world phenomenon with qualitative methodology.",
+    "icon": "🔎",
+    "category": "research_academic",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Semi-structured interviews, NVivo coding, triangulation of sources",
+      "success_metric": "Present findings at a discipline-specific academic conference"
+    }
+  },
+  {
+    "name": "Thesis / Dissertation",
+    "description": "Plan a graduate thesis or dissertation with chapter structure, committee timeline, and defense prep.",
+    "icon": "🎓",
+    "category": "research_academic",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "technical",
+      "tech_constraints": "University format guidelines, committee approval milestones, 5-chapter structure",
+      "success_metric": "Successfully defend thesis and pass committee review"
+    }
+  },
+  {
+    "name": "Data Analysis Project",
+    "description": "Analyze a large dataset with statistical methods, visualization, and actionable insight extraction.",
+    "icon": "📈",
+    "category": "research_academic",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "technical",
+      "tech_constraints": "Python/R, Jupyter notebooks, 10K+ row dataset, reproducible pipeline",
+      "success_metric": "Deliver 5 actionable insights with supporting visualizations"
+    }
+  },
+  {
+    "name": "Systematic Review",
+    "description": "Conduct a PRISMA-compliant systematic review with meta-analysis across multiple databases.",
+    "icon": "🗂️",
+    "category": "research_academic",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "technical",
+      "tech_constraints": "PRISMA checklist, Cochrane methodology, forest plots, bias assessment",
+      "success_metric": "Register protocol on PROSPERO and publish in a Q1 journal"
+    }
+  },
+  {
+    "name": "Policy Brief",
+    "description": "Write a concise policy brief that translates research findings into actionable recommendations for decision-makers.",
+    "icon": "📜",
+    "category": "research_academic",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "2-4 page format, executive summary, evidence-based recommendations",
+      "success_metric": "Brief cited or referenced by a government agency or policy body"
+    }
+  },
+
+  {
+    "name": "Art Exhibition",
+    "description": "Curate a cohesive art exhibition with theme statement, artist selection, and installation layout.",
+    "icon": "🖼️",
+    "category": "art_visual",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "Gallery space 1,000+ sq ft, lighting plan, hanging system, artist contracts",
+      "success_metric": "500+ visitors and press coverage in 2 publications during run"
+    }
+  },
+  {
+    "name": "Photography Series",
+    "description": "Develop a 20-30 image photography series with consistent visual language and exhibition-ready prints.",
+    "icon": "📸",
+    "category": "art_visual",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "RAW processing, consistent color grading, archival printing, portfolio book",
+      "success_metric": "Selected for exhibition or published in a photography magazine"
+    }
+  },
+  {
+    "name": "Brand Identity Kit",
+    "description": "Design a complete brand identity with logo, color palette, typography, and usage guidelines.",
+    "icon": "🎨",
+    "category": "art_visual",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Figma or Illustrator, vector formats, brand book PDF, social media templates",
+      "success_metric": "Client approval and successful deployment across all brand touchpoints"
+    }
+  },
+  {
+    "name": "UI/UX Redesign",
+    "description": "Redesign an existing product's user interface with research-backed improvements and design system.",
+    "icon": "🖌️",
+    "category": "art_visual",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Figma design system, WCAG 2.1 AA accessibility, user testing protocol",
+      "success_metric": "20% improvement in task completion rate post-redesign"
+    }
+  },
+  {
+    "name": "Illustration Series",
+    "description": "Create a themed illustration series for editorial, merchandise, or gallery with consistent style.",
+    "icon": "✏️",
+    "category": "art_visual",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "creative",
+      "tech_constraints": "Procreate or Adobe Illustrator, print and digital formats, licensing terms",
+      "success_metric": "License 5 illustrations for commercial use or sell 50 prints"
+    }
+  },
+  {
+    "name": "Mural / Public Art",
+    "description": "Plan a large-scale public mural with community input, permits, and weather-resistant materials.",
+    "icon": "🏙️",
+    "category": "art_visual",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "Exterior paint rated for 10+ years, scaffolding, city permit, wall prep",
+      "success_metric": "Completed installation with community unveiling event and media coverage"
+    }
+  },
+  {
+    "name": "Gallery Collection",
+    "description": "Build a gallery-ready collection of 15-25 artworks with pricing strategy and artist statement.",
+    "icon": "🏛️",
+    "category": "art_visual",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "professional",
+      "tech_constraints": "Consistent medium, professional framing, inventory system, certificates",
+      "success_metric": "Sell 40% of collection pieces at gallery opening"
+    }
+  },
+  {
+    "name": "Digital Art Series",
+    "description": "Produce a digital art collection for online galleries, social media, or NFT marketplaces.",
+    "icon": "💻",
+    "category": "art_visual",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "creative",
+      "tech_constraints": "High-resolution PNG/TIFF, generative or hand-drawn, metadata standards",
+      "success_metric": "10,000 social media impressions and 20 sales within 3 months"
+    }
+  },
+  {
+    "name": "Creative Portfolio",
+    "description": "Design a personal portfolio website showcasing creative work with case studies and contact form.",
+    "icon": "🌐",
+    "category": "art_visual",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "creative",
+      "tech_constraints": "Fast loading, mobile-responsive, 10-15 projects, CMS for updates",
+      "success_metric": "Generate 5 inbound client inquiries per month"
+    }
+  },
+  {
+    "name": "Art Installation",
+    "description": "Design an immersive art installation with spatial planning, interactive elements, and technical riders.",
+    "icon": "🎭",
+    "category": "art_visual",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "Sensor-based interactivity, projection mapping, structural engineering review",
+      "success_metric": "Featured in a museum or art fair with 1,000+ visitors"
+    }
+  },
+
+  {
+    "name": "Album Release",
+    "description": "Plan a full album release with track sequencing, production timeline, artwork, and distribution strategy.",
+    "icon": "💿",
+    "category": "music_audio",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "creative",
+      "tech_constraints": "10-14 tracks, mastering specs, distributor (DistroKid/TuneCore), ISRC codes",
+      "success_metric": "100,000 streams in first 30 days across platforms"
+    }
+  },
+  {
+    "name": "Podcast Launch",
+    "description": "Launch a weekly podcast with episode format, guest pipeline, recording setup, and monetization plan.",
+    "icon": "🎙️",
+    "category": "music_audio",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Riverside.fm or Zencastr, RSS feed, 30-60 min episodes, show notes",
+      "success_metric": "1,000 downloads per episode within 3 months"
+    }
+  },
+  {
+    "name": "Music Single",
+    "description": "Produce and release a single track with cover art, pre-save campaign, and playlist pitching strategy.",
+    "icon": "🎵",
+    "category": "music_audio",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "creative",
+      "tech_constraints": "DAW production, professional mixing/mastering, Spotify for Artists",
+      "success_metric": "Placed on 5 editorial or curated playlists"
+    }
+  },
+  {
+    "name": "Film Score",
+    "description": "Compose an original film score with cue sheets, orchestration, and sync-ready deliverables.",
+    "icon": "🎼",
+    "category": "music_audio",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Logic Pro or Cubase, orchestral samples, stems delivery, ASCAP/BMI registration",
+      "success_metric": "Score accepted by director with no revision rounds beyond two"
+    }
+  },
+  {
+    "name": "Sound Design Package",
+    "description": "Create a library of custom sound effects and audio assets for games, apps, or film production.",
+    "icon": "🔊",
+    "category": "music_audio",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "technical",
+      "tech_constraints": "96kHz/24-bit WAV, metadata tagging, Soundly or Splice distribution",
+      "success_metric": "500 downloads or sales of sound pack in first 3 months"
+    }
+  },
+  {
+    "name": "Live Performance",
+    "description": "Plan a live music performance or concert series with setlist, stage plot, and promotion strategy.",
+    "icon": "🎸",
+    "category": "music_audio",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "PA system rider, stage plot, lighting cues, 60-90 minute setlist",
+      "success_metric": "Sell out 200-capacity venue with 80%+ ticket revenue"
+    }
+  },
+  {
+    "name": "Audio Course",
+    "description": "Produce an audio-based educational course with structured lessons, exercises, and companion materials.",
+    "icon": "🎧",
+    "category": "music_audio",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "10-20 episodes, 15-30 min each, professional narration, PDF workbooks",
+      "success_metric": "200 course completions and 4.5+ star rating"
+    }
+  },
+  {
+    "name": "Remix Project",
+    "description": "Produce an official remix with stems management, licensing agreements, and release coordination.",
+    "icon": "🔀",
+    "category": "music_audio",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "creative",
+      "tech_constraints": "Original stems in WAV, remix rights agreement, BPM/key matching",
+      "success_metric": "Remix featured on original artist's channels with 50K+ streams"
+    }
+  },
+  {
+    "name": "Jingle / Ad Audio",
+    "description": "Compose a catchy jingle or audio branding package for advertising campaigns and brand identity.",
+    "icon": "📻",
+    "category": "music_audio",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "15/30/60 second versions, multiple mixes, broadcast-ready mastering",
+      "success_metric": "Client approval on first round and placement in active ad campaign"
+    }
+  },
+  {
+    "name": "Music Video",
+    "description": "Plan a music video production with concept treatment, shot list, location scouting, and edit timeline.",
+    "icon": "📹",
+    "category": "music_audio",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "creative",
+      "tech_constraints": "4K production, 1-2 day shoot, color grading, YouTube/Vevo delivery specs",
+      "success_metric": "250,000 YouTube views within 60 days of release"
+    }
+  },
+
+  {
+    "name": "Short Film",
+    "description": "Produce a narrative short film under 20 minutes with script, shot list, and festival submission plan.",
+    "icon": "🎬",
+    "category": "film_video",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "4K camera, 3-5 day shoot, DCP delivery, 10-20 minute runtime",
+      "success_metric": "Selected for 3 film festivals including one top-tier festival"
+    }
+  },
+  {
+    "name": "Documentary",
+    "description": "Plan a feature-length documentary with research, interview subjects, B-roll strategy, and distribution.",
+    "icon": "🎥",
+    "category": "film_video",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "professional",
+      "tech_constraints": "60-90 minute runtime, archival footage licensing, 10+ interview subjects",
+      "success_metric": "Secure distribution deal or streaming platform acquisition"
+    }
+  },
+  {
+    "name": "YouTube Channel",
+    "description": "Launch a YouTube channel with content strategy, branding, upload schedule, and growth plan.",
+    "icon": "▶️",
+    "category": "film_video",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Weekly uploads, thumbnail templates, SEO titles, 8-15 minute videos",
+      "success_metric": "Reach 10,000 subscribers and YouTube Partner Program in 12 months"
+    }
+  },
+  {
+    "name": "Commercial / Ad",
+    "description": "Produce a 30-60 second commercial spot with creative brief, storyboard, and broadcast delivery.",
+    "icon": "📺",
+    "category": "film_video",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Broadcast specs (HD/4K), 30s and 60s cuts, talent releases, color grade",
+      "success_metric": "Client approval and measurable lift in brand awareness or conversions"
+    }
+  },
+  {
+    "name": "Animation Project",
+    "description": "Create an animated short or series pilot with character design, storyboard, and animation pipeline.",
+    "icon": "🎞️",
+    "category": "film_video",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "creative",
+      "tech_constraints": "After Effects or Blender, 2D or 3D pipeline, character rigging, sound design",
+      "success_metric": "Complete 3-5 minute pilot and pitch to 5 studios or platforms"
+    }
+  },
+  {
+    "name": "Music Video Production",
+    "description": "Direct a music video with visual concept, choreography planning, and multi-camera shoot coordination.",
+    "icon": "🎶",
+    "category": "film_video",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "Multi-camera 4K, 1-2 locations, color grading, performance and narrative mix",
+      "success_metric": "500,000 views on YouTube within 90 days"
+    }
+  },
+  {
+    "name": "Web Series",
+    "description": "Develop a scripted web series with episode arcs, production schedule, and platform distribution plan.",
+    "icon": "📡",
+    "category": "film_video",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "6-10 episodes, 5-15 minutes each, weekly release, social media promotion",
+      "success_metric": "50,000 total views across first season with 40% viewer retention"
+    }
+  },
+  {
+    "name": "Corporate Video",
+    "description": "Produce a professional corporate video for internal communications, training, or brand storytelling.",
+    "icon": "🏢",
+    "category": "film_video",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "3-5 minute runtime, teleprompter, branded lower thirds, closed captions",
+      "success_metric": "85%+ completion rate among target employee audience"
+    }
+  },
+  {
+    "name": "Tutorial Series",
+    "description": "Create a multi-episode tutorial video series with screen recordings, narration, and chapter markers.",
+    "icon": "🎓",
+    "category": "film_video",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Screen capture (OBS), 10-20 minute episodes, chapter timestamps, resources",
+      "success_metric": "10,000 total views with 50%+ average view duration"
+    }
+  },
+  {
+    "name": "Live Stream Show",
+    "description": "Design a recurring live stream show with format structure, interactive elements, and guest rotation.",
+    "icon": "🔴",
+    "category": "film_video",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "OBS Studio, multi-scene setup, chat integration, 60-90 minute runtime",
+      "success_metric": "Average 100+ concurrent viewers within 3 months"
+    }
+  },
+
+  {
+    "name": "Restaurant Concept",
+    "description": "Develop a full restaurant concept with menu design, pricing strategy, kitchen layout, and brand identity.",
+    "icon": "🍴",
+    "category": "food_hospitality",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "professional",
+      "tech_constraints": "Health permits, commercial kitchen equipment, POS system, 60-80 seat capacity",
+      "success_metric": "Break even within 18 months with 30% food cost ratio"
+    }
+  },
+  {
+    "name": "Cafe / Coffee Shop",
+    "description": "Plan a specialty coffee shop with drink menu, interior design, supplier sourcing, and community vibe.",
+    "icon": "☕",
+    "category": "food_hospitality",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "Espresso machine, specialty roaster partnership, Wi-Fi, 30-seat capacity",
+      "success_metric": "200+ daily transactions with $8 average ticket"
+    }
+  },
+  {
+    "name": "Food Truck",
+    "description": "Design a food truck operation with focused menu, route planning, commissary kitchen, and social presence.",
+    "icon": "🚐",
+    "category": "food_hospitality",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "Mobile food permit, 6-8 item menu, Square POS, Instagram marketing",
+      "success_metric": "$4K+ weekly revenue with 35% food cost or lower"
+    }
+  },
+  {
+    "name": "Catering Service",
+    "description": "Launch a catering business with service tiers, menu packages, staffing plan, and event coordination.",
+    "icon": "🍱",
+    "category": "food_hospitality",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Commercial kitchen access, transport logistics, event staff scheduling",
+      "success_metric": "Book 50 events in first year with 40%+ profit margin"
+    }
+  },
+  {
+    "name": "Meal Prep Business",
+    "description": "Create a meal prep delivery service with rotating weekly menus, nutrition tracking, and subscriptions.",
+    "icon": "🥗",
+    "category": "food_hospitality",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "Commercial kitchen, cold chain delivery, subscription management, nutrition labels",
+      "success_metric": "300 active weekly subscribers with <10% churn"
+    }
+  },
+  {
+    "name": "Cookbook",
+    "description": "Write and design a cookbook with 60+ tested recipes, food photography guidelines, and publishing plan.",
+    "icon": "📕",
+    "category": "food_hospitality",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "60-80 recipes, professional food photography, recipe testing protocol",
+      "success_metric": "Secure publishing deal or sell 2,000 self-published copies"
+    }
+  },
+  {
+    "name": "Bakery",
+    "description": "Open a retail bakery with product line, production schedule, wholesale accounts, and storefront design.",
+    "icon": "🍞",
+    "category": "food_hospitality",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "Commercial ovens, health department compliance, early morning production shift",
+      "success_metric": "Sell out daily production 5 days per week within 3 months"
+    }
+  },
+  {
+    "name": "Bar / Lounge",
+    "description": "Design a cocktail bar or lounge with drink program, ambiance concept, licensing, and entertainment calendar.",
+    "icon": "🍸",
+    "category": "food_hospitality",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "Liquor license, 40-seat capacity, cocktail menu, live entertainment setup",
+      "success_metric": "Average $15K weekly revenue with 80% pour cost efficiency"
+    }
+  },
+  {
+    "name": "Ghost Kitchen",
+    "description": "Set up a delivery-only kitchen with optimized menu for delivery platforms and multi-brand strategy.",
+    "icon": "👻",
+    "category": "food_hospitality",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "UberEats/DoorDash integration, packaging for delivery, 2-3 virtual brands",
+      "success_metric": "100+ daily orders across all virtual brands within 6 months"
+    }
+  },
+  {
+    "name": "Farm-to-Table Program",
+    "description": "Build a farm-to-table supply chain connecting local farms to restaurants with seasonal menu planning.",
+    "icon": "🌾",
+    "category": "food_hospitality",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Local sourcing within 100 miles, seasonal rotation, cold chain logistics",
+      "success_metric": "Partner with 10 farms and supply 5 restaurants within first year"
+    }
+  },
+
+  {
+    "name": "Clothing Line",
+    "description": "Launch a clothing brand with capsule collection, manufacturer sourcing, and e-commerce storefront.",
+    "icon": "👗",
+    "category": "fashion_apparel",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "creative",
+      "tech_constraints": "10-15 piece capsule, tech packs, minimum order quantities, Shopify store",
+      "success_metric": "Sell out first production run within 60 days of launch"
+    }
+  },
+  {
+    "name": "Streetwear Brand",
+    "description": "Create a streetwear brand with limited drops, community culture, and influencer collaboration strategy.",
+    "icon": "🧢",
+    "category": "fashion_apparel",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "Screen printing or DTG, limited runs of 100-300 units, drop model",
+      "success_metric": "Sell out 3 consecutive drops with waitlist demand"
+    }
+  },
+  {
+    "name": "Sustainable Fashion",
+    "description": "Build an eco-conscious fashion brand using organic materials, ethical manufacturing, and circular design.",
+    "icon": "🌿",
+    "category": "fashion_apparel",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "GOTS certified fabrics, ethical factory audit, carbon-neutral shipping",
+      "success_metric": "B Corp certification and $200K revenue in first year"
+    }
+  },
+  {
+    "name": "Accessories Collection",
+    "description": "Design a jewelry or accessories line with material sourcing, production workflow, and retail strategy.",
+    "icon": "💎",
+    "category": "fashion_apparel",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "creative",
+      "tech_constraints": "Handmade or small-batch production, quality materials, branded packaging",
+      "success_metric": "Secure placement in 10 retail boutiques within first year"
+    }
+  },
+  {
+    "name": "Athleisure Brand",
+    "description": "Launch an activewear brand with performance fabrics, size-inclusive fit, and fitness community marketing.",
+    "icon": "🏃",
+    "category": "fashion_apparel",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "Moisture-wicking fabrics, size range XS-3XL, athletic fit testing",
+      "success_metric": "5,000 units sold with 30%+ repeat purchase rate"
+    }
+  },
+  {
+    "name": "Luxury Brand",
+    "description": "Establish a luxury fashion brand with premium positioning, exclusive distribution, and heritage storytelling.",
+    "icon": "👑",
+    "category": "fashion_apparel",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Premium materials, Italian or French manufacturing, $500+ price points",
+      "success_metric": "Featured in Vogue or equivalent tier-1 fashion publication"
+    }
+  },
+  {
+    "name": "Custom Tailoring",
+    "description": "Start a custom tailoring business with measurement system, fabric selection, and client consultation flow.",
+    "icon": "✂️",
+    "category": "fashion_apparel",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Digital measurement tool, fabric swatch library, 3-week turnaround",
+      "success_metric": "50 recurring clients with $1K+ average order value"
+    }
+  },
+  {
+    "name": "Kids Fashion",
+    "description": "Design a children's clothing line with playful aesthetics, durable construction, and parent-friendly sizing.",
+    "icon": "🧒",
+    "category": "fashion_apparel",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "CPSIA compliance, machine washable, adjustable sizing, ages 2-10",
+      "success_metric": "Wholesale accounts with 5 children's boutiques in first season"
+    }
+  },
+  {
+    "name": "Vintage / Thrift",
+    "description": "Launch a curated vintage or thrift clothing business with sourcing, grading, and online sales strategy.",
+    "icon": "🏷️",
+    "category": "fashion_apparel",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Depop/Poshmark or Shopify, photography setup, condition grading system",
+      "success_metric": "200+ items listed with 30% sell-through rate monthly"
+    }
+  },
+  {
+    "name": "Fashion Show",
+    "description": "Produce a fashion show event with collection staging, model casting, venue, and media coordination.",
+    "icon": "💃",
+    "category": "fashion_apparel",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "Runway venue, 15-20 looks, backstage coordination, photographer/videographer",
+      "success_metric": "200+ attendees with coverage in 5 fashion publications"
+    }
+  },
+
+  {
+    "name": "Online Course",
+    "description": "Build a comprehensive online course with video lessons, quizzes, assignments, and completion certificates.",
+    "icon": "🎓",
+    "category": "education_training",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Teachable or Thinkific, 20-40 video lessons, quizzes, downloadable resources",
+      "success_metric": "500 enrollments with 60%+ completion rate"
+    }
+  },
+  {
+    "name": "Workshop Series",
+    "description": "Design a multi-session workshop series with hands-on activities, facilitator guides, and participant materials.",
+    "icon": "🛠️",
+    "category": "education_training",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "4-8 sessions, 2-hour format, worksheets, Zoom or in-person, 20 max capacity",
+      "success_metric": "90%+ participant satisfaction rating and 3 repeat cohorts"
+    }
+  },
+  {
+    "name": "Coding Bootcamp",
+    "description": "Create an intensive coding bootcamp curriculum with projects, mentorship, and job placement support.",
+    "icon": "💻",
+    "category": "education_training",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "technical",
+      "tech_constraints": "12-16 week program, daily schedule, GitHub portfolio, capstone project",
+      "success_metric": "80% job placement rate within 6 months of graduation"
+    }
+  },
+  {
+    "name": "Corporate Training",
+    "description": "Develop a corporate training program with learning objectives, assessment rubrics, and ROI measurement.",
+    "icon": "📈",
+    "category": "education_training",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "LMS integration, SCORM compliance, pre/post assessments, manager dashboards",
+      "success_metric": "Measurable skill improvement in 85% of participants"
+    }
+  },
+  {
+    "name": "Kids Learning App",
+    "description": "Build an educational app for children with gamified lessons, progress tracking, and parental controls.",
+    "icon": "🧒",
+    "category": "education_training",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "mobile",
+      "tone": "casual",
+      "tech_constraints": "COPPA compliance, age-appropriate UI, offline mode, parent dashboard",
+      "success_metric": "50,000 downloads with 20-minute average daily session"
+    }
+  },
+  {
+    "name": "Language Course",
+    "description": "Design a language learning course with conversation practice, spaced repetition, and cultural context.",
+    "icon": "🌍",
+    "category": "education_training",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "mobile",
+      "tone": "casual",
+      "tech_constraints": "Audio recording, spaced repetition algorithm, A1-B2 CEFR levels",
+      "success_metric": "Users reach A2 level within 90 days of daily practice"
+    }
+  },
+  {
+    "name": "Certification Program",
+    "description": "Build a professional certification program with exam structure, study materials, and accreditation path.",
+    "icon": "🏅",
+    "category": "education_training",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Proctored exams, question bank of 200+, study guide, renewal requirements",
+      "success_metric": "500 certified professionals and industry recognition within 2 years"
+    }
+  },
+  {
+    "name": "Tutoring Platform",
+    "description": "Create an online tutoring marketplace connecting students with vetted tutors and scheduling tools.",
+    "icon": "👩‍🏫",
+    "category": "education_training",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Video chat integration, calendar booking, payment processing, tutor vetting",
+      "success_metric": "500 active tutor-student matches with 4.5+ star average rating"
+    }
+  },
+  {
+    "name": "Study Guide",
+    "description": "Produce a comprehensive study guide with summaries, practice problems, flashcards, and exam strategies.",
+    "icon": "📒",
+    "category": "education_training",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "PDF and web formats, 200+ practice questions, answer explanations",
+      "success_metric": "Students using guide score 15% higher on target exam"
+    }
+  },
+  {
+    "name": "Mentorship Program",
+    "description": "Design a structured mentorship program with matching criteria, milestone tracking, and feedback loops.",
+    "icon": "🤝",
+    "category": "education_training",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Matching algorithm, monthly check-in templates, 6-month program cycle",
+      "success_metric": "80% of mentees report measurable career progress"
+    }
+  },
+
+  {
+    "name": "Conference",
+    "description": "Plan a multi-day professional conference with speaker lineup, sponsorship tiers, and attendee experience.",
+    "icon": "🎤",
+    "category": "event_experience",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "500+ attendee venue, AV production, ticketing platform, mobile event app",
+      "success_metric": "Sell 80% of tickets and secure 90%+ speaker satisfaction"
+    }
+  },
+  {
+    "name": "Music Festival",
+    "description": "Organize a multi-stage music festival with artist booking, logistics, safety planning, and ticket sales.",
+    "icon": "🎪",
+    "category": "event_experience",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "3+ stages, 2-day event, permits, security, medical stations, camping",
+      "success_metric": "5,000+ attendees with zero major safety incidents"
+    }
+  },
+  {
+    "name": "Pop-up Experience",
+    "description": "Create an immersive branded pop-up experience with interactive installations and social sharing moments.",
+    "icon": "✨",
+    "category": "event_experience",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "2-4 week run, interactive installations, branded photo ops, timed entry",
+      "success_metric": "10,000 visitors and 50,000 social media impressions"
+    }
+  },
+  {
+    "name": "Hackathon",
+    "description": "Organize a hackathon with challenge tracks, judging criteria, mentors, prizes, and sponsor integration.",
+    "icon": "💡",
+    "category": "event_experience",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "24-48 hour format, Devpost submissions, API sponsors, Wi-Fi for 200+",
+      "success_metric": "200 participants across 50 teams with 3 projects continuing post-event"
+    }
+  },
+  {
+    "name": "Networking Event",
+    "description": "Design a structured networking event with icebreakers, facilitated introductions, and follow-up system.",
+    "icon": "🤝",
+    "category": "event_experience",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "50-100 attendees, name badge system, structured 5-min rotations, CRM follow-up",
+      "success_metric": "Each attendee makes 10+ meaningful connections per event"
+    }
+  },
+  {
+    "name": "Art Exhibition Event",
+    "description": "Produce an art exhibition opening event with gallery setup, artist talks, catering, and press invitations.",
+    "icon": "🎨",
+    "category": "event_experience",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "creative",
+      "tech_constraints": "Gallery rental, lighting design, catering, PR outreach, invitation list",
+      "success_metric": "200+ opening night attendees and 3 media features"
+    }
+  },
+  {
+    "name": "Product Launch Event",
+    "description": "Plan a product launch event with live demo, press kits, influencer invites, and social media strategy.",
+    "icon": "🚀",
+    "category": "event_experience",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Live demo setup, press kit distribution, live stream, branded venue",
+      "success_metric": "50 media mentions and 100K social impressions within 48 hours"
+    }
+  },
+  {
+    "name": "Retreat / Wellness Event",
+    "description": "Organize a multi-day wellness retreat with workshops, accommodations, meals, and transformation outcomes.",
+    "icon": "🧘",
+    "category": "event_experience",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "3-5 day format, 20-30 attendees, accommodation + meals, facilitators",
+      "success_metric": "95% satisfaction rating and 50% rebooking rate"
+    }
+  },
+  {
+    "name": "Food Festival",
+    "description": "Organize a food festival with vendor curation, layout design, entertainment, and ticketing strategy.",
+    "icon": "🍔",
+    "category": "event_experience",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "30+ food vendors, health permits, live entertainment, 1-2 day event",
+      "success_metric": "5,000+ attendees and 90% vendor satisfaction"
+    }
+  },
+  {
+    "name": "Virtual Summit",
+    "description": "Host a virtual summit with multi-track sessions, networking rooms, and on-demand replay access.",
+    "icon": "🌐",
+    "category": "event_experience",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Hopin or Zoom Events, 20+ speakers, breakout rooms, 2-3 day format",
+      "success_metric": "2,000 registrations with 60% live attendance rate"
+    }
+  },
+
+  {
+    "name": "Fitness App",
+    "description": "Build a fitness tracking app with workout plans, progress photos, and social accountability features.",
+    "icon": "💪",
+    "category": "health_wellness",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "mobile",
+      "tone": "casual",
+      "tech_constraints": "HealthKit/Google Fit integration, video demos, offline mode, push notifications",
+      "success_metric": "10,000 monthly active users with 3+ sessions per week average"
+    }
+  },
+  {
+    "name": "Wellness Retreat",
+    "description": "Design a wellness retreat program with yoga, meditation, nutrition workshops, and nature activities.",
+    "icon": "🌅",
+    "category": "health_wellness",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "Rural venue, certified instructors, dietary accommodations, 15-25 guests",
+      "success_metric": "90% of guests report improved wellbeing in post-retreat survey"
+    }
+  },
+  {
+    "name": "Mental Health Platform",
+    "description": "Create a digital mental health platform with self-guided programs, therapist matching, and crisis resources.",
+    "icon": "🧠",
+    "category": "health_wellness",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "HIPAA compliance, encrypted messaging, licensed provider network, crisis hotline",
+      "success_metric": "5,000 users with clinically validated symptom improvement"
+    }
+  },
+  {
+    "name": "Gym / Studio",
+    "description": "Open a fitness gym or boutique studio with class schedule, membership tiers, and retention strategy.",
+    "icon": "🏋️",
+    "category": "health_wellness",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "Mindbody or Glofox, 2,000+ sq ft, equipment list, class management",
+      "success_metric": "300 active members with <5% monthly churn rate"
+    }
+  },
+  {
+    "name": "Nutrition Plan",
+    "description": "Develop a personalized nutrition planning service with meal plans, grocery lists, and macro tracking.",
+    "icon": "🥑",
+    "category": "health_wellness",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "Nutritional database API, allergy/preference filters, weekly meal plans",
+      "success_metric": "Users report improved energy and adherence above 70% after 30 days"
+    }
+  },
+  {
+    "name": "Telehealth Service",
+    "description": "Launch a telehealth platform connecting patients with providers for virtual consultations and prescriptions.",
+    "icon": "🩺",
+    "category": "health_wellness",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "HIPAA compliant video, EHR integration, e-prescribing, insurance billing",
+      "success_metric": "1,000 consultations per month with 4.8+ patient satisfaction"
+    }
+  },
+  {
+    "name": "Meditation App",
+    "description": "Build a meditation and mindfulness app with guided sessions, sleep stories, and streak tracking.",
+    "icon": "🧘",
+    "category": "health_wellness",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "mobile",
+      "tone": "casual",
+      "tech_constraints": "Audio streaming, offline downloads, Apple Watch integration, sleep timer",
+      "success_metric": "50,000 downloads with 15% converting to paid subscription"
+    }
+  },
+  {
+    "name": "Physical Therapy Practice",
+    "description": "Start a physical therapy practice with treatment protocols, patient management, and insurance billing.",
+    "icon": "🦴",
+    "category": "health_wellness",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "EMR system, exercise prescription software, insurance credentialing",
+      "success_metric": "Average 30 patient visits per day with 90%+ outcome satisfaction"
+    }
+  },
+  {
+    "name": "Health Coaching",
+    "description": "Launch a health coaching practice with client intake, goal setting, accountability systems, and group programs.",
+    "icon": "❤️",
+    "category": "health_wellness",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "Coaching certification, client portal, video calls, progress tracking app",
+      "success_metric": "50 active clients with 85% achieving their primary health goal"
+    }
+  },
+  {
+    "name": "Corporate Wellness Program",
+    "description": "Design a corporate wellness program with fitness challenges, mental health resources, and ROI reporting.",
+    "icon": "🏢",
+    "category": "health_wellness",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "White-label platform, biometric screening, incentive management, HIPAA",
+      "success_metric": "30% employee participation and measurable reduction in sick days"
+    }
+  },
+
+  {
+    "name": "Nonprofit Launch",
+    "description": "Establish a new nonprofit organization with mission statement, board formation, and first-year programs.",
+    "icon": "💚",
+    "category": "social_impact",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "501(c)(3) filing, board recruitment, donor CRM, annual report template",
+      "success_metric": "Tax-exempt status approved and $100K raised in year one"
+    }
+  },
+  {
+    "name": "Community Program",
+    "description": "Design a community outreach program with needs assessment, volunteer recruitment, and impact tracking.",
+    "icon": "🏘️",
+    "category": "social_impact",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "Volunteer management system, community surveys, local partnerships",
+      "success_metric": "Serve 1,000 community members in first year with documented outcomes"
+    }
+  },
+  {
+    "name": "Fundraising Campaign",
+    "description": "Plan a multi-channel fundraising campaign with donor segmentation, messaging, and goal tracking.",
+    "icon": "🎗️",
+    "category": "social_impact",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Donation platform, email sequences, social media assets, matching gifts",
+      "success_metric": "Raise $250K with 500+ individual donors in campaign period"
+    }
+  },
+  {
+    "name": "Volunteer Platform",
+    "description": "Build a platform that matches volunteers with organizations based on skills, location, and availability.",
+    "icon": "🙋",
+    "category": "social_impact",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Matching algorithm, background check integration, hour logging, mobile app",
+      "success_metric": "5,000 volunteers matched with 200 organizations in first year"
+    }
+  },
+  {
+    "name": "Social Enterprise",
+    "description": "Launch a revenue-generating social enterprise that reinvests profits into community impact programs.",
+    "icon": "🌱",
+    "category": "social_impact",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "B Corp or L3C structure, impact measurement framework, blended finance",
+      "success_metric": "Generate $500K revenue with 50% reinvested into social programs"
+    }
+  },
+  {
+    "name": "Environmental Initiative",
+    "description": "Create an environmental conservation initiative with community engagement, monitoring, and measurable impact.",
+    "icon": "🌍",
+    "category": "social_impact",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Environmental monitoring tools, GIS mapping, community science protocols",
+      "success_metric": "Measurably improve one environmental indicator in target area"
+    }
+  },
+  {
+    "name": "Youth Program",
+    "description": "Design an after-school or summer youth program with curriculum, mentors, and developmental outcomes.",
+    "icon": "🧑‍🤝‍🧑",
+    "category": "social_impact",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "physical",
+      "tone": "casual",
+      "tech_constraints": "Background checks, age-appropriate curriculum, parent communication, safe spaces",
+      "success_metric": "100 youth enrolled with 80% showing improved academic or social outcomes"
+    }
+  },
+  {
+    "name": "Advocacy Campaign",
+    "description": "Build a grassroots advocacy campaign with petition strategy, legislator outreach, and coalition building.",
+    "icon": "📢",
+    "category": "social_impact",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "Action Network or EveryAction, petition tools, social media toolkit",
+      "success_metric": "50,000 petition signatures and meeting with 10 elected officials"
+    }
+  },
+  {
+    "name": "Mutual Aid Network",
+    "description": "Establish a mutual aid network connecting community members for resource sharing and direct support.",
+    "icon": "🤲",
+    "category": "social_impact",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "casual",
+      "tech_constraints": "Request/offer matching system, privacy protections, local coordinators",
+      "success_metric": "500 active members with 200 successful resource matches per month"
+    }
+  },
+  {
+    "name": "Impact Report",
+    "description": "Produce a comprehensive annual impact report with data visualization, stories, and stakeholder transparency.",
+    "icon": "📊",
+    "category": "social_impact",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "Data dashboards, infographics, beneficiary stories, financial transparency",
+      "success_metric": "Report shared with 1,000+ stakeholders and drives 20% donation increase"
+    }
+  },
+
+  {
+    "name": "Fintech App",
+    "description": "Build a fintech application for payments, savings, or financial management with regulatory compliance.",
+    "icon": "💳",
+    "category": "finance_investment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "mobile",
+      "tone": "professional",
+      "tech_constraints": "PCI DSS compliance, banking API integration, KYC/AML verification",
+      "success_metric": "50,000 users with $10M+ in transaction volume within 12 months"
+    }
+  },
+  {
+    "name": "Investment Fund",
+    "description": "Structure an investment fund with thesis, portfolio strategy, LP terms, and deal flow pipeline.",
+    "icon": "📈",
+    "category": "finance_investment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "SEC registration, fund administration, LP reporting, deal CRM",
+      "success_metric": "Close first fund at target size and deploy 30% in year one"
+    }
+  },
+  {
+    "name": "Personal Finance Tool",
+    "description": "Create a personal finance dashboard with bank syncing, budget categories, and spending insights.",
+    "icon": "💰",
+    "category": "finance_investment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Plaid bank integration, transaction categorization, data encryption",
+      "success_metric": "Users save 15% more on average after 3 months of active use"
+    }
+  },
+  {
+    "name": "Crypto Project",
+    "description": "Launch a blockchain-based project with tokenomics, smart contracts, and community governance structure.",
+    "icon": "🪙",
+    "category": "finance_investment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "technical",
+      "tech_constraints": "Solidity smart contracts, security audit, wallet integration, whitepaper",
+      "success_metric": "Smart contract audit passed and 10,000 wallet holders"
+    }
+  },
+  {
+    "name": "Insurance Product",
+    "description": "Design an insurance product with risk modeling, underwriting rules, claims workflow, and distribution.",
+    "icon": "🛡️",
+    "category": "finance_investment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "State regulatory filings, actuarial modeling, claims management system",
+      "success_metric": "10,000 policies written with combined ratio below 95%"
+    }
+  },
+  {
+    "name": "Payment Platform",
+    "description": "Build a payment processing platform for merchants with checkout integration and fraud detection.",
+    "icon": "💸",
+    "category": "finance_investment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "PCI Level 1, multi-currency support, fraud scoring, merchant dashboard",
+      "success_metric": "Process $1M in transactions with <0.1% fraud rate"
+    }
+  },
+  {
+    "name": "Budget Tracker",
+    "description": "Build a simple budget tracking app with envelope budgeting, receipt scanning, and financial goal setting.",
+    "icon": "📒",
+    "category": "finance_investment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "mobile",
+      "tone": "casual",
+      "tech_constraints": "OCR receipt scanning, offline support, data export, no-account quick start",
+      "success_metric": "100,000 downloads with 40% monthly retention rate"
+    }
+  },
+  {
+    "name": "Crowdfunding Campaign",
+    "description": "Plan a rewards-based crowdfunding campaign with tiers, stretch goals, marketing timeline, and fulfillment.",
+    "icon": "🎯",
+    "category": "finance_investment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "casual",
+      "tech_constraints": "Kickstarter or Indiegogo, video production, reward fulfillment logistics",
+      "success_metric": "Reach 150% of funding goal with 2,000+ backers"
+    }
+  },
+  {
+    "name": "Financial Advisory",
+    "description": "Start a financial advisory practice with client onboarding, portfolio management, and compliance framework.",
+    "icon": "🧮",
+    "category": "finance_investment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "hybrid",
+      "tone": "professional",
+      "tech_constraints": "RIA registration, custodian relationship, financial planning software, CRM",
+      "success_metric": "$50M assets under management within 3 years"
+    }
+  },
+  {
+    "name": "Robo-Advisor",
+    "description": "Build an automated investment platform with risk profiling, portfolio allocation, and tax-loss harvesting.",
+    "icon": "🤖",
+    "category": "finance_investment",
+    "is_system": true,
+    "concept_sheet": {
+      "platform": "web",
+      "tone": "professional",
+      "tech_constraints": "SEC/FINRA compliance, brokerage API, MPT optimization, tax-loss harvesting",
+      "success_metric": "$100M AUM with portfolio performance within 1% of benchmark"
+    }
+  }
+]

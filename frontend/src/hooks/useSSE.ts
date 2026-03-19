@@ -3,6 +3,7 @@
  * @module hooks/useSSE
  */
 import { useCallback, useRef, useState } from 'react'
+import { getAuthToken } from '../lib/apiClient'
 
 interface SSEMessage {
   type: string
@@ -42,7 +43,7 @@ export function useSSE(options: UseSSEOptions) {
     setIsStreaming(true)
 
     try {
-      const token = localStorage.getItem('token')
+      const token = await getAuthToken()
       const response = await fetch(url, {
         method: 'POST',
         headers: {

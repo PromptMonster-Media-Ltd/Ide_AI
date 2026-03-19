@@ -31,4 +31,16 @@ apiClient.interceptors.request.use(async (config) => {
   return config
 })
 
+/**
+ * Get the current Clerk session token for use in raw fetch calls (e.g. SSE).
+ * Returns null if no session is available.
+ */
+export async function getAuthToken(): Promise<string | null> {
+  try {
+    return (await clerkInstance?.session?.getToken()) ?? null
+  } catch {
+    return null
+  }
+}
+
 export default apiClient

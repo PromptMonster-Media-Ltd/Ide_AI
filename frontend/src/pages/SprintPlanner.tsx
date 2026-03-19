@@ -8,7 +8,7 @@ import { Sidebar } from '../components/layout/Sidebar'
 import { TopBar } from '../components/layout/TopBar'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
-import apiClient from '../lib/apiClient'
+import apiClient, { getAuthToken } from '../lib/apiClient'
 import { downloadBlob } from '../lib/exportUtils'
 
 interface Task {
@@ -96,7 +96,7 @@ export function SprintPlanner() {
     setErrorMessage('')
     setStatusMessage('Analyzing project blocks...')
 
-    const token = localStorage.getItem('token')
+    const token = await getAuthToken()
     const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
     const hasPlanAlready = plan && plan.status === 'complete'
     let receivedPlan = false

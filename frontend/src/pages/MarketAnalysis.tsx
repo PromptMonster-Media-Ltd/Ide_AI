@@ -9,7 +9,7 @@ import { Sidebar } from '../components/layout/Sidebar'
 import { TopBar } from '../components/layout/TopBar'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
-import apiClient from '../lib/apiClient'
+import apiClient, { getAuthToken } from '../lib/apiClient'
 import { downloadBlob } from '../lib/exportUtils'
 
 // ---------------------------------------------------------------------------
@@ -852,7 +852,7 @@ export function MarketAnalysis() {
     setStreamText('')
 
     try {
-      const token = localStorage.getItem('token')
+      const token = await getAuthToken()
       const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
       const response = await fetch(`${baseUrl}/market/${projectId}/generate`, {
         method: 'POST',

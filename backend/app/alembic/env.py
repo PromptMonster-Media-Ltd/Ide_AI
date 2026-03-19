@@ -18,6 +18,9 @@ from app.models import (  # noqa: F401
     MarketAnalysis, ProjectSnapshot,
     UserMemory, ProjectShare, SprintPlan,
     ModuleArtifact, ModulePathway, ModuleResponse,
+    EmailVerification, IdeaInbox,
+    ShareComment, ShareRating, ProjectTemplate,
+    ConceptBranch, ExternalIntegration, PasswordReset,
 )
 
 config = context.config

@@ -22,6 +22,7 @@ from app.models.share_rating import ShareRating
 from app.models.project_template import ProjectTemplate
 from app.models.concept_branch import ConceptBranch
 from app.models.external_integration import ExternalIntegration
+from app.models.password_reset import PasswordReset
 
 __all__ = [
     "User", "Project", "DiscoverySession", "DesignSheet",
@@ -31,5 +32,5 @@ __all__ = [
     "ModuleArtifact", "ModulePathway", "ModuleResponse",
     "EmailVerification", "IdeaInbox",
     "ShareComment", "ShareRating", "ProjectTemplate",
-    "ConceptBranch", "ExternalIntegration",
+    "ConceptBranch", "ExternalIntegration", "PasswordReset",
 ]
