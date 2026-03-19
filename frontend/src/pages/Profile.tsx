@@ -8,6 +8,7 @@ import { Sidebar } from '../components/layout/Sidebar'
 import { TopBar } from '../components/layout/TopBar'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
+import { UpgradeModal } from '../components/billing/UpgradeModal'
 import apiClient from '../lib/apiClient'
 import { useAuthStore, type AuthUser } from '../stores/authStore'
 import { extractError } from '../lib/extractError'
@@ -30,6 +31,7 @@ export function Profile() {
 
   // Billing
   const [billingLoading, setBillingLoading] = useState(false)
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
 
   // Stats
   const [projectCount, setProjectCount] = useState(0)
@@ -193,22 +195,30 @@ export function Profile() {
                     <div>
                       <p className="text-sm text-white capitalize">{user?.account_type || 'free'} Plan</p>
                       <p className="text-xs text-text-muted mt-0.5">
-                        {user?.account_type === 'free'
-                          ? 'Upgrade to unlock more features'
-                          : 'Manage your subscription, payment method, and invoices'}
+                        {user?.account_type === 'pro'
+                          ? 'Manage your subscription, payment method, and invoices'
+                          : 'Upgrade to unlock more features'}
                       </p>
                     </div>
-                    {user?.account_type === 'free' ? (
-                      <Button size="sm" onClick={() => window.location.href = '/pricing'}>
-                        Upgrade
-                      </Button>
-                    ) : (
-                      <Button size="sm" onClick={handleManageBilling} disabled={billingLoading}>
-                        {billingLoading ? 'Opening...' : 'Manage Billing'}
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {user?.account_type !== 'pro' && (
+                        <Button size="sm" onClick={() => setUpgradeOpen(true)}>
+                          Upgrade
+                        </Button>
+                      )}
+                      {user?.account_type !== 'free' && (
+                        <Button size="sm" variant="secondary" onClick={handleManageBilling} disabled={billingLoading}>
+                          {billingLoading ? 'Opening...' : 'Manage Billing'}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </Card>
+                <UpgradeModal
+                  open={upgradeOpen}
+                  onClose={() => setUpgradeOpen(false)}
+                  currentPlan={user?.account_type || 'free'}
+                />
 
                 {/* ── Edit Profile ── */}
                 <Card>
