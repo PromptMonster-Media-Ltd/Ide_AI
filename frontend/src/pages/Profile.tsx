@@ -19,7 +19,8 @@ export function Profile() {
   const [loading, setLoading] = useState(!user)
 
   // Profile form
-  const [name, setName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
   const [saving, setSaving] = useState(false)
@@ -44,7 +45,9 @@ export function Profile() {
         u = await fetchUser()
       }
       if (u) {
-        setName(u.name || '')
+        const parts = (u.name || '').split(' ')
+        setFirstName(parts[0] || '')
+        setLastName(parts.slice(1).join(' ') || '')
         setDisplayName(u.display_name || '')
         setBio(u.bio || '')
       }
@@ -61,8 +64,9 @@ export function Profile() {
     setSaved(false)
     setError('')
     try {
+      const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ')
       const { data } = await apiClient.patch('/auth/me', {
-        name: name.trim() || null,
+        name: fullName || null,
         display_name: displayName.trim() || null,
         bio: bio.trim() || null,
       })
@@ -87,7 +91,12 @@ export function Profile() {
       const { data } = await apiClient.post('/auth/me/avatar', form)
       setUser(data as AuthUser)
       // Sync to Clerk so <UserButton /> in sidebar updates immediately
-      try { await clerkUser?.setProfileImage({ file }) } catch { /* non-blocking */ }
+      if (clerkUser) {
+        try {
+          await clerkUser.setProfileImage({ file })
+          await clerkUser.reload()
+        } catch { /* non-blocking — Clerk sync is best-effort */ }
+      }
     } catch (err: unknown) {
       setError(extractError(err, 'Failed to upload avatar.'))
     } finally {
@@ -231,10 +240,15 @@ export function Profile() {
                       {error}
                     </div>
                   )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
-                      <label className="block text-xs text-text-muted font-medium mb-1.5">Name</label>
-                      <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name"
+                      <label className="block text-xs text-text-muted font-medium mb-1.5">First Name</label>
+                      <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name"
+                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-text-muted font-medium mb-1.5">Last Name</label>
+                      <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name"
                         className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors" />
                     </div>
                     <div>

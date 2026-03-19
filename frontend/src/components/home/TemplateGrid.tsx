@@ -24,6 +24,25 @@ interface Props {
 
 const DEFAULT_CATEGORY = 'software_tech'
 
+/** Maps legacy template category slugs to concept category IDs */
+const LEGACY_MAP: Record<string, string> = {
+  saas: 'software_tech',
+  mobile: 'software_tech',
+  ai_ml: 'software_tech',
+  social: 'software_tech',
+  developer: 'software_tech',
+  general: 'software_tech',
+  software: 'software_tech',
+  ecommerce: 'business_startup',
+  marketplace: 'business_startup',
+  business: 'business_startup',
+  marketing: 'business_startup',
+  content: 'creative_writing',
+  personal: 'creative_writing',
+  creative: 'art_visual',
+  education: 'education_training',
+}
+
 /** Module-level cache so templates survive component remounts */
 let _templateCache: Template[] | null = null
 
@@ -46,7 +65,10 @@ export function TemplateGrid({ onSelect, selectedId, category }: Props) {
   }, [category])
 
   if (loading || templates.length === 0) return null
-  const filtered = templates.filter(t => t.category === activeCategory)
+  const filtered = templates.filter(t => {
+    const normalized = LEGACY_MAP[t.category] || t.category
+    return normalized === activeCategory
+  })
   if (filtered.length === 0) return null
 
   return (
