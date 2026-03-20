@@ -19,6 +19,8 @@ class ProjectCreate(BaseModel):
     accent_color: Optional[str] = Field(default="#00E5FF", max_length=20)
     pathway_id: str = Field(default="software_product", max_length=50)
     ai_partner_style: str = Field(default="strategist", max_length=30)
+    primary_category: Optional[str] = Field(None, max_length=50)
+    secondary_category: Optional[str] = Field(None, max_length=50)
 
 
 class ProjectRead(BaseModel):

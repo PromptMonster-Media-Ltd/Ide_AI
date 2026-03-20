@@ -47,6 +47,9 @@ async def create_project(
         tone=payload.tone,
         accent_color=payload.accent_color or "#00E5FF",
         pathway_id=payload.pathway_id,
+        ai_partner_style=payload.ai_partner_style,
+        primary_category=payload.primary_category,
+        secondary_category=payload.secondary_category,
     )
     db.add(project)
     await db.flush()

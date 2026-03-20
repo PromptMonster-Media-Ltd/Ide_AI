@@ -86,9 +86,8 @@ async def _handle_user_created(user_data: dict, db: AsyncSession) -> None:
     existing = result.scalars().first()
 
     if existing:
-        # Already linked — just update fields
+        # Already linked — just update name (don't overwrite custom display_name)
         existing.name = _build_full_name(user_data) or existing.name
-        existing.display_name = _build_display_name(user_data) or existing.display_name
         existing.email_verified = True
         if user_data.get("image_url"):
             existing.avatar_url = user_data["image_url"]
@@ -106,7 +105,6 @@ async def _handle_user_created(user_data: dict, db: AsyncSession) -> None:
         # Link existing email user to Clerk
         existing_by_email.clerk_user_id = clerk_id
         existing_by_email.name = _build_full_name(user_data) or existing_by_email.name
-        existing_by_email.display_name = _build_display_name(user_data) or existing_by_email.display_name
         existing_by_email.email_verified = True
         if user_data.get("image_url") and not existing_by_email.avatar_url:
             existing_by_email.avatar_url = user_data["image_url"]
@@ -152,9 +150,7 @@ async def _handle_user_updated(user_data: dict, db: AsyncSession) -> None:
     full_name = _build_full_name(user_data)
     if full_name:
         user.name = full_name
-    display = _build_display_name(user_data)
-    if display:
-        user.display_name = display
+    # Don't overwrite display_name on updates — user may have customized it
 
     if user_data.get("image_url"):
         user.avatar_url = user_data["image_url"]

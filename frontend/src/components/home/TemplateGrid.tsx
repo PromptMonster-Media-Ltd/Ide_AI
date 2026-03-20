@@ -56,7 +56,9 @@ export function TemplateGrid({ onSelect, selectedId, category }: Props) {
     apiClient.get('/templates').then(({ data }) => {
       _templateCache = data
       setTemplates(data)
-    }).catch(() => {}).finally(() => setLoading(false))
+    }).catch((err) => {
+      console.error('[TemplateGrid] Failed to fetch templates:', err)
+    }).finally(() => setLoading(false))
   }, [])
 
   // Sync activeCategory when category prop changes

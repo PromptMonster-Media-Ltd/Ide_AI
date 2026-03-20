@@ -6,9 +6,10 @@
  * Project module items are driven by the active pathway from pathwayStore.
  * @module components/layout/Sidebar
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { usePathwayStore } from '../../stores/pathwayStore'
+import { useModulePathwayStore } from '../../stores/modulePathwayStore'
 import { UserButton } from '@clerk/clerk-react'
 import { useAuthStore } from '../../stores/authStore'
 
@@ -19,7 +20,7 @@ const NAV_ITEMS = [
   { path: '/settings', label: 'Settings', icon: '\u2699' },
 ]
 
-/** Hardcoded fallback project items — used when pathway hasn't loaded yet. */
+/** Hardcoded fallback project items — used when no dynamic modules assembled. */
 const FALLBACK_PROJECT_ITEMS = [
   { path: '/discovery', label: 'Discovery', icon: '\u{1F50D}' },
   { path: '/blocks', label: 'Blocks', icon: '\u25EB' },
@@ -29,6 +30,27 @@ const FALLBACK_PROJECT_ITEMS = [
   { path: '/exports', label: 'Exports', icon: '\u2197' },
   { path: '/pitch', label: 'Pitch', icon: '\u{1F4C4}' },
 ]
+
+/** Maps module IDs from the 47-module library to existing page routes */
+const EXISTING_MODULE_ROUTES: Record<string, string> = {
+  design_blocks_board: '/blocks',
+  pipeline_builder: '/pipeline',
+  market_analysis: '/market',
+  sprint_planner: '/sprints',
+  pitch_mode: '/pitch',
+  export_system: '/exports',
+}
+
+/** Icons for dynamic modules by group */
+const GROUP_ICONS: Record<string, string> = {
+  Definition: '\u{1F3AF}',
+  'Research & Validation': '\u{1F50D}',
+  Planning: '\u{1F4CB}',
+  Design: '\u{1F3A8}',
+  Execution: '\u26A1',
+  Delivery: '\u{1F4E6}',
+  Existing: '\u2699',
+}
 
 const ACTIVE_PROJECT_KEY = 'ideai_active_project'
 const ACTIVE_PROJECT_PATH_KEY = 'ideai_active_path'
@@ -42,18 +64,38 @@ export function Sidebar({ projectId }: { projectId?: string }) {
   const [savedPath, setSavedPath] = useState<string | null>(null)
 
   const { user, fetchUser } = useAuthStore()
-  const { active: activePathway, fetchPathways } = usePathwayStore()
+  const { fetchPathways } = usePathwayStore()
+  const { assembledModules } = useModulePathwayStore()
 
   // Fetch user + pathways on mount (deduped inside stores)
   useEffect(() => { fetchUser() }, [fetchUser])
   useEffect(() => { fetchPathways() }, [fetchPathways])
 
-  // Build project items from active pathway's modules (or fallback)
-  const projectItems = activePathway?.modules
-    ? [...activePathway.modules]
-        .sort((a, b) => a.order - b.order)
-        .map(m => ({ path: `/${m.route_suffix}`, label: m.label, icon: m.icon }))
-    : FALLBACK_PROJECT_ITEMS
+  // Build project items from assembled dynamic modules (or fallback)
+  const projectItems = useMemo(() => {
+    if (assembledModules.length === 0) return FALLBACK_PROJECT_ITEMS
+
+    // Discovery is always first
+    const items: Array<{ path: string; label: string; icon: string }> = [
+      { path: '/discovery', label: 'Discovery', icon: '\u{1F50D}' },
+    ]
+
+    for (const m of assembledModules) {
+      const existingRoute = EXISTING_MODULE_ROUTES[m.module_id]
+      if (existingRoute) {
+        items.push({ path: existingRoute, label: m.label, icon: GROUP_ICONS[m.group] || '\u2699' })
+      } else {
+        // AI-guided module → links to module-session
+        items.push({
+          path: `/module-session-nav/${m.module_id}`,
+          label: m.label,
+          icon: GROUP_ICONS[m.group] || '\u{1F4AC}',
+        })
+      }
+    }
+
+    return items
+  }, [assembledModules])
 
   // Persist active project + timestamp when user is inside a project
   useEffect(() => {
@@ -99,10 +141,15 @@ export function Sidebar({ projectId }: { projectId?: string }) {
       ? location.pathname === '/home'
       : location.pathname.startsWith(`${item.path}/`) || location.pathname === item.path
 
-  const buildTo = (item: { path: string }) =>
-    projectId && projectItems.some((p) => p.path === item.path)
-      ? `${item.path}/${projectId}`
-      : item.path
+  const buildTo = (item: { path: string }) => {
+    if (!projectId || !projectItems.some((p) => p.path === item.path)) return item.path
+    // Dynamic AI modules use /module-session/{projectId}/{moduleId}
+    if (item.path.startsWith('/module-session-nav/')) {
+      const moduleId = item.path.replace('/module-session-nav/', '')
+      return `/module-session/${projectId}/${moduleId}`
+    }
+    return `${item.path}/${projectId}`
+  }
 
   return (
     <>
@@ -144,10 +191,15 @@ export function Sidebar({ projectId }: { projectId?: string }) {
           {projectId && (
             <>
               <div className="mx-4 my-2 border-t border-border" />
-              {projectItems.map((item) => (
+              <div className="flex-1 overflow-y-auto">
+              {projectItems.map((item) => {
+                const href = item.path.startsWith('/module-session-nav/')
+                  ? `/module-session/${projectId}/${item.path.replace('/module-session-nav/', '')}`
+                  : `${item.path}/${projectId}`
+                return (
                 <Link
                   key={item.path}
-                  to={`${item.path}/${projectId}`}
+                  to={href}
                   className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
                     isActive(item)
                       ? 'text-accent bg-accent-dim'
@@ -155,9 +207,11 @@ export function Sidebar({ projectId }: { projectId?: string }) {
                   }`}
                 >
                   <span className="shrink-0 text-base">{item.icon}</span>
-                  <span className="whitespace-nowrap">{item.label}</span>
+                  <span className="whitespace-nowrap truncate">{item.label}</span>
                 </Link>
-              ))}
+                )
+              })}
+              </div>
             </>
           )}
         </nav>

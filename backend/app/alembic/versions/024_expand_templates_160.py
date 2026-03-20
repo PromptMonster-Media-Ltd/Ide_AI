@@ -23,10 +23,9 @@ def upgrade() -> None:
         "DELETE FROM project_templates WHERE is_system = true"
     ))
 
-    # Load the expanded 160-template seed file
-    # In Docker the app root is /app (backend/), so resolve relative to that
+    # Load the expanded 160-template seed file from backend/app/data/
     seed_path = os.path.join(
-        os.path.dirname(__file__), "..", "..", "..", "project_templates.seed.json"
+        os.path.dirname(__file__), "..", "..", "data", "project_templates.seed.json"
     )
     with open(seed_path, encoding="utf-8") as f:
         templates = json.load(f)
