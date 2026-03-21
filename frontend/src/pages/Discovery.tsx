@@ -18,7 +18,6 @@ import { Badge } from '../components/ui/Badge'
 import { StageInterlude, PulseBeacon, Whisper } from '../components/tutorial'
 import { useSSE } from '../hooks/useSSE'
 import { usePathwayStore } from '../stores/pathwayStore'
-import { useModulePathwayStore } from '../stores/modulePathwayStore'
 import apiClient from '../lib/apiClient'
 import type { PartnerStyleMeta } from '../types/project'
 
@@ -149,25 +148,12 @@ export function Discovery() {
     }
   }, [partnerStyle, allPartners])
 
-  const { assembledModules, assemble: assemblePathway, categorize } = useModulePathwayStore()
-
-  // Fetch pathways + activate the project's pathway + auto-assemble dynamic modules
+  // Fetch pathways + activate the project's pathway
   useEffect(() => {
     if (!projectId) return
     fetchPathways()
     apiClient.get(`/projects/${projectId}`)
-      .then(async ({ data }) => {
-        setActiveByProject(data)
-        // Auto-assemble dynamic module pathway if category is set and not yet assembled
-        if (data.primary_category && assembledModules.length === 0) {
-          try {
-            await categorize(projectId)
-            await assemblePathway(projectId)
-          } catch {
-            // Non-fatal — sidebar will use fallback modules
-          }
-        }
-      })
+      .then(({ data }) => setActiveByProject(data))
       .catch(() => { /* Project fetch failed — pathway stays at default */ })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId])

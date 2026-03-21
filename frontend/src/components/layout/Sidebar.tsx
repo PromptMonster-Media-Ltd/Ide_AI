@@ -65,15 +65,17 @@ export function Sidebar({ projectId }: { projectId?: string }) {
 
   const { user, fetchUser } = useAuthStore()
   const { fetchPathways } = usePathwayStore()
-  const { assembledModules } = useModulePathwayStore()
+  const { assembledModules, pathway } = useModulePathwayStore()
 
   // Fetch user + pathways on mount (deduped inside stores)
   useEffect(() => { fetchUser() }, [fetchUser])
   useEffect(() => { fetchPathways() }, [fetchPathways])
 
   // Build project items from assembled dynamic modules (or fallback)
+  // Only show dynamic modules after pathway is locked (active/complete), not during discovery
   const projectItems = useMemo(() => {
-    if (assembledModules.length === 0) return FALLBACK_PROJECT_ITEMS
+    const pathwayReady = pathway?.status === 'active' || pathway?.status === 'complete'
+    if (!pathwayReady || assembledModules.length === 0) return FALLBACK_PROJECT_ITEMS
 
     // Discovery is always first
     const items: Array<{ path: string; label: string; icon: string }> = [
