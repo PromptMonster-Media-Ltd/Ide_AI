@@ -251,8 +251,18 @@ async def build_system_prompt(
         if filled:
             parts.append(f"\nDesign sheet so far: {json.dumps(filled, indent=2)}")
 
-    parts.append("\nAfter your response, suggest 2-3 quick reply options the user might want to say next. Format them on the LAST line as: [CHIPS: option1 | option2 | option3]")
-    parts.append("IMPORTANT: The [CHIPS: ...] line is parsed by the frontend and shown as clickable buttons. Do NOT include it in your main message body. Place it ONLY on the very last line.")
+    parts.append("""
+QUICK REPLY CHIPS (MANDATORY — never skip this):
+When you ask a question, embed 2-3 specific answer options that directly answer YOUR question.
+Place them on the very last line in this exact format: [CHIPS: answer1 | answer2 | answer3]
+
+Rules for good chips:
+- Each chip must be a DIRECT, COMPLETE answer to the question you just asked
+- If you ask "Who is this for?" → [CHIPS: Small business owners | College students | Enterprise teams]
+- If you ask "What's the core problem?" → [CHIPS: People waste hours on manual data entry | Teams can't collaborate in real-time | No affordable option exists]
+- NEVER use vague chips like "Tell me more" or "Let's move on" — those are useless
+- Chips should be 3-10 words each — short enough to tap, specific enough to be a real answer
+- The [CHIPS: ...] line is hidden from the user and shown as clickable buttons. Do NOT include it in your visible message.""")
 
     return "\n".join(parts)
 
@@ -291,8 +301,12 @@ async def build_greeting_prompt(
     else:
         parts.append("\nNo project description was provided yet. Ask them to describe what they want to build.")
 
-    parts.append("\nAfter your response, suggest 2-3 quick reply options on the LAST line as: [CHIPS: option1 | option2 | option3]")
-    parts.append("Make chips inspirational and broad — help them explore directions.")
+    parts.append("""
+QUICK REPLY CHIPS (MANDATORY — never skip this):
+End your response with 2-3 specific answer options on the very last line.
+Format: [CHIPS: answer1 | answer2 | answer3]
+Each chip must directly answer the question you asked. Never use vague options like "Tell me more".
+Example: If you ask "What kind of product?" → [CHIPS: A marketplace connecting buyers and sellers | A productivity tool for remote teams | A social platform for hobbyists]""")
 
     return "\n".join(parts)
 
@@ -340,33 +354,57 @@ async def extract_sheet_fields(
         return {}
 
 
-_STAGE_FALLBACK_CHIPS: dict[str, list[str]] = {
-    "greeting": ["It's a web app for consumers", "It's a B2B SaaS tool", "It's a mobile-first experience"],
-    "problem": ["The biggest pain point is...", "People currently solve this by...", "Nobody has nailed this because..."],
-    "audience": ["My primary users are...", "They're frustrated because...", "The ideal customer looks like..."],
-    "features": ["The core feature is...", "Users need to be able to...", "The killer differentiator is..."],
-    "constraints": ["Budget is tight — under $500/mo", "I need to launch within 3 months", "It has to work on mobile"],
-    "confirm": ["This looks right, let's proceed", "I want to adjust the features", "Can we revisit the audience?"],
-}
-
-
 async def generate_quick_chips(ai_response: str, stage: str = "greeting") -> list[str]:
-    """Parse quick reply chips from AI response. Returns list of chip strings.
+    """Parse quick reply chips from AI response text.
 
-    Searches from the END of the response (chips are always last), handles
-    case-insensitive matching, and strips trailing punctuation/whitespace.
-    Falls back to stage-specific chips when AI doesn't include [CHIPS:].
+    Strategy:
+    1. Look for explicit [CHIPS: a | b | c] tag (preferred)
+    2. Fallback: extract options from the AI's own question (e.g. "X, Y, or Z?")
+    3. Last resort: generate answer-starters based on the question
     """
     import re
 
-    chips: list[str] = []
-    # Search from the end — chips are always the last line
+    # ── Strategy 1: Parse explicit [CHIPS:] tag ──
     for line in reversed(ai_response.split("\n")):
         stripped = line.strip()
-        # Case-insensitive match; also handle trailing punctuation after ]
         match = re.match(r"\[(?:CHIPS|chips|Chips):\s*(.*?)\]\s*[.!]?\s*$", stripped)
         if match:
             inner = match.group(1)
             chips = [c.strip().strip('"').strip("'") for c in inner.split("|") if c.strip()]
-            break
-    return chips or _STAGE_FALLBACK_CHIPS.get(stage, _STAGE_FALLBACK_CHIPS["greeting"])
+            if chips:
+                return chips
+
+    # ── Strategy 2: Extract options from "X, Y, or Z?" patterns ──
+    # Find the last question in the response
+    sentences = re.split(r'(?<=[.!?])\s+', ai_response.strip())
+    questions = [s for s in sentences if '?' in s]
+    if questions:
+        last_q = questions[-1]
+        # Match "A, B, or C" pattern
+        or_match = re.search(r'([\w\s\-\']+),\s+([\w\s\-\']+),?\s+or\s+([\w\s\-\']+)', last_q)
+        if or_match:
+            return [g.strip().capitalize() for g in or_match.groups() if g.strip()]
+
+    # ── Strategy 3: Generate answer-starters from the question ──
+    if questions:
+        last_q = questions[-1].strip().rstrip('?').lower()
+        if any(w in last_q for w in ['who', 'audience', 'user', 'customer']):
+            return ["Individual consumers", "Small businesses", "Enterprise teams"]
+        if any(w in last_q for w in ['what problem', 'pain point', 'challenge', 'struggle']):
+            return ["It's too slow and manual", "Existing tools are too expensive", "Nothing good exists yet"]
+        if any(w in last_q for w in ['how', 'currently', 'today', 'right now']):
+            return ["Spreadsheets and manual work", "Cobbled-together free tools", "Expensive enterprise software"]
+        if any(w in last_q for w in ['feature', 'must-have', 'capability', 'function']):
+            return ["Real-time collaboration", "Automated workflows", "Analytics and reporting"]
+        if any(w in last_q for w in ['budget', 'cost', 'spend', 'price']):
+            return ["Under $100/month", "$100-500/month", "Whatever it takes to do it right"]
+        if any(w in last_q for w in ['timeline', 'launch', 'deadline', 'when']):
+            return ["Within 1-2 months", "3-6 months", "No rush — quality first"]
+        if any(w in last_q for w in ['platform', 'device', 'where', 'deploy']):
+            return ["Web app (browser)", "Mobile app (iOS/Android)", "Desktop application"]
+        if any(w in last_q for w in ['tone', 'feel', 'vibe', 'style']):
+            return ["Professional and polished", "Casual and friendly", "Minimal and clean"]
+        # Generic but still useful answer-starters
+        return ["Yes, exactly", "Not quite — here's what I mean...", "I'm still figuring that out"]
+
+    return ["Yes, exactly", "Not quite — let me explain", "I have a different angle"]

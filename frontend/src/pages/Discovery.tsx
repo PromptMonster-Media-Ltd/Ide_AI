@@ -38,21 +38,8 @@ interface SheetData {
   confidence_score: number
 }
 
-const INITIAL_CHIPS = [
-  "It's a web app for consumers",
-  "It's a B2B SaaS tool",
-  "It's a mobile-first experience",
-]
-
-/** Stage-specific fallback chips — shown when AI doesn't generate chips */
-const STAGE_FALLBACK_CHIPS: Record<string, string[]> = {
-  greeting: ["It's a web app for consumers", "It's a B2B SaaS tool", "It's a mobile-first experience"],
-  problem: ["The biggest pain point is...", "People currently solve this by...", "Nobody has nailed this because..."],
-  audience: ["My primary users are...", "They're frustrated because...", "The ideal customer looks like..."],
-  features: ["The core feature is...", "Users need to be able to...", "The killer differentiator is..."],
-  constraints: ["Budget is tight — under $500/mo", "I need to launch within 3 months", "It has to work on mobile"],
-  confirm: ["This looks right, let's proceed", "I want to adjust the features", "Can we revisit the audience?"],
-}
+/** Initial chips shown before first AI response */
+const INITIAL_CHIPS: string[] = []
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
@@ -88,9 +75,8 @@ export function Discovery() {
         return ''
       })
       if (data.stage) setStage(data.stage)
-      // Always set chips — use backend chips, or stage-specific fallbacks
-      const fallback = STAGE_FALLBACK_CHIPS[data.stage || stage] || STAGE_FALLBACK_CHIPS.greeting
-      setChips(data.chips?.length ? data.chips : fallback)
+      // Use backend chips (which include smart fallbacks)
+      setChips(data.chips?.length ? data.chips : [])
     },
     onSheetUpdate: (sheetData) => {
       setSheet((prev) => ({ ...prev, ...sheetData } as SheetData))
