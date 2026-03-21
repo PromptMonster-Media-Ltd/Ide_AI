@@ -103,7 +103,7 @@ async def init_greeting(
         await db.commit()
 
         # Send completion event with chips
-        chips = await ai_service.generate_quick_chips(ai_text)
+        chips = await ai_service.generate_quick_chips(ai_text, stage=session.stage or "greeting")
         yield f"data: {json.dumps({'type': 'done', 'stage': session.stage, 'chips': chips})}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
@@ -184,7 +184,7 @@ async def send_message(
         await db.commit()
 
         # Send completion event
-        chips = await ai_service.generate_quick_chips(ai_text)
+        chips = await ai_service.generate_quick_chips(ai_text, stage=session.stage or "greeting")
         yield f"data: {json.dumps({'type': 'done', 'stage': session.stage, 'chips': chips})}\n\n"
 
         # Send sheet update if changed

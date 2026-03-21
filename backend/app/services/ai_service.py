@@ -340,11 +340,22 @@ async def extract_sheet_fields(
         return {}
 
 
-async def generate_quick_chips(ai_response: str) -> list[str]:
+_STAGE_FALLBACK_CHIPS: dict[str, list[str]] = {
+    "greeting": ["It's a web app for consumers", "It's a B2B SaaS tool", "It's a mobile-first experience"],
+    "problem": ["The biggest pain point is...", "People currently solve this by...", "Nobody has nailed this because..."],
+    "audience": ["My primary users are...", "They're frustrated because...", "The ideal customer looks like..."],
+    "features": ["The core feature is...", "Users need to be able to...", "The killer differentiator is..."],
+    "constraints": ["Budget is tight — under $500/mo", "I need to launch within 3 months", "It has to work on mobile"],
+    "confirm": ["This looks right, let's proceed", "I want to adjust the features", "Can we revisit the audience?"],
+}
+
+
+async def generate_quick_chips(ai_response: str, stage: str = "greeting") -> list[str]:
     """Parse quick reply chips from AI response. Returns list of chip strings.
 
     Searches from the END of the response (chips are always last), handles
     case-insensitive matching, and strips trailing punctuation/whitespace.
+    Falls back to stage-specific chips when AI doesn't include [CHIPS:].
     """
     import re
 
@@ -358,4 +369,4 @@ async def generate_quick_chips(ai_response: str) -> list[str]:
             inner = match.group(1)
             chips = [c.strip().strip('"').strip("'") for c in inner.split("|") if c.strip()]
             break
-    return chips or ["Tell me more", "Let's move on", "I'm not sure yet"]
+    return chips or _STAGE_FALLBACK_CHIPS.get(stage, _STAGE_FALLBACK_CHIPS["greeting"])

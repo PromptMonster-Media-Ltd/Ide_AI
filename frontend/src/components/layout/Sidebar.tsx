@@ -20,15 +20,9 @@ const NAV_ITEMS = [
   { path: '/settings', label: 'Settings', icon: '\u2699' },
 ]
 
-/** Hardcoded fallback project items — used when no dynamic modules assembled. */
-const FALLBACK_PROJECT_ITEMS = [
+/** Discovery-only item shown before pathway is locked */
+const DISCOVERY_ONLY = [
   { path: '/discovery', label: 'Discovery', icon: '\u{1F50D}' },
-  { path: '/blocks', label: 'Blocks', icon: '\u25EB' },
-  { path: '/pipeline', label: 'Pipeline', icon: '\u27E1' },
-  { path: '/market', label: 'Market', icon: '\u{1F4CA}' },
-  { path: '/sprints', label: 'Sprints', icon: '\u{1F3C3}' },
-  { path: '/exports', label: 'Exports', icon: '\u2197' },
-  { path: '/pitch', label: 'Pitch', icon: '\u{1F4C4}' },
 ]
 
 /** Maps module IDs from the 47-module library to existing page routes */
@@ -71,11 +65,14 @@ export function Sidebar({ projectId }: { projectId?: string }) {
   useEffect(() => { fetchUser() }, [fetchUser])
   useEffect(() => { fetchPathways() }, [fetchPathways])
 
-  // Build project items from assembled dynamic modules (or fallback)
-  // Only show dynamic modules after pathway is locked (active/complete), not during discovery
+  // Build project items from assembled dynamic modules
+  // During discovery (before PathwayReview locks the pathway), only show Discovery
   const projectItems = useMemo(() => {
     const pathwayReady = pathway?.status === 'active' || pathway?.status === 'complete'
-    if (!pathwayReady || assembledModules.length === 0) return FALLBACK_PROJECT_ITEMS
+    if (!pathwayReady || assembledModules.length === 0) {
+      // Pre-pathway: only Discovery visible
+      return DISCOVERY_ONLY
+    }
 
     // Discovery is always first
     const items: Array<{ path: string; label: string; icon: string }> = [
